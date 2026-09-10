@@ -1,0 +1,151 @@
+{
+  "date": "2026-09-10",
+  "authorization": "Rob: lets promot all the things we have done into production",
+  "files": [
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/domain/grid_inventory.gd",
+      "production": "Production/Current/domain/grid_inventory.gd",
+      "sha256": "b41f39b4c8d73757c326f16d09b3c392ca1f705514650f8942edfc87ad61ac75"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/domain/hex_map.gd",
+      "production": "Production/Current/domain/hex_map.gd",
+      "sha256": "0db948d7601fa02e44bae7d2db99f210dac5cdcdfaf5f6e68ffb751d35033328"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/domain/item_inspection.gd",
+      "production": "Production/Current/domain/item_inspection.gd",
+      "sha256": "e279a3610b4e7f479f601cb2da86b84e09d7f1a439f72f76df5983537cbf4f33"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/domain/map_world.gd",
+      "production": "Production/Current/domain/map_world.gd",
+      "sha256": "0f1a9b7366fc3891e93c910151ed5735eac683ae44b29fa873c96137eb90c16e"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/domain/movement_preview.gd",
+      "production": "Production/Current/domain/movement_preview.gd",
+      "sha256": "0874cd538a74ee198361a227fd50f633e0718109b6f7d660745e924d5e6af57a"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/gameplay/actors.gd",
+      "production": "Production/Current/gameplay/actors.gd",
+      "sha256": "82221212c606a55f7e7d5c2bc8ba9df96920fd02388b6fc5bca57d6cd622053f"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/gameplay/combat.gd",
+      "production": "Production/Current/gameplay/combat.gd",
+      "sha256": "63cb8c1c7774ff2af9416a296988f60d6bc498a6d3d731f47fe455e88e85894c"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/gameplay/cooldowns.gd",
+      "production": "Production/Current/gameplay/cooldowns.gd",
+      "sha256": "d5eb658ea3302dabc5d8c0958383a0827bc549cd7db23263780a8b8987863721"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/gameplay/die_slot.gd",
+      "production": "Production/Current/gameplay/die_slot.gd",
+      "sha256": "dbe1d31211831fe012ff2df7d0e940ee97cb1513d1d97b768c1dfa940a3909ba"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/gameplay/hex_board.gd",
+      "production": "Production/Current/gameplay/hex_board.gd",
+      "sha256": "6c68de749cb71253d688d5c5f37a7a08a82da836d3e12c295e76195dc5d33fa7"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/gameplay/inventory.gd",
+      "production": "Production/Current/gameplay/inventory.gd",
+      "sha256": "cdb1c031bd2b6dd067245b20908c1b15f9611f13ba4c760c21dc869c64783619"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/gameplay/items.gd",
+      "production": "Production/Current/gameplay/items.gd",
+      "sha256": "0ccff64ae68083e8535e5515924514b83a33f6b9460c32a140eea1bd45fc25da"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/gameplay/main.gd",
+      "production": "Production/Current/gameplay/main.gd",
+      "sha256": "9377d4c0c61b4780a1d1a5583e087e8db2748560d237ea784b7c1b06f7162655"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/splash/splash_art.gd",
+      "production": "Production/Current/splash/splash_art.gd",
+      "sha256": "0700eb6e3dcf8c92a27f267716ddc03d91bc23a8e24aac2e19522be901947daa"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/ui/bottom_hud.gd",
+      "production": "Production/Current/ui/bottom_hud.gd",
+      "sha256": "ce48d354139f2a6908b19ffc82af94d6ef709f202ca391425a7d4b705eeecca0"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/ui/drag_context.gd",
+      "production": "Production/Current/ui/drag_context.gd",
+      "sha256": "72b1814bf6d1c506b37ce28fbb7770dfc4360e71ca3b32b415f7c835b7711781"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/ui/inventory_grid.gd",
+      "production": "Production/Current/ui/inventory_grid.gd",
+      "sha256": "86300920f2a68d51c9cf93fed4d27021aa953c733af0938efa65e8cc8b5279a4"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/ui/item_art.gd",
+      "production": "Production/Current/ui/item_art.gd",
+      "sha256": "10d8f8db5c887e4fd02af2a348a227cdd37667891290fa3840e8060056e0dcba"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/ui/item_card.gd",
+      "production": "Production/Current/ui/item_card.gd",
+      "sha256": "74aa781d628f19a5dee48f601fd7904dacc6ff63d179429f511f534a4023f088"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/ui/item_icon.gd",
+      "production": "Production/Current/ui/item_icon.gd",
+      "sha256": "d5e9e7f5401c3dd0dd4a711310ccb12eaf4bc4c70dfc224fc86e678823fe6db5"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/ui/item_target.gd",
+      "production": "Production/Current/ui/item_target.gd",
+      "sha256": "2a15c39676558766f436af53afeffbe9166970ce6d5ed846ff9d803f657de12b"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/ui/main.tscn",
+      "production": "Production/Current/ui/main.tscn",
+      "sha256": "4a2d38c5a5efbc654be581ad610e5a29567d94814a48324aef1cb8a0129c5ce4"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/ui/navigation_rail.gd",
+      "production": "Production/Current/ui/navigation_rail.gd",
+      "sha256": "b5b7ce9a877f72b8cb0794881bf92c7d412b38ad55911eee88cbf36769b60487"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/ui/panel_host.gd",
+      "production": "Production/Current/ui/panel_host.gd",
+      "sha256": "257d7d9aefe88a78729ac70be58ebd90da3221709f0bde2df239433f3df227db"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/ui/ui_parts.gd",
+      "production": "Production/Current/ui/ui_parts.gd",
+      "sha256": "2073e8f18bb0c34565389525726db790b008bc607bc43e7e6756faf6706b26ce"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/ui/workshop_game.gd",
+      "production": "Production/Current/ui/workshop_game.gd",
+      "sha256": "33225b02a96ec38b6060af82b6f0d05c4d30cdbe04bd70e88dfcc04b36777e7e"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/ui/world_view.gd",
+      "production": "Production/Current/ui/world_view.gd",
+      "sha256": "9f7c629cf488563aee8f9bbd18fa0283e9b2cf083a759e0fc045306273031a7e"
+    },
+    {
+      "source": "Workshop/Rooms/UI Foundation/Prototype/art/items/bronze_sword.png",
+      "production": "Production/Current/art/items/bronze_sword.png",
+      "sha256": "92e5eb01d128002f1179a4f03ad03155a719629167c24209b0b79fda83ae8fd9"
+    },
+    {
+      "source": "Workshop/Chad-Casso/ground_prototype_02.png",
+      "production": "Production/Current/art/terrain/ground_prototype_02.png",
+      "sha256": "2c075becf19418790bbcc50f2f3375bce7324c686c43c28c543d7e55a14fb5cc"
+    }
+  ]
+}

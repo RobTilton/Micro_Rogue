@@ -1,6 +1,6 @@
 # System Descriptions
 Updated: 2026-09-09
 
-Empty library for the new project's runtime or delivery systems. Create a stable descriptive Markdown filename when a system needs a durable contract. Include purpose, ownership, entry points, inputs/outputs, invariants, source paths, validation and limits using [Documentation Format](../../Documentation_Format_README.md).
+- [Micro Rogue Production slice](MICRO_ROGUE_SLICE.md): runtime ownership, components, game rules, controls, test entry points and limits of the accepted proof.
 
-Use `FRAGILE_` only for a material coupling boundary; follow the [fragile documentation reference](../../AI_AGENTS_README/SHARED/Workflow_References/when_working_with_fragile_system_documentation.md). No existing project descriptions are included.
+System descriptions document architecture and current contracts; implementation establishes actual behavior. Follow [Documentation Format](../../Documentation_Format_README.md) for future descriptions. Use the FRAGILE_ prefix only when a material coupling boundary requires it.

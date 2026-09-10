@@ -1,0 +1,11 @@
+{
+  "Production/Gameplay/actors.gd": "c6a05e60d09b9030fc0258776038490dccb0bdc1d2ae13c3e6ce8b145da271de",
+  "Production/Gameplay/combat.gd": "586c5d4cf12b332e0693a76d5a6341b10c3323fc586307abc12b69c37db02661",
+  "Production/Gameplay/cooldowns.gd": "d5eb658ea3302dabc5d8c0958383a0827bc549cd7db23263780a8b8987863721",
+  "Production/Gameplay/die_slot.gd": "dbe1d31211831fe012ff2df7d0e940ee97cb1513d1d97b768c1dfa940a3909ba",
+  "Production/Gameplay/hex_board.gd": "1180a12ec34001b4dd4e773dbb934b7ef45902d026b0c8eb128521f296d71c86",
+  "Production/Gameplay/inventory.gd": "cdb1c031bd2b6dd067245b20908c1b15f9611f13ba4c760c21dc869c64783619",
+  "Production/Gameplay/items.gd": "d7d2b1452202848e3e44c7df7cb76aa47ac2dcd67be7ad76772e29fc4ea5c94d",
+  "Production/Gameplay/main.gd": "81819d8d651a567f3645dd4e91ac961dbe1e62182f8d5f7cff6f87375b758f32",
+  "Production/Splash/splash_art.gd": "cb7c769c92c695c58ff5e41c7d938616b8996a1902c22263795f8654df4c6332"
+}
