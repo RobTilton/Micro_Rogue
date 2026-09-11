@@ -1,0 +1,27 @@
+extends SceneTree
+const Items = preload("res://Workshop/Rooms/UI Foundation/Prototype/gameplay/items.gd")
+func _initialize() -> void: call_deferred("run")
+func run() -> void:
+	var game = load("res://Workshop/Rooms/UI Foundation/Prototype/ui/main.tscn").instantiate()
+	root.add_child(game)
+	game.dice_slots = [0,0,0,0,0,0,4,4,4,4,4,4]
+	game._start_run()
+	game.player.pos = Vector2i(0,20)
+	game._refresh()
+	for frame: int in range(3): await process_frame
+	game.board.focus_player()
+	var across := Vector2i(79,20)
+	assert(game.board.center(across).distance_to(game.board.center(game.player.pos)) < 56,"wrap_flow_test.gd: visual seam neighbors")
+	assert(game.board._cell_at(game.board.center(across)) == across,"wrap_flow_test.gd: seam hit test")
+	var potion: Dictionary = Items.potion()
+	game.loot.append({"item":potion,"pos":across})
+	game._transfer({"zone":"ground","id":potion.item_id},{"zone":"pickup"})
+	assert(game.loot.is_empty(),"wrap_flow_test.gd: seam pickup")
+	game._request_movement(across,true)
+	assert(game.player.pos == across,"wrap_flow_test.gd: seam movement")
+	game._enter_map()
+	assert(game.active_map.layer == "Local","wrap_flow_test.gd: wrapped region entry")
+	game._enter_map()
+	assert(game.player.pos == across and game.active_map.layer == "Global","wrap_flow_test.gd: wrapped return")
+	print("wrap_flow_test.gd: 6 checks passed")
+	quit()

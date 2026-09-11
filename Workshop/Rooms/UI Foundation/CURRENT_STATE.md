@@ -1,132 +1,33 @@
 # UI Foundation — Current State
+Updated: 2026-09-11
+Checkpoint: [UI Foundation]+[Organization]+[TileRoomHandoff]
+Implementation baseline/evidence: existing uncommitted Prototype; tile-transfer hashes in ../Tile Foundation/BASELINE.json. Documentation reconciliation only; runtime tests not rerun.
 
-## Global Terrain Travel Cost — 2026-09-10
-Checkpoint: [UI Foundation]+[World]+[TravelCosts]
-Rob specified global crossing multipliers: Mountains 3, Hills 2, Forest 1.5, Swamp/Marsh/Salt Marsh 2, Plains/Wasteland 1. Saltwater interpreted as Salt Marsh given oceans were explicitly deferred to later boat travel. Desert defaults to normal 1. Sea/Lakes retain prior provisional traversal (1) until water travel rules are defined; boats not implemented.
+## Rapid Shape
 
-`domain/travel_cost.gd` stores half-step integer units, avoiding per-hex rounding of forest costs. Dijkstra in movement_preview chooses minimum-cost routes within existing 3+DEX movement budget. Cost is paid for the entered tile, not the origin. Global preview displays terrain cost/budget. Local/POI movement remains cost 1; combat action allowance unchanged. This limits distance per movement command; it does not create a world-time simulation or additional out-of-combat action costs.
+UI Foundation retains the working interface/game prototype. Tile art direction and future tile planning now belong to [Tile Foundation](../Tile%20Foundation/CURRENT_STATE.md). The executable has not moved. Original notes are preserved under Reference/Before_Tile_Foundation_2026-09-11; they contain superseded state and are not normal recovery input.
 
-Validation: 12 targeted checks (multipliers, cheaper detour, forest fractions, range limit, local unaffected), plus map/UI/tile-choice regressions. Workshop only, F6. Island overlay and river work mentioned by Rob remain separate future inputs; no river generation or crossing mechanic claimed. Latest checkpoint complete; human travel playtest pending. No Production changes/deletion/commit.
+## Current Locations And Entry
 
+Open [Prototype/ui/main.tscn](Prototype/ui/main.tscn) in the repository root project and press F6 for this Workshop iteration. Prior promotion notes identify root F5 as Production/Current; earlier claims that F5 runs Workshop are superseded.
 
-## Marsh Artwork and Explicit Wetland Rules — 2026-09-10
-Checkpoint: [UI Foundation]+[World]+[Wetlands]
-Rob corrected the upload name to MARSH; Local_Map_Marsh.png integrated using seven explicit mud/reed/shallow-pool samples. Props/bridges/buildings unassigned. Marsh uses this artwork on Global and Local. Swamp temporarily uses Forest art and Salt Marsh uses Sea art/local water geometry until their own assets arrive; biome identities and labels are distinct.
+- ui/workshop_game.gd wires game state, panels, movement confirmation and map transitions.
+- ui/panel_host.gd owns movable/docked overlays; inventory_grid.gd and item_target.gd emit transfer intents.
+- domain/grid_inventory.gd owns atomic placement/ownership/action mutation; item_inspection.gd owns distance-limited disclosure.
+- domain/map_world.gd and hex_map.gd own persistent map identities and geometry; world_view.gd presents the active map.
+- gameplay/ and splash/ retain existing mechanics/creation; tests/ retains validation and captures.
 
-Rob's latest rules supersede previous proposed elevation/moisture restrictions for wetlands: base Plains adjacent to Sea or Lakes becomes Marsh; base Forest adjacent to Sea or Lakes becomes Swamp; base Plains with at least four Sea neighbors becomes Salt Marsh (takes priority over ordinary Marsh). Applied simultaneously against a snapshot after the noise classification, not cascading. Out-of-bounds cells do not count. Rob corrected Salt Marsh to Plains, not water: Sea and Lakes remain water. Child maps inherit resulting biome metadata. Local Salt Marsh uses sea water generation/dry entrance paths. Movement remains unchanged.
+Paths in this list are relative to Prototype/. [Tile component references](../Tile%20Foundation/CURRENT_STATE.md) own detailed rendering/generation recovery.
 
-Validation: 35 targeted wetland-rule checks, 867 deterministic biome checks, 270 water checks, 27 map checks pass (1,199). Godot Marsh capture inspected in tests/terrain_marsh.png. Workshop only, F6; Production unchanged. No image generation/deletion/commit. Latest checkpoint complete; human review and future Swamp/Salt Marsh art pending.
+## Current Map And Presentation Contracts
 
-Wasteland restriction clarification retained: FutureWasteland entirely barred; first Wasteland sheet usable except its roads; _02 fully usable including stone roads. Current selected ground samples comply.
+Global is 80×42 with horizontal wrap and blocked ice caps. Local dimensions range width×height 30×20 through 45×30; POIs are 18×14. Radius remains 32 with mouse panning. Map generation is lazy and state persists in the current run only. Player stats/equipment/HP/XP/cooldowns travel; inactive maps pause and retain enemies, loot and actions. Return coordinates are map-owned; water generation can relocate Local POIs, so old fixed-coordinate play instructions are not reliable for every generated map.
 
+Travel is explicit through Map/Activate at an entrance. Walls block movement and skill paths; normal movement, enemy routing, Lunge and Riposte use the common terrain rules. Inventory and distant inspection remain unchanged. Town is an exploration template; Dungeon/Tower use the existing encounter skeleton. Water traversal is provisional; boats/swimming and disk persistence are not implemented.
 
-## Wasteland Sheets — 2026-09-10
-Checkpoint: [UI Foundation]+[World]+[WastelandArt]
-Rob provided two usable Wasteland sheets and explicitly excluded the modern third. Runtime `ui/wasteland_art.gd` names only Local_Map_Wasteland_DO_NOT_USE_THE_ROADS.png and Local_Map_Wasteland_02.png. Six explicit ground samples include both sources, omit every road tile and avoid implied functional ruins/portals. Stable per-cell selection feeds world_view's local Wasteland rendering. POI badge priority is unchanged.
+Sword-only item art/cards and other-item placeholders are delivered. Floating panels were accepted as working by Rob; prior notes record acceptance of map persistence. Tile-menu and newer terrain visual acceptance are still pending. Ordinary hex outlines and perspective POI badges remain in runtime and conflict with the newly requested art target; recording the new style has not changed their rendering.
 
-DO_NOT_USE_FutureWasteland.png is preserved and has no runtime reference; it was not opened for visual inspection. Original sheets preserved. Godot editor import may maintain asset metadata for repository images; that is not runtime selection. No wildcard asset loading is used.
-
-Validation: actual Godot capture `Prototype/tests/terrain_wasteland.png` inspected: cracked ground and fantasy rock details, no modern roads. Presentation-only change; no gameplay mutations. Workshop F6, no Production promotion. Awaiting next swamp/marsh sheets. Latest checkpoint complete; human visual review pending.
-
-
-## Terrain Batch: Hills, Mountains, Water, Desert — 2026-09-10
-Checkpoint: [UI Foundation]+[World]+[TerrainBatch]
-Rob requested continued integration of new uploads, noted ocean/lake special handling, and supplied Desert. Workshop now samples Local_Map_Hills (two flatter first-row variants), Local_Map_Mountains (two flatter first-row variants), Local_Map_Desert (eight first-row variants), and Ocean_And_Lake_Tiles (three open-water variants each for sea/inland water). Existing Plains/Forest and POI artwork remain. Source PNGs preserved; no image generation.
-
-`domain/local_water.gd` deterministically generates water patches in Sea/Lakes local regions using noise seeded by world seed + region ID. Entrances and connecting dry paths are kept on land. Shoreline edges are computed from six neighboring hexes and drawn as narrow sandy/foam bands for sea and green banks for lakes. No edge is drawn between two water cells. Authored shoreline/feature tiles are reserved because this sheet does not provide a complete matching connection set. Water is still traversable; boat/swimming rules remain undefined. Not a claim of seamless art or hydrological simulation.
-
-Validation: 270 water checks (determinism, dry entrances, shoreline neighbor conditions), 27 map, 27 pan, 11 tile-choice checks pass. All five terrain preview captures generated in tests/terrain_*.png; sea/desert/mountains visually inspected. Wetlands discussed only: possible future moisture/elevation + neighboring-water pass, with swamp vs marsh vegetation; not implemented and no sheet loaded yet. Rotation/mirroring approved where appropriate; this batch keeps original orientation, shore geometry already follows all six edges.
-
-Workshop only: open Prototype/ui/main.tscn and F6. Root F5/Production unchanged. Latest checkpoint complete; next: human terrain review and integrate further supplied sheets. No deletion/commit/promotion.
-
-
-## Expanded Maps / Local Terrain / Panning — 2026-09-10
-Checkpoint: [UI Foundation]+[World]+[ExpandedMaps]
-Rob requested Local_Map_* integration, four-times maps, and mouse dragging; clarified ALL layers and unchanged tile size. Scope implemented in Workshop; F5 remains previous Production. Open Prototype/ui/main.tscn with F6.
-
-Dimensions doubled on each axis, yielding four times the prior cell count: Global 24×18 (432), Local 14×12 (168), POI 18×14 (252). Tile radius stays 32 logical pixels; auto-fit shrinking removed. No zoom was added because unchanged tile size satisfies the clarified choice. Existing entrance locations/encounter setup remain, so new area is exploration space, not additional generated POIs/enemies.
-
-World view handles left/middle drag panning on all layers. Seven-pixel threshold separates left-click release from dragging, avoiding movement or menu actions during a pan. Shift-click still bypasses confirmation. Per-map view offsets persist in memory through travel; first visit centers player. Map panel provides Center on player. Focus loss clears drag state. Panels and inventory retain their own input handling. Floor drawing filters offscreen cells, but enumeration still traverses the finite map; this is not chunk streaming. Map borders can be panned past; Center on player recovers the view.
-
-Local_Map_Plains.png and Local_Map_Forest.png provide eight first-row ground variants for matching region biomes, stable by region ID/cell. Other local biomes retain the prior ground fallback. Road and object rows are reserved; no new collision/road rules inferred from art. POI badges and black POI wall tiles remain. The source sheets are preserved and sampled via UVs.
-
-Validation: 27 pan/size checks (left and middle drags, no click on drag, correct hit after pan, per-map restoration, recenter and offscreen filtering across all layers), 867 biome checks and 163 map/UI/input regressions pass (1,057 checks this iteration). Forest rendering inspected in expanded_forest_region.png; that initial capture forced the forest variant and retains a mismatched random region title. Capture helper now selects an actual Forest region for future captures. Production untouched; human playtest pending; no deletion/commit.
-
-
-## Local POI Artwork — 2026-09-10
-Checkpoint: [UI Foundation]+[World]+[PoiBadges]
-User supplied `Workshop/Chad-Casso/POI_Overlay_Tiles.png` for local POI markers. `Prototype/ui/poi_art.gd` samples hex badges from the sheet: village for Town, stone doorway for Dungeon, ascending stairs for Tower. These are map symbols, not changes to interior wall rendering. The source has a painted background, so badge UVs crop the art within a hex rather than assuming transparent overlays. Unused cave/fort/castle/boat/descending-stairs artwork remains available without inventing new POI types.
-
-World view draws badges during the floor pass, beneath actors and loot; orange hex outline identifies entrances and hover tooltips name destinations. Return retains R; Global retains biome artwork. Transitions, Move/Loot/Look behavior and map identities are unchanged. Workshop only, F6 on Prototype/ui/main.tscn; F5 remains Production.
-
-Validation: 27 map and 11 tile-choice checks pass. Rendered local map inspected in `Prototype/tests/local_poi_badges.png`. Human visual acceptance pending. No image generation, asset rewriting, promotion or deletion.
-
-
-## Overworld Biomes — current Workshop iteration
-Updated: 2026-09-10
-Checkpoint: [UI Foundation]+[World]+[OverworldBiomes]
-Rob supplied `Workshop/Chad-Casso/OVERWORLD_TILES_BIOME.png` and requested noise-based global terrain. Implemented in Workshop only; Production/Current and root F5 remain the prior promoted baseline. Open `Prototype/ui/main.tscn` and press F6 for this iteration.
-
-Global maps now have 12×9 hexes. `domain/biome_generator.gd` combines three seeded FastNoiseLite fields: elevation, moisture and temperature. Sampling uses axial coordinates transformed into evenly spaced world coordinates. Elevation selects sea/mountains/hills; wet lowlands become lakes; moisture and warmth select forest/plains/desert/wasteland. Each new run picks a seed, shown in the Map panel. Passing the same seed to MapWorld reproduces the biome assignment. No disk save or seed-entry UI is included.
-
-The supplied sheet is sampled through inset hex UV coordinates for its eight named biomes. Only Global uses this artwork; local maps retain their existing visual template and inherit parent biome metadata for later local generation. Every global cell still opens its own local map. Water/mountains do not yet impose traversal rules; all biomes remain traversable. Global entry markers are suppressed to show terrain clearly; use Map/Activate at any global hex. The current global biome appears in Map. Board geometry and hit testing fit the map to available space; this is not streaming or large-world camera support.
-
-Validation: 219 biome checks pass (repeatable seed, different seeds, all cells assigned valid biomes, local metadata). Existing movement/maps/UI/input checks total 163 and pass. Godot render inspected at `Prototype/tests/overworld_biomes.png`; seed 1729 contains all eight biomes (18 plains, 6 wasteland, 25 hills, 11 mountains, 21 forest, 15 sea, 6 lakes, 6 desert). Not every random seed is guaranteed all biomes. No generation calls, new image edits, promotion, deletion or Git commit performed. Human playtest pending.
-
-
-## Promoted Current State — 2026-09-10
-Checkpoint: [UI Foundation]+[Delivery]+[ProductionPromotion]
-Rob confirmed map persistence works and requested promotion of all completed work, plus a Move/Loot/Look choice for dropped items on entrances. Implemented and promoted to `Production/Current`; root F5 launches that scene. Workshop remains available via its main.tscn and F6. This section supersedes earlier no-promotion, F5-Workshop, unfinished-ItemCards and image-export-loading notes below.
-
-Tile click choices preserve movement confirmation, range-limited loot and appearance-only distant Look; entrance travel remains exposed on the player's tile. Item cards retain sword-only art and text placeholders for other gear. No new artwork was generated. Both builds use imported texture resources. Previous Production Gameplay/Splash retained as earlier baseline.
-
-Validation: seven suites pass on each build (2,190 checks each: 2027 rules, 79 UI, 8 drag, 24 inspection, 14 floating, 27 maps, 11 tile choices). Production scene UID references were isolated from Workshop. Promoted launch script ownership and rendered menu verified in `Workshop/Tests/PromotedCurrent/production_tile_choices.png`. `Production/Current/PROMOTION.json` records promoted content hashes and origins. Persistence is in-memory only; no export artifact built. Human tile-menu playtest pending; prior persistence accepted. No Git commit/deletion.
-
-Updated: 2026-09-10
-Checkpoint: [UI Foundation]+[World]+[SharedMaps]
-Implementation baseline: isolated necessary copies of accepted Production scripts; 9 original script hashes in BASELINE.json remain unchanged. No Git checkpoint created.
-
-
-## Current Checkpoint: Shared Map System
-Updated: 2026-09-10
-Checkpoint: [UI Foundation]+[World]+[SharedMaps]
-Authorization: Rob approved global/local/POI shared grids, persistent round trips, black blocked hexes and existing combat integration: “I like it. Execute bro”. Workshop only; Production unchanged. Human playtest pending.
-
-- New characters start on a 5×5 Global grid. Every global cell links to its own lazily created 7×6 Local grid. Each local grid contains Dungeon, Town and Tower entries and a return link. POIs use 9×7 grids with solid black boundary/interior walls. Town is an empty exploration template; Dungeon/Tower have one existing slice enemy. This is a fixed content skeleton, not full world generation.
-- Move normally, then open the top-left Map control or Activate while standing on an orange entry marker. Press its entry/return button. Transitions are explicit; clicking a marker still uses movement confirmation. Return restores the prior map position. Labels identify destinations; markers use initial letters.
-- `Prototype/domain/hex_map.gd` owns common dimensions, axial cells, wall/walkability data and links. `map_world.gd` owns lazy map identities/templates and per-map runtime snapshots. `movement_preview.gd` uses optional map data for bounds and walls; default open-arena behavior remains for baseline fixtures. `world_view.gd` sizes/centers/input-tests the active grid; `hex_board.gd` draws its cells, black walls and actors. Rendering remains limited to these small maps and currently draws the full active map; no world streaming/culling claim.
-- `workshop_game.gd` owns map transitions and snapshots. Player stats/equipment/HP/XP/cooldowns travel with the player. Each map retains position, enemy, ground loot, battle flag, remaining actions and Riposte state in memory. Return does not respawn enemies, duplicate drops or reset actions. Travelling in combat costs activation; pending Lunge/Riposte movement must be finished/cancelled. Saved attack allowance is clamped against current equipment. Inactive maps pause. New run resets all maps; no disk save/load yet.
-- Normal movement, Riposte retreat, Lunge and enemy pathfinding respect the active map's walls. Lunge now uses a turning path up to its existing DEX range, optional attack with unchanged +1.5 STR, one Attack action and cooldown; normal Move is retained. This supersedes prior straight-line Lunge notes for Workshop only.
-- Validation: new map suite 27 checks; existing baseline 2027, UI 79, tile inspection 24, drag input 8, floating panels 14 all pass (2,179 total). Existing UI regression setup explicitly retains the original open-arena fixture; the map suite covers the new startup and integrations. Godot OpenGL capture inspected: `Prototype/tests/map_world.png`. New tests cover round trip, distinct local identities, town/tower, walls, curved Lunge, enemy movement, state/loot/action persistence, no free repeat escape and new-run reset.
-- Known inherited presentation limitation: floor/item PNGs currently load as Images directly; Godot warns export packaging needs imported resources. Editor/runtime tests pass. Item-card presentation remains its own unfinished checkpoint. No Git checkpoint or promotion performed.
-
-## Earlier Interface Reference (map notes above supersede arena-only descriptions)
-
-Plain wireframe ready for Rob's playtest inside the single repository Godot project. Production retains promoted work; Workshop scenes are development work in the same project. Root F5 now launches this UI without promoting it.
-
-Open [root project.godot](../../../project.godot) in Godot 4.4.1, then press F5. The first screen is splash/creation; the new UI starts in the arena. To run the promoted slice, open Production/Gameplay/main.tscn in the same editor and press F6. The nested project settings are retained as Prototype/project_settings.reference.cfg, not an active project.
-
-## Locations And Responsibilities
-
-All following paths are relative to Prototype/.
-
-| Location | Responsibility |
-|---|---|
-| `ui/workshop_game.gd` | Wires gameplay state to UI, handles intent, builds panel contents, routes transfers and movement confirmation |
-| `ui/navigation_rail.gd` | Nine rail positions; emits panel requests; map-layer placeholder |
-| `ui/panel_host.gd` | One overlay at a time, default/per-panel sizes, title dragging, edge docking and placement memory |
-| `ui/bottom_hud.gd` | Persistent HP/Mana, centered abilities/action counts, Activate/End Turn, Gold and contextual belt targets |
-| `ui/inventory_grid.gd` | 8×5 grid drawing, selection, drag source and placement preview; emits intent without mutating items |
-| `ui/item_target.gd`, `ui/drag_context.gd` | Equipment/pouch/drop targets and shared drag payload/rotation |
-| `ui/world_view.gd` | Centered hex board and path drawing; emits hex intent including Shift bypass |
-| `domain/item_inspection.gd` | Returns range-appropriate display data; distant snapshots omit item statistics and hidden details |
-| `domain/grid_inventory.gd` | Footprints, placement, validation and transactional ownership/action changes |
-| `domain/movement_preview.gd` | Reachable paths shared by preview and movement confirmation |
-| `gameplay/` | Room-local imported slice mechanics and creation flow; item generation adds stable instance IDs and pouch indices |
-| `splash/` | Necessary Room-local copy of splash art |
-| `tests/` | Rule/flow/input checks, capture helper and rendered wireframe images |
-
-The existing Production contract remains at [Micro Rogue slice](../../AI_Facing_Documentation/SYSTEMS_DESCRIPTIONS_FOR_AI/MICRO_ROGUE_SLICE.md). This Room does not replace that adopted contract.
+Current tile-choice follow-up: dropped-item tiles offer Move/Loot/Look while entrance travel remains available on the player’s tile. This delivered menu behavior supersedes earlier inspection-only wording below.
 
 ## UI Flow And Controls
 
@@ -150,52 +51,8 @@ Combat equipment/drop/belt transfers each cost one activation. Rearranging/rotat
 
 Prototype equipment supports sword main hand, shield offhand, offhand sword with Show-Off and an equipped main sword, armor and belt. Empty slots remain safe. Displaced items and belt contents are preserved. No enemy scavenging, stacking, auto-sorting or new equipment types were added.
 
-## Validation And Readiness
+## Evidence And Limits
 
-Godot 4.4.1: 2,027 imported baseline-rule checks, 79 UI/inventory/movement/flow checks and 8 native mouse/key input checks passed (2,114 total). Input checks drive actual drag gestures, automatic belt reveal, pouch drop/action cost, R rotation and grid placement. Full-window scene loading and rendered inventory/movement layouts were inspected. The headless input harness required an explicit 1440×900 window and normal input parsing; without those it supplied off-screen/incorrect mouse coordinates. Final input tests pass; these were validation-harness corrections.
+Prior promotion records report 2,190 checks per build for baseline/UI/input/inspection/panels/maps/tile choices. Latest biome/stripe notes report 33 terrain cases, 199 water checks, 78 river checks and 27 map checks. These are preserved reported results, not fresh runs. No gameplay code, assets or launch configuration changed in this reorganization.
 
-Run from the repository root, replacing `godot` with the local executable:
-
-```sh
-godot --headless --path . --script "Workshop/Rooms/UI Foundation/Prototype/tests/baseline_rules_test.gd"
-godot --headless --path . --script "Workshop/Rooms/UI Foundation/Prototype/tests/ui_foundation_test.gd"
-godot --headless --path . --script "Workshop/Rooms/UI Foundation/Prototype/tests/drag_input_test.gd"
-```
-
-Rendered captures are in `tests/wireframe_inventory.png` and `tests/wireframe_movement.png`; they show the layout before the final horizontal centering adjustment to the HUD controls. An optional refresh of those captures was not executed because automatic permission review timed out; final centering is covered by the passing scene/input checks, and earlier rendered captures are retained. Capture helper uses sample items only inside the test; it does not grant items in normal play. Linux validation engine/data remain under /tmp; no cleanup/deletion performed.
-
-Rob's visual/usability acceptance remains pending. This is a plain first wireframe, using abbreviations/tooltips instead of item art. Root canvas is 1440×900, shared by both Workshop and Production scenes. Rings, scrolls, throwables, Mana, Gold, map layers and Wisdom cooldown scaling remain deferred. Combat balance remains as accepted. Production promotion requires a subsequent approved scope after playtest.
-
-## Single-Project Integration
-
-Rob explicitly requested consolidation into the repository's single Godot project. All Room resources now use repository-root res://Workshop/Rooms/UI Foundation/Prototype/... paths. Both old nested project.godot files were renamed to project_settings.reference.cfg; content retained, not discarded. The original splash scene also resolves from the shared root. The root launcher selects this Workshop UI while Production remains the promoted baseline.
-
-After integration, all 2,114 UI/baseline/input checks passed from root, and both root F5 and the explicit Production scene passed headless startup. Exactly one project.godot remains. The Windows Godot project list was backed up and its obsolete nested Micro Rogue entry removed; unrelated registrations and the root registration were preserved. Backup/helper retained at /tmp/micro_rogue_projects_before.cfg and /tmp/consolidate_micro_rogue_registry.py. No Git commit or gameplay promotion occurred.
-
-## Tile Inspection Validation
-
-24 additional checks passed for distance-zero/one disclosure, distant-stat hiding, explicit visible traits, action-free inspection, per-item loot costs, remote/full-action refusal, empty piles, Shift movement, targeting precedence and stale-range refresh. Existing 2,114 checks also passed after this change (2,138 total). Current generated gear stores its unqualified visible appearance separately from the rarity-bearing name. Potion appearance is a glass bottle at range. Glow is displayed only from explicit visible_traits data; this does not introduce enchantment generation or a new LOS system. All current arena tiles are already visible in this slice.
-
-Run: `godot --headless --path . --script "Workshop/Rooms/UI Foundation/Prototype/tests/tile_inspection_test.gd"`.
-
-## Floating Panel Validation
-
-14 targeted checks passed for native title-bar dragging, release, unchanged actor/actions, per-panel memory, corner docking, resize anchoring, containment, undocking, closing and next-encounter persistence. The 8 item-drag, 79 UI/flow and 24 inspection checks also passed after the change (125 checks run for this follow-up). Production unchanged. Current behavior remains one open rail/context panel at a time; dock positions do not introduce new gameplay actions. Earlier screenshots retain the old connector appearance; current panel host no longer draws connectors.
-
-
-## Hex Floor Prototype — 2026-09-10
-Rob supplied `Workshop/Chad-Casso/first_two_rows_floor_prototype.png` for the agreed joined-floor test. Workshop world_view samples the first two rows through exact pointy-top hex polygons; source PNG is preserved, background and painted rims excluded by inset UV coordinates. Deterministic variations cover the current arena. Gameplay, actors and Production are unchanged. No image generation used. Squares migration remains on hold; path-based Lunge is agreed but not implemented by this presentation checkpoint.
-
-Validation: 79 UI checks pass; actual Godot OpenGL capture inspected at `Prototype/tests/floor_patch.png`. Joined geometry has no background gaps; texture-pattern discontinuities remain visible. Walls are not integrated. Source is loaded directly with Image for this Workshop prototype; export packaging needs imported texture resources before promotion. Item-card work remains a separate unfinished checkpoint.
-
-
-## Wall Art Decision — 2026-09-10
-Rob selected plain BLACK hexes for solid walls. Keep pure 2D overhead presentation and existing hex geometry: textured walkable floors, flat black wall cells, no raised brick faces or perspective. Additional wall sprite generation is unnecessary. This records the visual contract; the current open 7×7 arena has no terrain wall placement/collision system yet. Future wall cells must block player/enemy movement and skill travel through the same terrain rule; painting a floor black alone is not a functioning wall.
-
-
-## Ground Prototype 02 — 2026-09-10
-Current floor source is `Workshop/Chad-Casso/ground_prototype_02.png`. Only the seven individual FLOOR TILES examples are sampled, with inset UVs excluding labels/background. Wall artwork is unused: approved wall appearance remains flat black hexes in pure overhead 2D. Arena remains open; terrain wall placement/collision is not implemented. Rendered in Godot and inspected in `Prototype/tests/floor_patch_02.png`; prior capture/source retained. Texture transitions remain visible; this is a visual sample, not a seamless-texture claim. Production unchanged.
-
-
-## Hex Splash — 2026-09-10
-Workshop splash now uses a subdued joined pointy-top hex backdrop, hexagonal large O frame around the existing torchbearer, and a gold hex divider ornament. Pixel lettering and original Micro/Rogue arrangement retained. Pure code-native drawing; no generated imagery. Root startup passed Godot 4.4.1 headless; rendered capture inspected at `Prototype/tests/hex_splash.png`. Production unchanged; human visual acceptance pending.
+[DOTS](DOTS.md) records current traversal. [Tile handoff](../Tile%20Foundation/HANDOFF.md) carries the new work boundary. All old documents and outputs remain retained; no Git checkpoint or Production adoption occurred in this pass.

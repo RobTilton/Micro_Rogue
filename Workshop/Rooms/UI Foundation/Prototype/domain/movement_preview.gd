@@ -15,6 +15,7 @@ static func paths(origin: Vector2i, limit: int, blocked: Array, map = null) -> D
 		frontier.remove_at(best_index)
 		for direction: Vector2i in Combat.DIRECTIONS:
 			var next: Vector2i = cell + direction
+			if map != null: next = map.canonical(next)
 			if (not inside(next) if map == null else not map.walkable(next)) or next in blocked: continue
 			var cost: int = costs[cell]+Travel.units(map,next)
 			if cost > limit*2 or (costs.has(next) and costs[next] <= cost): continue

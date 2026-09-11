@@ -284,7 +284,7 @@ func _activate_panel(parent: Node) -> void:
 	Parts.label(parent,"Nearby",20)
 	var count: int = 0
 	for entry: Dictionary in loot:
-		if Combat.distance(player.pos,entry.pos) <= 1:
+		if _map_distance(player.pos,entry.pos) <= 1:
 			count += 1
 			Parts.button(parent,"Take " + entry.item.name,func(): _transfer({"zone":"ground","id":entry.item.item_id},{"zone":"pickup"}))
 	if count == 0: Parts.label(parent,"Nothing nearby to activate or collect.",16)
@@ -301,11 +301,11 @@ func _drink_potion(item_id: int) -> void:
 
 func _can_transfer(source: Dictionary, target: Dictionary) -> bool:
 	if not pending_weapon.is_empty(): return false
-	return Grid.transfer(player,loot,actions,battle,source,target,true).ok
+	return Grid.transfer(player,loot,actions,battle,source,target,true,active_map).ok
 
 func _transfer(source: Dictionary, target: Dictionary) -> void:
 	if not pending_weapon.is_empty(): _note("Finish or skip the Lunge attack first."); return
-	var result: Dictionary = Grid.transfer(player,loot,actions,battle,source,target)
+	var result: Dictionary = Grid.transfer(player,loot,actions,battle,source,target,false,active_map)
 	_note(result.reason)
 	if not result.ok: inspected_belt = -1 if Grid.belt_by_id(player,inspected_belt).is_empty() else inspected_belt
 	_refresh.call_deferred()
@@ -364,7 +364,7 @@ func _open_loot_tile(cell: Vector2i, looting: bool = true) -> void:
 	_refresh()
 
 func _look_panel(parent: Node) -> void:
-	var nearby: bool = Combat.distance(player.pos,inspected_cell) <= 1
+	var nearby: bool = _map_distance(player.pos,inspected_cell) <= 1
 	host.title.text = ("Loot" if nearby and inspection_looting else "Look") + " · " + str(inspected_cell)
 	_wrap(parent,"Within reach: inspect and take individual items." if nearby else "At a distance: visible appearance only. Move within one hex to see stats or take items.",450)
 	var found: int = 0
@@ -400,7 +400,7 @@ func _start_run() -> void:
 	round_number = 1
 	map_world = MapWorld.new(randi_range(1,2147480000))
 	active_map = map_world.maps.global
-	player.pos = Vector2i(2,2)
+	player.pos = active_map.spawn_cell
 	enemy = {"pos":Vector2i(-1,-1),"hp":0}
 	loot = []
 	battle = false
@@ -471,7 +471,7 @@ func _map_panel(parent: Node) -> void:
 	_wrap(parent,"Position %s · %d × %d hexes. Black hexes are blocked. Orange markers: L region, D dungeon, T town/tower, R return." % [player.pos,active_map.dimensions.x,active_map.dimensions.y])
 	_map_transition_button(parent)
 	if active_map.layer == "Global":
-		_wrap(parent,"Travel: mountains ×3; hills, swamp, marsh, salt marsh ×2; forest ×1.5; plains, wasteland, desert ×1. Costs apply when entering each hex. Water travel remains provisional; boats are not implemented.")
+		_wrap(parent,"World: 80 wide × 40 playable rows, ice caps north/south, east–west wrap.\nTravel: mountains ×3; hills, swamp, marsh, salt marsh ×2; forest ×1.5; plains, wasteland, desert ×1. Costs apply when entering each hex. Water travel remains provisional; boats are not implemented.")
 		return
 	for cell: Vector2i in active_map.links:
 		Parts.label(parent,"%s · %s" % [cell,active_map.links[cell].label],14)
@@ -511,7 +511,7 @@ func _open_tile_choices(cell: Vector2i) -> void:
 func _tile_panel(parent: Node) -> void:
 	var cell: Vector2i = inspected_cell
 	host.title.text = "Tile · " + str(cell)
-	var nearby: bool = Combat.distance(player.pos,cell) <= 1
+	var nearby: bool = _map_distance(player.pos,cell) <= 1
 	Parts.button(parent,"Move",func():
 		host.close()
 		mode = "move"
@@ -523,3 +523,6 @@ func _tile_panel(parent: Node) -> void:
 		_wrap(parent,"Entrance: " + active_map.links[cell].label)
 		if player.pos == cell: _map_transition_button(parent)
 		else: _wrap(parent,"Move onto the entrance to use it.")
+
+func _map_distance(a: Vector2i, b: Vector2i) -> int:
+	return active_map.distance(a,b) if active_map != null else Combat.distance(a,b)

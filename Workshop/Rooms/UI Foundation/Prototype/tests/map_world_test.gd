@@ -14,8 +14,9 @@ func run() -> void:
 	root.add_child(game)
 	game.dice_slots = [0,0,0,0,0,0,4,4,4,4,4,4]
 	game._start_run()
+	var spawn: Vector2i = game.player.pos
 	check(game.active_map.layer == "Global" and not game.battle,"global start")
-	check(game.active_map.links.size() == 432,"every global hex links to local")
+	check(game.active_map.links.size() == 3200,"every global hex links to local")
 	game._enter_map()
 	check(game.active_map.layer == "Local","enter region")
 	var local_id: String = game.active_map.id
@@ -62,8 +63,8 @@ func run() -> void:
 	game._enter_map()
 	game._request_movement(Vector2i(1,3),true)
 	game._enter_map()
-	check(game.active_map.layer == "Global" and game.player.pos == Vector2i(2,2),"full return trip")
-	game.player.pos = Vector2i(0,0)
+	check(game.active_map.layer == "Global" and game.player.pos == spawn,"full return trip")
+	game.player.pos = Vector2i(0,1)
 	game._enter_map()
 	check(game.active_map.id != local_id,"different world hex gets different local map")
 	game.player.pos = Vector2i(3,4)

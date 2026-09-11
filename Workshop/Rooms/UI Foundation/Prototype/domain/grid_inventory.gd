@@ -129,14 +129,14 @@ static func valid(actor: Dictionary, ground: Array) -> bool:
 		if not _validate_item(entry.item,seen): return false
 	return true
 
-static func transfer(actor: Dictionary, ground: Array, actions: Dictionary, battle: bool, source: Dictionary, target: Dictionary, preview: bool = false) -> Dictionary:
+static func transfer(actor: Dictionary, ground: Array, actions: Dictionary, battle: bool, source: Dictionary, target: Dictionary, preview: bool = false, map = null) -> Dictionary:
 	if not valid(actor,ground): return {"ok":false,"reason":"Inventory state is invalid; transfer refused."}
 	if actor.hp <= 0: return {"ok":false,"reason":"This adventurer cannot act."}
 	if source == target: return {"ok":false,"reason":"Item is already there."}
 	if source.get("zone") == "ground":
 		var near: bool = false
 		for entry: Dictionary in ground:
-			if entry.item.item_id == source.get("id") and Combat.distance(actor.pos,entry.pos) <= 1: near = true
+			if entry.item.item_id == source.get("id") and (Combat.distance(actor.pos,entry.pos) if map == null else map.distance(actor.pos,entry.pos)) <= 1: near = true
 		if not near: return {"ok":false,"reason":"Move adjacent to that item first."}
 		if target.get("zone") in ["equipment","ground"]: return {"ok":false,"reason":"Pick up the item before equipping or dropping it."}
 	var planned: Dictionary = actor.duplicate(true)

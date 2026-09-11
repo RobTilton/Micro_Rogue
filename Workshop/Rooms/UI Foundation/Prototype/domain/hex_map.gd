@@ -1,5 +1,9 @@
 extends RefCounted
 ## Shared axial grid data for every map scale. No rendering or actor ownership.
+const DIRECTIONS: Array[Vector2i] = [Vector2i(1,0),Vector2i(1,-1),Vector2i(0,-1),Vector2i(-1,0),Vector2i(-1,1),Vector2i(0,1)]
+var wrap_horizontal: bool = false
+var continents: Dictionary = {}
+var spawn_cell: Vector2i = Vector2i(2,2)
 var id: String
 var title: String
 var layer: String
@@ -7,6 +11,9 @@ var dimensions: Vector2i
 var walls: Array = []
 var view_offset: Vector2 = Vector2.ZERO
 var view_initialized: bool = false
+var rivers: Dictionary = {}
+var elevations: Dictionary = {}
+var river_routes: Array = []
 var water_cells: Dictionary = {}
 var biomes: Dictionary = {}
 var region_biome: String = ""
@@ -25,3 +32,18 @@ func cells() -> Array:
 	for q: int in range(dimensions.x):
 		for r: int in range(dimensions.y): result.append(Vector2i(q,r))
 	return result
+
+func canonical(cell: Vector2i) -> Vector2i:
+	return Vector2i(posmod(cell.x,dimensions.x),cell.y) if wrap_horizontal else cell
+func neighbors(cell: Vector2i) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	for direction: Vector2i in DIRECTIONS:
+		var next: Vector2i = canonical(cell+direction)
+		if contains(next): result.append(next)
+	return result
+func distance(a: Vector2i, b: Vector2i) -> int:
+	var best: int = 2147483647
+	for shift: int in ([-dimensions.x,0,dimensions.x] if wrap_horizontal else [0]):
+		var delta: Vector2i = a-b-Vector2i(shift,0)
+		best = mini(best,maxi(absi(delta.x),maxi(absi(delta.y),absi(delta.x+delta.y))))
+	return best

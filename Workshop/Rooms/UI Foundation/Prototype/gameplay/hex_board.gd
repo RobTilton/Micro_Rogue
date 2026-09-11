@@ -33,11 +33,12 @@ func _draw() -> void:
 		for corner: int in range(6):
 			points.append(center(cell) + Vector2.from_angle(deg_to_rad(60 * corner - 30)) * cell_radius())
 		if map_data != null and not map_data.walkable(cell):
-			draw_colored_polygon(points, Color.BLACK)
+			draw_colored_polygon(points, wall_color(cell))
 		else:
 			_draw_floor(cell, points)
 			points.append(points[0])
 			draw_polyline(points, Color("53606a"), 1.0)
+	_draw_overlays()
 	for loot_cell: Vector2i in loot_cells:
 		if (inside(loot_cell) if map_data == null else map_data.contains(loot_cell)): draw_rect(Rect2(center(loot_cell) + Vector2(10, 8), Vector2(12,10)), Color("d99245"))
 	_draw_actor(player_cell, Color("82c6bd"))
@@ -51,3 +52,9 @@ func _draw_actor(cell: Vector2i, color: Color) -> void:
 
 func _draw_floor(cell: Vector2i, points: PackedVector2Array) -> void:
 	draw_colored_polygon(points, Color("354847") if cell in highlights else Color("202b36"))
+
+func wall_color(_cell: Vector2i) -> Color:
+	return Color.BLACK
+
+func _draw_overlays() -> void:
+	pass

@@ -1,6 +1,6 @@
 extends RefCounted
 ## Deterministic terrain classification in world-space axial coordinates.
-const NAMES: Array[String] = ["Forest","Plains","Hills","Mountains","Sea","Lakes","Desert","Wasteland","Marsh","Swamp","Salt Marsh"]
+const NAMES: Array[String] = ["Forest","Plains","Hills","Mountains","Sea","Lakes","Desert","Wasteland","Marsh","Swamp","Salt Marsh","Ice Wall"]
 static func noise(seed_value: int, frequency: float) -> FastNoiseLite:
 	var field: FastNoiseLite = FastNoiseLite.new()
 	field.seed = seed_value
@@ -34,7 +34,7 @@ static func apply_wetlands(map) -> void:
 		var water_neighbors: int = 0
 		var ocean_neighbors: int = 0
 		for direction: Vector2i in directions:
-			var neighbor: String = original.get(cell+direction,"")
+			var neighbor: String = original.get(map.canonical(cell+direction),"")
 			if neighbor in ["Sea","Lakes"]: water_neighbors += 1
 			if neighbor == "Sea": ocean_neighbors += 1
 		if original[cell] == "Plains" and ocean_neighbors >= 4:

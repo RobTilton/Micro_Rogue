@@ -16,9 +16,9 @@ func mouse(view, position: Vector2, pressed: bool, index: int = MOUSE_BUTTON_LEF
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var world = World.new(1729)
-	check(world.maps.global.dimensions == Vector2i(24,18),"global quadrupled")
+	check(world.maps.global.dimensions == Vector2i(80,42),"global quadrupled")
 	var region = world.resolve(world.maps.global.links[Vector2i(2,2)])
-	check(region.dimensions == Vector2i(14,12) and region.cells().size() == 168,"four times local area")
+	check(region.dimensions.x*2 == region.dimensions.y*3,"local ratio")
 	check(world.resolve(region.links[Vector2i(4,2)]).dimensions == Vector2i(18,14),"POI quadrupled")
 	for layer: String in ["Global","Local","POI"]:
 		var view = View.new()

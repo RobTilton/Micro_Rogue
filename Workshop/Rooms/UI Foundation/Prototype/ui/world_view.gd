@@ -6,6 +6,7 @@ var pan_button: int = 0
 var press_position: Vector2
 var press_offset: Vector2
 var dragged: bool = false
+const Variation = preload("res://Workshop/Rooms/UI Foundation/Prototype/ui/terrain_variation.gd")
 const DRAG_THRESHOLD: float = 7.0
 const WastelandArt = preload("res://Workshop/Rooms/UI Foundation/Prototype/ui/wasteland_art.gd")
 var wasteland_textures: Array[Texture2D] = []
@@ -18,6 +19,8 @@ const Biomes = preload("res://Workshop/Rooms/UI Foundation/Prototype/domain/biom
 const PoiArt = preload("res://Workshop/Rooms/UI Foundation/Prototype/ui/poi_art.gd")
 var poi_texture: Texture2D
 var biome_texture: Texture2D
+const RiverArt = preload("res://Workshop/Rooms/UI Foundation/Prototype/ui/river_art.gd")
+var river_texture: Texture2D
 var floor_texture: Texture2D
 const FLOOR_SHEET: String = "res://Workshop/Chad-Casso/ground_prototype_02.png"
 func _ready() -> void:
@@ -25,6 +28,7 @@ func _ready() -> void:
 	if map_data != null: pan_offset = map_data.view_offset
 	_initialize_view.call_deferred()
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	river_texture = load(RiverArt.SHEET) as Texture2D
 	floor_texture = load(FLOOR_SHEET) as Texture2D
 	marsh_texture = load(MarshArt.SHEET) as Texture2D
 	for path: String in WastelandArt.SHEETS: wasteland_textures.append(load(path) as Texture2D)
@@ -39,7 +43,11 @@ func center(cell: Vector2i) -> Vector2:
 	var radius: float = cell_radius()
 	var extent: Vector2i = map_data.dimensions if map_data != null else Vector2i(7,7)
 	var bounds: Vector2 = Vector2(radius*sqrt(3.0)*(extent.x+(extent.y-1)*0.5),radius*(1.5*(extent.y-1)+2))
-	return pan_offset + (size-bounds)*0.5 + Vector2(radius*sqrt(3.0)*(0.5+cell.x+cell.y*0.5),radius+radius*1.5*cell.y)
+	var point: Vector2 = pan_offset + (size-bounds)*0.5 + Vector2(radius*sqrt(3.0)*(0.5+cell.x+cell.y*0.5),radius+radius*1.5*cell.y)
+	if map_data != null and map_data.wrap_horizontal:
+		var period: float = radius*sqrt(3.0)*extent.x
+		point.x += round((size.x*0.5-point.x)/period)*period
+	return point
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index in [MOUSE_BUTTON_LEFT,MOUSE_BUTTON_MIDDLE]:
 		if event.pressed:
@@ -119,7 +127,7 @@ func _draw() -> void:
 			if map_data.layer == "Global": continue
 			if map_data.layer == "Local" and PoiArt.supports(map_data.links[cell].kind): continue
 			draw_arc(center(cell), 20, 0, TAU, 6, Color("d99245"), 2)
-			var label: String = map_data.links[cell].kind.left(1)
+			var label: String = "IS" if map_data.links[cell].kind == "Island" else map_data.links[cell].kind.left(1)
 			draw_string(ThemeDB.fallback_font,center(cell)+Vector2(-5,6),label,HORIZONTAL_ALIGNMENT_LEFT,-1,16,Color("f5d879"))
 	var last: Vector2 = center(player_cell)
 	for cell: Vector2i in preview_path:
@@ -132,20 +140,18 @@ func _draw_floor(cell: Vector2i, _points: PackedVector2Array) -> void:
 	if map_data != null and map_data.layer == "Local" and map_data.links.has(cell) and PoiArt.supports(map_data.links[cell].kind):
 		PoiArt.draw_badge(self,poi_texture,map_data.links[cell].kind,center(cell),cell_radius()-2)
 		return
-	if map_data != null and map_data.layer == "Local" and map_data.region_biome == "Wasteland":
-		_draw_wasteland(cell)
+	if map_data != null and map_data.layer == "Local":
+		var terrain: String = map_data.biomes.get(cell,map_data.region_biome)
+		if map_data.water_cells.has(cell): _draw_water(cell)
+		elif terrain == "Wasteland": _draw_wasteland(cell)
+		elif terrain == "Marsh": MarshArt.draw_tile(self,marsh_texture,cell,center(cell),cell_radius())
+		else: _draw_local_floor(cell,terrain)
 		return
-	if map_data != null and ((map_data.layer == "Local" and map_data.region_biome == "Marsh") or map_data.biomes.get(cell,"") == "Marsh"):
+	if map_data != null and map_data.biomes.get(cell,"") == "Marsh":
 		MarshArt.draw_tile(self,marsh_texture,cell,center(cell),cell_radius())
-		return
-	if map_data != null and map_data.water_cells.has(cell):
-		_draw_water(cell)
 		return
 	if map_data != null and map_data.biomes.has(cell):
 		_draw_biome(cell)
-		return
-	if map_data != null and map_data.layer == "Local" and (map_data.region_biome == "Swamp" or local_textures.has(map_data.region_biome) or map_data.region_biome in ["Sea","Lakes","Salt Marsh"]):
-		_draw_local_floor(cell)
 		return
 	if floor_texture == null:
 		super._draw_floor(cell, _points)
@@ -177,11 +183,12 @@ func _draw_biome(cell: Vector2i) -> void:
 	draw_polygon(points,PackedColorArray([Color.WHITE]),uvs,biome_texture)
 	if cell in highlights: draw_colored_polygon(points,Color(0.8,0.9,1.0,0.12))
 
-func _draw_local_floor(cell: Vector2i) -> void:
-	var biome: String = "Forest" if map_data.region_biome == "Swamp" else "Plains" if map_data.region_biome in ["Sea","Lakes","Salt Marsh"] else map_data.region_biome
+func _draw_local_floor(cell: Vector2i, terrain: String) -> void:
+	var biome: String = "Forest" if terrain == "Swamp" else "Plains" if terrain in ["Sea","Lakes","Salt Marsh"] else terrain
+	if not local_textures.has(biome): biome = "Plains"
 	var texture: Texture2D = local_textures[biome]
 	# First row contains eight base-ground variations; road/decor rows are reserved.
-	var variant: int = posmod(cell.x*3+cell.y*5+int(map_data.id.hash()),8)
+	var variant: int = Variation.index(cell,map_data.id,8)
 	var source: Vector2 = Vector2(105+variant*190,104) if biome == "Forest" else Vector2(117+variant*177.5,112)
 	if biome == "Desert": source = Vector2(121+variant*190,110)
 	if biome == "Hills": source = Vector2(114+(variant%2)*187,127)
@@ -200,21 +207,16 @@ func _draw_local_floor(cell: Vector2i) -> void:
 
 func _draw_water(cell: Vector2i) -> void:
 	var ocean: bool = map_data.region_biome in ["Sea","Salt Marsh"]
-	var variant: int = posmod(cell.x+cell.y*3,3)
+	var variant: int = 1 # Consistent palette; vary orientation to break repeated wave motifs.
+	var rotation: int = Variation.index(cell,map_data.id,6,71)
 	var source: Vector2 = Vector2(106+variant*152,322 if ocean else 716)
-	var offsets: Array[Vector2] = [Vector2(62,-34),Vector2(62,34),Vector2(0,69),Vector2(-62,34),Vector2(-62,-34),Vector2(0,-69)]
+	var offsets: Array[Vector2] = [Vector2(22,-12),Vector2(22,12),Vector2(0,24),Vector2(-22,12),Vector2(-22,-12),Vector2(0,-24)]
 	var points: PackedVector2Array = []
 	var uvs: PackedVector2Array = []
 	for corner: int in range(6):
 		points.append(center(cell)+Vector2.from_angle(deg_to_rad(60*corner-30))*cell_radius())
-		uvs.append((source+offsets[corner])/water_texture.get_size())
+		uvs.append((source+offsets[(corner+rotation)%6])/water_texture.get_size())
 	draw_polygon(points,PackedColorArray([Color.WHITE]),uvs,water_texture)
-	for edge: int in Water.shore_edges(map_data,cell):
-		var first: Vector2 = points[posmod(-edge,6)]
-		var second: Vector2 = points[posmod(1-edge,6)]
-		var inset: Vector2 = (center(cell)-(first+second)*0.5).normalized()*4
-		draw_colored_polygon(PackedVector2Array([first,second,second+inset,first+inset]),Color("c2aa71") if ocean else Color("688151"))
-		draw_line(first+inset,second+inset,Color("b1d8da") if ocean else Color("547d89"),1)
 	if cell in highlights: draw_colored_polygon(points,Color(0.8,0.9,1,0.12))
 
 func _draw_wasteland(cell: Vector2i) -> void:
@@ -229,3 +231,10 @@ func _draw_wasteland(cell: Vector2i) -> void:
 		uvs.append((source+offsets[corner])/texture.get_size())
 	draw_polygon(points,PackedColorArray([Color.WHITE]),uvs,texture)
 	if cell in highlights: draw_colored_polygon(points,Color(0.8,0.9,1,0.12))
+
+func wall_color(cell: Vector2i) -> Color:
+	if map_data != null and map_data.biomes.get(cell,"") == "Ice Wall": return Color("bfdce7")
+	return Color.BLACK
+
+func _draw_overlays() -> void:
+	if map_data != null: RiverArt.draw_rivers(self,river_texture,map_data)
