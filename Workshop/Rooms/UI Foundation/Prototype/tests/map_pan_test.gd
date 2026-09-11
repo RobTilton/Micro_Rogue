@@ -19,7 +19,7 @@ func run() -> void:
 	check(world.maps.global.dimensions == Vector2i(80,42),"global quadrupled")
 	var region = world.resolve(world.maps.global.links[Vector2i(2,2)])
 	check(region.dimensions.x*2 == region.dimensions.y*3,"local ratio")
-	check(world.resolve(region.links[Vector2i(4,2)]).dimensions == Vector2i(18,14),"POI quadrupled")
+	check(world.resolve(region.links[poi_cell(region,"Dungeon")]).dimensions == Vector2i(18,14),"POI quadrupled")
 	for layer: String in ["Global","Local","POI"]:
 		var view = View.new()
 		view.size = Vector2(800,500)
@@ -62,3 +62,9 @@ func run() -> void:
 		await process_frame
 	print("tests/map_pan_test.gd: %d checks passed" % checks)
 	quit()
+
+func poi_cell(map, kind: String) -> Vector2i:
+	for cell: Vector2i in map.links:
+		if map.links[cell].kind == kind: return cell
+	assert(false, "Workshop/Rooms/UI Foundation/Prototype/tests/map_pan_test.gd: missing POI " + kind)
+	return Vector2i(-1,-1)

@@ -1,7 +1,7 @@
 # UI Foundation — Current State
 Updated: 2026-09-11
-Checkpoint: [UI Foundation]+[Organization]+[TileRoomHandoff]
-Implementation baseline/evidence: existing uncommitted Prototype; tile-transfer hashes in ../Tile Foundation/BASELINE.json. Documentation reconciliation only; runtime tests not rerun.
+Checkpoint: [UI Foundation]+[World]+[LocalPoiSpacing]
+Implementation baseline/evidence: existing uncommitted Prototype; tile-transfer hashes in ../Tile Foundation/BASELINE.json. Local POI implementation and focused Godot validation completed; see Local POI Spacing below.
 
 ## Rapid Shape
 
@@ -18,6 +18,12 @@ Open [Prototype/ui/main.tscn](Prototype/ui/main.tscn) in the repository root pro
 - gameplay/ and splash/ retain existing mechanics/creation; tests/ retains validation and captures.
 
 Paths in this list are relative to Prototype/. [Tile component references](../Tile%20Foundation/CURRENT_STATE.md) own detailed rendering/generation recovery.
+
+## Local POI Spacing
+
+Checkpoint: [UI Foundation]+[World]+[LocalPoiSpacing] — implementation complete; Rob's exploration review pending. `Prototype/domain/local_poi_placement.gd` distributes one Dungeon, Town and Tower across existing dry walkable Local cells after water generation and before terrain/rivers. It reserves Return at (1,3) and any lake-island Tower, then samples seeded positions within 80% of the best minimum distance to reserved entrances. No land is carved. Each moved link retains its identity and updates its return coordinate. Maps persist in-run; start a new run or visit an ungenerated Local region for new placements. Number/types of POIs and enemy/loot rules are unchanged.
+
+Godot 4.4.1 validation: 5,560 placement checks across 264 biome/seed cases passed (dry distinct destinations, six-hex separation in sampled cases, determinism, unchanged water/island Towers, stable revisit and visit-order behavior). Map travel/persistence 27, tile choices 11 and panning 27 passed; lake basin checks passed across 40 seeds. Existing fixed-coordinate test fixtures now discover entrances by kind. The six-hex observed minimum is not a hard guarantee on future constrained maps. No rendered spacing capture or human visual acceptance claimed.
 
 ## Current Map And Presentation Contracts
 
@@ -56,3 +62,9 @@ Prototype equipment supports sword main hand, shield offhand, offhand sword with
 Prior promotion records report 2,190 checks per build for baseline/UI/input/inspection/panels/maps/tile choices. Latest biome/stripe notes report 33 terrain cases, 199 water checks, 78 river checks and 27 map checks. These are preserved reported results, not fresh runs. No gameplay code, assets or launch configuration changed in this reorganization.
 
 [DOTS](DOTS.md) records current traversal. [Tile handoff](../Tile%20Foundation/HANDOFF.md) carries the new work boundary. All old documents and outputs remain retained; no Git checkpoint or Production adoption occurred in this pass.
+
+Current generation reference: [How the Game Is Generated Now](GAME_GENERATION.md) explains the active Workshop world/Local/POI pipeline, encounter and item randomness, persistence and unimplemented systems. Checkpoint [UI Foundation]+[Documentation]+[GenerationReference] complete; documentation-only inspection, no fresh runtime tests.
+
+## Actor Foundation Consumer
+
+[Actor Foundation](../Actor%20Foundation/CURRENT_STATE.md) is the new actor-enabled Workshop scene. It reuses this Room’s interface and map generation, with a `_make_board()` factory hook added to ui/workshop_game.gd. Its registry/action service replaces single-enemy snapshots for that scene only. Current actors/pursuit/turn timing are documented there; the earlier single-enemy descriptions above still describe this Room’s own scene. Existing baseline/UI/drag/panel checks passed after the hook. No Production promotion.

@@ -69,6 +69,7 @@ static func _generate_lake(map, seed_value: int) -> void:
 				var link: Dictionary = map.links[entrance]
 				map.links.erase(entrance)
 				link.return_cell = island
+				link.island = true
 				map.links[island] = link
 				break
 	# Retain only the central connected body; discard detached shore puddles.

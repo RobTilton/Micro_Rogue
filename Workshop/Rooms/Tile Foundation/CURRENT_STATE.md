@@ -18,7 +18,7 @@ All implementation links below remain in UI Foundation; no copies or changed res
 | [poi_art.gd](../UI%20Foundation/Prototype/ui/poi_art.gd) | Crops Town/Dungeon/Tower from POI_Overlay_Tiles.png and adds an orange hex outline. Current art has side faces and a scenic base. |
 | [terrain_variation.gd](../UI%20Foundation/Prototype/ui/terrain_variation.gd) | Deterministic variant selection for ordinary Local ground and wetland/wasteland helpers. |
 | [river_art.gd](../UI%20Foundation/Prototype/ui/river_art.gd) | Samples River_Water_Texture.png for edge strips. Rivers are landscape features; distinguish their banks from unwanted tile borders. |
-| [map_world.gd](../UI%20Foundation/Prototype/domain/map_world.gd) | Creates Global immediately, Local/POI lazily; Local generation runs water, terrain, then rivers. In-run map identity persists. |
+| [map_world.gd](../UI%20Foundation/Prototype/domain/map_world.gd) | Creates Global immediately, Local/POI lazily; Local generation runs water, POI spacing, terrain, then rivers. In-run map identity persists. |
 | [hex_map.gd](../UI%20Foundation/Prototype/domain/hex_map.gd) | Coordinate, wrap, wall, terrain and link data shared by gameplay and rendering. |
 | [local_water.gd](../UI%20Foundation/Prototype/domain/local_water.gd) | Lake basins/islands and other biome water shapes; entrance placement. |
 | [local_terrain.gd](../UI%20Foundation/Prototype/domain/local_terrain.gd) | Seeded regional terrain and stored elevation. |
@@ -47,3 +47,9 @@ Next: review the per-set requirements and copyable request below. Producing/inte
 ## Tile Set Request Package
 
 Checkpoint: [Tile Foundation]+[Delivery]+[TileRequirements] — complete. Rob requested requirements for each used set and a reusable Chad-Casso template. [Tile set requirements](TILE_SET_REQUIREMENTS.md) covers all 13 loaded source sheets, separates unused Swamp/Salt Marsh files from current fallbacks, and defines proposed ground/overlay/river delivery profiles. [Request template](CHAD_CASSO_REQUEST_TEMPLATE.md) includes a copyable Lake request. Checked source coverage and document links; no images generated, messages sent or runtime changes made. Final style approval remains pending; the guide is the working specification.
+
+## Runtime Dependency Update: Local POI Spacing
+
+The separately authorized [UI Foundation LocalPoiSpacing](../UI%20Foundation/CURRENT_STATE.md) now runs `local_poi_placement.gd` between water and terrain generation. Return/island Towers stay fixed; other destinations spread over dry cells with seeded choices and updated return coordinates. `local_water.gd` marks island Tower links with `island: true`. This changes the earlier BASELINE.json implementation snapshot; it remains historical transfer evidence, not the current runtime hash set. No tile artwork changed. Focused checks and scope are owned by UI Foundation DOTS/current state.
+
+For the full active runtime generation sequence, see [How the Game Is Generated Now](../UI%20Foundation/GAME_GENERATION.md), owned by UI Foundation.

@@ -5,6 +5,7 @@ const Continents = preload("res://Workshop/Rooms/UI Foundation/Prototype/domain/
 const LocalTerrain = preload("res://Workshop/Rooms/UI Foundation/Prototype/domain/local_terrain.gd")
 const Water = preload("res://Workshop/Rooms/UI Foundation/Prototype/domain/local_water.gd")
 const Rivers = preload("res://Workshop/Rooms/UI Foundation/Prototype/domain/river_generator.gd")
+const LocalPois = preload("res://Workshop/Rooms/UI Foundation/Prototype/domain/local_poi_placement.gd")
 var world_seed: int
 var maps: Dictionary = {}
 var states: Dictionary = {}
@@ -31,6 +32,7 @@ func resolve(link: Dictionary):
 		for entry: Array in [[Vector2i(4,2),"Dungeon"],[Vector2i(3,4),"Town"],[Vector2i(5,4),"Tower"]]:
 			map.links[entry[0]] = {"id":map.id+"_"+entry[1],"label":entry[1],"kind":entry[1],"parent":map.id,"return_cell":entry[0]}
 		Water.generate(map,int((world_seed+map.id.hash()) % 2147483647))
+		LocalPois.generate(map,int((str(world_seed)+":"+map.id+":pois").hash()))
 		LocalTerrain.generate(map,int((world_seed+map.id.hash()) % 2147483647))
 		Rivers.generate(map,int((world_seed+map.id.hash()) % 2147483647))
 	else:

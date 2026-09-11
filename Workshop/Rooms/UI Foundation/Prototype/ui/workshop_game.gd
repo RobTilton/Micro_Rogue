@@ -60,7 +60,7 @@ func _arena_ui() -> void:
 	var stage: Control = Control.new()
 	stage.clip_contents = true
 	frame.add_child(stage)
-	board = World.new()
+	board = _make_board()
 	board.map_data = active_map
 	board.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	stage.add_child(board)
@@ -85,6 +85,9 @@ func _arena_ui() -> void:
 	hud.transfer_requested.connect(_transfer)
 	frame_ready = true
 	_refresh()
+
+func _make_board() -> Control:
+	return World.new()
 
 func _process(delta: float) -> void:
 	if arena_active and not battle and player.hp > 0 and cooldowns.advance_outside(delta): _refresh()

@@ -17,7 +17,13 @@ func run() -> void:
 	game.dice_slots = [0,0,0,0,0,0,4,4,4,4,4,4]
 	game._start_run()
 	game._enter_map()
-	var cell := Vector2i(4,2)
+	var cell: Vector2i = poi_cell(game.active_map,"Dungeon")
+	var approach: Vector2i = Vector2i.ZERO
+	for candidate: Vector2i in game.active_map.cells():
+		if game.active_map.distance(candidate,cell) == 2:
+			approach = candidate
+			break
+	game.player.pos = approach
 	game.loot.append({"item":Items.potion(),"pos":cell})
 	game._board_intent(cell,false)
 	check(game.host.panel_name == "Tile","loot entrance opens choices")
@@ -39,8 +45,14 @@ func run() -> void:
 	check(game.active_map.title == "Dungeon","entrance can be used")
 	game._enter_map()
 	check(game.loot.size() == 1,"travel leaves item intact")
-	game.player.pos = Vector2i(1,3)
+	game.player.pos = approach
 	game._board_intent(cell,true)
 	check(game.player.pos == cell,"shift bypass preserved")
 	print("Prototype/tests/tile_choices_test.gd: %d checks passed" % checks)
 	quit()
+
+func poi_cell(map, kind: String) -> Vector2i:
+	for cell: Vector2i in map.links:
+		if map.links[cell].kind == kind: return cell
+	assert(false, "Workshop/Rooms/UI Foundation/Prototype/tests/tile_choices_test.gd: missing POI " + kind)
+	return Vector2i(-1,-1)

@@ -21,8 +21,10 @@ func run() -> void:
 	check(game.active_map.layer == "Local","enter region")
 	var local_id: String = game.active_map.id
 	check(game.active_map.links.size() == 4,"local exit and three POIs")
-	game._request_movement(Vector2i(4,2),true)
-	check(game.player.pos == Vector2i(4,2),"walk to dungeon")
+	var dungeon_cell: Vector2i = poi_cell(game.active_map,"Dungeon")
+	game.player.pos = game.active_map.neighbors(dungeon_cell)[0]
+	game._request_movement(dungeon_cell,true)
+	check(game.player.pos == dungeon_cell,"walk to generated dungeon")
 	game._enter_map()
 	check(game.battle and game.active_map.dimensions == Vector2i(18,14),"dungeon encounter and extent")
 	var dungeon_id: String = game.active_map.id
@@ -44,7 +46,7 @@ func run() -> void:
 	var item_id: int = game.loot[0].item.item_id
 	game._enter_map()
 	check(game.active_map.id == local_id,"dungeon exit")
-	check(game.player.pos == Vector2i(4,2) and not game.battle,"local position restored")
+	check(game.player.pos == dungeon_cell and not game.battle,"local position restored")
 	game._enter_map()
 	check(game.active_map.id == dungeon_id and game.enemy.hp == 5,"enemy state persists")
 	check(game.loot.size() == 1 and game.loot[0].item.item_id == item_id,"loot persists")
@@ -61,20 +63,26 @@ func run() -> void:
 	game._enter_map()
 	check(not game.battle and game.enemy.hp == 0 and game.loot.size() == count,"dead enemy and loot retained without duplication")
 	game._enter_map()
-	game._request_movement(Vector2i(1,3),true)
+	game.player.pos = Vector2i(1,3)
 	game._enter_map()
 	check(game.active_map.layer == "Global" and game.player.pos == spawn,"full return trip")
 	game.player.pos = Vector2i(0,1)
 	game._enter_map()
 	check(game.active_map.id != local_id,"different world hex gets different local map")
-	game.player.pos = Vector2i(3,4)
+	game.player.pos = poi_cell(game.active_map,"Town")
 	game._enter_map()
 	check(game.active_map.title == "Town" and not game.battle,"town uses same grid without combat")
 	game._enter_map()
-	game.player.pos = Vector2i(5,4)
+	game.player.pos = poi_cell(game.active_map,"Tower")
 	game._enter_map()
 	check(game.active_map.title == "Tower" and game.battle,"tower child encounter")
 	game._start_run()
 	check(game.map_world.states.is_empty(),"new run clears maps")
 	print("Prototype/tests/map_world_test.gd: %d checks passed" % checks)
 	quit()
+
+func poi_cell(map, kind: String) -> Vector2i:
+	for cell: Vector2i in map.links:
+		if map.links[cell].kind == kind: return cell
+	assert(false, "Workshop/Rooms/UI Foundation/Prototype/tests/map_world_test.gd: missing POI " + kind)
+	return Vector2i(-1,-1)
