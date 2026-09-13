@@ -1,6 +1,9 @@
 # How the Game Is Generated Now
 Updated: 2026-09-11
 Checkpoint: [UI Foundation]+[Documentation]+[GenerationReference]
+
+**World Foundation update (2026-09-11):** The hierarchy architecture is now implemented in the separate [World Foundation scene](../World%20Foundation/README.md). See its [generation reference](../World%20Foundation/GENERATION.md) and [validation](../World%20Foundation/CURRENT_STATE.md). Descriptions below of missing hierarchy features apply to the earlier UI/Actor generator, not the new scene.
+
 Implementation baseline/evidence: current Workshop Prototype, including LocalPoiSpacing; generation, actor, item and map-transition code inspected on this date. This describes the Workshop F6 build, not a fresh audit of Production.
 
 ## Actor Foundation Update
@@ -208,3 +211,5 @@ All paths below are relative to this Room.
 | [domain/travel_cost.gd](Prototype/domain/travel_cost.gd) | Global terrain movement costs |
 
 This document was checked against the named implementation. No runtime behavior was changed or tests rerun for writing it. The preceding LocalPoiSpacing delivery passed 5,560 placement checks, 65 travel/menu/panning checks and lake-basin validation over 40 seeds; those checks do not constitute a fresh audit of every system described here.
+
+Hierarchy design comparison: [Hierarchical World Generation — Alignment Review](WORLD_GENERATION_ALIGNMENT.md). Current lazy maps implement only part of the imported design; recursive templates, inherited boundary constraints and save/unload persistence are proposed next work, not delivered features.

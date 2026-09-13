@@ -46,3 +46,15 @@ Rob requested a document explaining how the game is generated now. Scope: inspec
 | [UI Foundation]+[Documentation]+[GenerationReference] | Explain current generation and limits | LocalPoiSpacing and current generation owners | Reference checked against implementation; links resolve | complete | GAME_GENERATION.md checked against current owners; relative links verified |
 
 Actor Foundation is now a separate delivered consumer of this prototype: [Actor DOTS](../Actor%20Foundation/DOTS.md). Its execution authorized the `_make_board()` extension point in ui/workshop_game.gd. Baseline 2,027, UI 79, drag 8 and floating-panel 14 regressions pass. This does not mark pending UI human acceptance complete.
+
+## Hierarchical Generation Alignment Review
+
+Rob supplied Workshop/Design/Hierarchical_World_Gen.md and requested a comparison with current generation, allowing a cleaner version of the design. Scope here is full document reading, focused code comparison and a review artifact; no runtime migration authorized/performed by this assessment.
+
+| Checkpoint | Responsibility | Depends on | Completion condition | Status | Evidence |
+|---|---|---|---|---|---|
+| [UI Foundation]+[Documentation]+[HierarchyAlignment] | Compare current code with hierarchy contract and propose contained implementation order | GenerationReference; Actor Foundation delivered runtime | Design fully read; code evidence and current/proposed distinctions documented; links checked | complete | WORLD_GENERATION_ALIGNMENT.md; complete source read and focused implementation comparison; links verified |
+
+## World Foundation composition — 2026-09-11
+
+Rob authorized all hierarchy implementation stages. Delivered in [World Foundation DOTS](../World%20Foundation/DOTS.md); this Room keeps its existing scene and acceptance scope. Shared factory/optional RNG adaptations are covered by the new Room implementation and passing actor/shared regressions. World Foundation playtest remains pending.

@@ -18,9 +18,12 @@ var events: Array[String] = []
 var tick: int = 0
 
 func _init(seed_value: int = 1729) -> void:
-	maps = Maps.new(seed_value)
+	maps = _make_maps(seed_value)
 	ground.global = []
 	initialized.global = true
+
+func _make_maps(seed_value: int) -> RefCounted:
+	return Maps.new(seed_value)
 
 func add_actor(actor: Dictionary, map_id: String, cell: Vector2i, faction: String, sprite: String = "goblin") -> int:
 	assert(maps.maps.has(map_id) and maps.maps[map_id].walkable(cell) and actor_at(map_id,cell).is_empty(), "Workshop/Rooms/Actor Foundation/domain/actor_world.gd: invalid or occupied actor spawn")

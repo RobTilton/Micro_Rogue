@@ -5,10 +5,10 @@ static func dice() -> Array:
 	var result: Array = []
 	for index: int in range(6): result.append(randi_range(1, 6))
 	return result
-static func create(values: Array, enemy: bool = false) -> Dictionary:
+static func create(values: Array, enemy: bool = false, rng: RandomNumberGenerator = null) -> Dictionary:
 	var stats: Dictionary = {}
 	for index: int in range(6): stats[STATS[index]] = values[index]
-	return {"stats": stats, "hp": stats.WIL * 3, "max_hp": stats.WIL * 3, "level": 1, "xp": 0, "required_xp": 5, "points": 0 if enemy else 1, "skills": [], "main": Items.make("sword", enemy), "off": Items.make("shield", enemy), "armor": Items.make("armor", enemy), "belt": Items.make("belt", enemy), "bag": [], "effects_defense": 0.0, "riposte": false, "pos": Vector2i(1, 3)}
+	return {"stats": stats, "hp": stats.WIL * 3, "max_hp": stats.WIL * 3, "level": 1, "xp": 0, "required_xp": 5, "points": 0 if enemy else 1, "skills": [], "main": Items.make("sword", enemy, rng), "off": Items.make("shield", enemy, rng), "armor": Items.make("armor", enemy, rng), "belt": Items.make("belt", enemy, rng), "bag": [], "effects_defense": 0.0, "riposte": false, "pos": Vector2i(1, 3)}
 static func award_xp(actor: Dictionary, amount: int) -> void:
 	actor.xp += amount
 	while actor.xp >= actor.required_xp:

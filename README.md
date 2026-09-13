@@ -1,28 +1,28 @@
 # Micro Rogue
-Updated: 2026-09-10
+Updated: 2026-09-12
 
-A Godot 4.4.1 roguelike proof: one-roll character creation, hex combat, Sword Mastery, random equipment, inventory, cooldowns and progression. The connected-map slice, floating UI, inventory cards and hex artwork are now promoted into Production.
+Open the root **project.godot** and press **F5**. The accepted game now runs from **Production/main.tscn**.
 
-This repository is **one Godot project**. Open root `project.godot` and press **F5** for the promoted game: `Production/Current/ui/main.tscn`.
+Production owns the working Actors, World, Persistence, UI and Assets modules. Its runtime has no Workshop dependency, including placeholder artwork. The staggered hex start menu offers New World, Continue, World Data and new-seed regeneration. Locals are fixed radius-20 hexagons with dry edge entry; regional hostility persists. There is one active world save, replaced on regeneration. Automatic saves live in Godot's writable user-data folder, not the repository.
 
-Production holds promoted work. To iterate in the same editor, open `Workshop/Rooms/UI Foundation/Prototype/ui/main.tscn` and press **F6**. `Production/Gameplay` and `Production/Splash` preserve the earlier baseline; `Production/Current` is the active runtime.
-
-| Location | Ownership |
+| Location | Purpose |
 |---|---|
-| `Production/` | Accepted runtime scenes, scripts and assets; source of current game behavior |
-| `Workshop/` | Bounded development Rooms, tests, design, documentation and reusable tools |
-| Root `project.godot` | Godot launcher and project-wide engine settings |
-| Root `AGENTS.md`, `README.md`, `.gitignore`, `.git/` | Repository operating instructions and version-control infrastructure |
-| Root `.godot/` | Generated, ignored editor cache |
+| Production/main.tscn | Canonical F5 game |
+| Production/Actors | Shared player/enemy capabilities, rules, inventory and AI policy |
+| Production/World | Topology, location identity, templates, navigation and generation |
+| Production/Persistence | Save validation, checkpoints, map state and writable storage |
+| Production/UI | Controllers, creation flow, board, sprites, panels and input |
+| Production/Assets | Independent runtime artwork, including current placeholders |
+| Workshop/ | Experiments, design, original source material, tests and promotion evidence |
+| Production/Current, Gameplay, Splash | Preserved earlier builds; none is the F5 entry |
 
-Promoted runtime resources reference only Production. Workshop scenes use their own repository-root resource paths; no nested Godot projects are needed. Workshop tests import Production to validate the adopted game. Experiments belong in a scoped Workshop Room; adopting their result into Production requires the corresponding authorized promotion. Do not treat the retained splash prototype as another live game implementation.
+This remains one Godot project. F6 can run a specific Workshop experiment, but F5 is the accepted Production game. Test tooling may inspect Production; Production never imports Workshop tooling or resources.
 
-- [Current Workshop UI](<Workshop/Rooms/UI Foundation/README.md>)
-- [Production entry and controls](Production/README.md)
-- [Runtime system contract](Workshop/AI_Facing_Documentation/SYSTEMS_DESCRIPTIONS_FOR_AI/MICRO_ROGUE_SLICE.md)
-- [Tests](Workshop/Tests/README.md)
-- [Project design](Workshop/Design/Micro_Adventure_Roguelike_Design_Doc_v0.1.md)
-- [Completed starting Slice](<Workshop/Rooms/starting Slice/DOTS.md>)
+- [Production controls, saves and module ownership](Production/README.md)
+- [Promotion baseline and evidence](<Workshop/Rooms/Regional Release/CURRENT_STATE.md>)
+- [Workshop Rooms](Workshop/Rooms/README.md)
+- [Design](Workshop/Design/Hierarchical_World_Gen.md)
+- [User thoughts — unimplemented ideas](Workshop/Design/USER_HAD_A_THOUGHT.md)
 - [Agent startup](AGENTS.md)
 
-This is an accepted playable slice, not the full game. Combat balance, procedural worlds, full inventory presentation and additional trees remain future work. No automated Git checkpoint was created during promotion.
+The source gameplay was accepted by Rob and promoted under explicit authorization. New gameplay, final art, item identification/classes and further AI/dungeon design remain separate work. Runtime removes obsolete world saves as explicitly requested; source/history material is retained and no Git commit was created.

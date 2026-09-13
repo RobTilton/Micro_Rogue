@@ -1,6 +1,9 @@
 # UI Foundation — Current State
 Updated: 2026-09-11
 Checkpoint: [UI Foundation]+[World]+[LocalPoiSpacing]
+
+**World Foundation update (2026-09-11):** The hierarchy architecture is now implemented in the separate [World Foundation scene](../World%20Foundation/README.md). See its [generation reference](../World%20Foundation/GENERATION.md) and [validation](../World%20Foundation/CURRENT_STATE.md). Descriptions below of missing hierarchy features apply to the earlier UI/Actor generator, not the new scene.
+
 Implementation baseline/evidence: existing uncommitted Prototype; tile-transfer hashes in ../Tile Foundation/BASELINE.json. Local POI implementation and focused Godot validation completed; see Local POI Spacing below.
 
 ## Rapid Shape
@@ -68,3 +71,5 @@ Current generation reference: [How the Game Is Generated Now](GAME_GENERATION.md
 ## Actor Foundation Consumer
 
 [Actor Foundation](../Actor%20Foundation/CURRENT_STATE.md) is the new actor-enabled Workshop scene. It reuses this Room’s interface and map generation, with a `_make_board()` factory hook added to ui/workshop_game.gd. Its registry/action service replaces single-enemy snapshots for that scene only. Current actors/pursuit/turn timing are documented there; the earlier single-enemy descriptions above still describe this Room’s own scene. Existing baseline/UI/drag/panel checks passed after the hook. No Production promotion.
+
+Hierarchy design comparison: [Hierarchical World Generation — Alignment Review](WORLD_GENERATION_ALIGNMENT.md). Current lazy maps implement only part of the imported design; recursive templates, inherited boundary constraints and save/unload persistence are proposed next work, not delivered features.

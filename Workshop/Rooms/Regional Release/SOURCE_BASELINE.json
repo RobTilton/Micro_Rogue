@@ -1,0 +1,222 @@
+[
+  {
+    "source": "Workshop/Rooms/Regional Foundation/Actors/actors.gd",
+    "sha256": "d4e372dcb1d04d3e4cef4b87ba019d75b5cb58c5dad5f1bfa09c0429b3a2990e"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/Actors/actor_world.gd",
+    "sha256": "de6633e3ce8664f153d370c6ab6387e16c7ec154fd717054e8600e0a0eaeb66d"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/Actors/combat.gd",
+    "sha256": "63ca7b6974020d35e9dd0c3735f563984c24a96bfe4e80c63658f41d3a2469f6"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/Actors/cooldowns.gd",
+    "sha256": "d5eb658ea3302dabc5d8c0958383a0827bc549cd7db23263780a8b8987863721"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/Actors/enemy_brain.gd",
+    "sha256": "dac6fae650cab53bfae3b7eb02310ee7d4c7ed2b6d268c55c4e0eb15415a5df6"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/Actors/grid_inventory.gd",
+    "sha256": "4f1f5b7ffbd64f014a7ee30a53c85c2c4f6f3565161c8ff14d022906feca676c"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/Actors/inventory.gd",
+    "sha256": "cdb1c031bd2b6dd067245b20908c1b15f9611f13ba4c760c21dc869c64783619"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/Actors/items.gd",
+    "sha256": "922297015a04937d30e6a6ad96699c14b852fd5b18877f55a40788662957d5da"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/Actors/item_inspection.gd",
+    "sha256": "e279a3610b4e7f479f601cb2da86b84e09d7f1a439f72f76df5983537cbf4f33"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/Actors/perception.gd",
+    "sha256": "508414bae4e34d9fb1eca6ad2fc52090e951a3570f02e80832c6574aa79b059e"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/World/biome_generator.gd",
+    "sha256": "838f10cbb248cd754c962e6688664e89c6634985ceeb37becc40f54ca39e02fe"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/World/continent_generator.gd",
+    "sha256": "89d6c1a0a032c49d511f3ddcc715a666ee9df2b933585b2c256e86ab39b9d408"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/World/geographic_contracts.gd",
+    "sha256": "44258fa1b4d3db3df595d22a4dee370143366ab47d8e3c83448697db6a5a8620"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/World/hex_map.gd",
+    "sha256": "2e937f9859b56679f90f27ce50ec83397cf56363f2ce443c93dfac37be02a2d2"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/World/local_poi_placement.gd",
+    "sha256": "7864fd030fe2d21256292b64817c385c815419280dbae86bb10e9bd952ba34aa"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/World/local_terrain.gd",
+    "sha256": "7857ef8dd0422fc819c08e21669e4b6480717ad5f9c6b00fbbb1375b4501c978"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/World/local_water.gd",
+    "sha256": "c8aeeaa5c914571194f81fe4b9685abf9a2b41b54aa4d4c94f85cacf8e80ff0b"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/World/location_templates.gd",
+    "sha256": "148c05293cda2d1127cdf96d200744b50a829fb482f46b7a4b43e5fb850ecad8"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/World/location_world.gd",
+    "sha256": "10bb819a0b2b81de2d0ba5c1ef62f8a3136d26f431954b8f4a60616e468b8035"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/World/map_world.gd",
+    "sha256": "cc95c82debaf6b5b63d7aeb5f9ea5dc12903bd1a062d50db81fdf8b03e9ed335"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/World/movement_preview.gd",
+    "sha256": "2eda2c63f9766ed6930430b92130bbaeebc66663b854221eeaf8c56f03b37e9b"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/World/regional_state.gd",
+    "sha256": "d6f0ecd6b255c2fa7ad091e9e0ce083e02913647c8b5822ec5a4f024291741d6"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/World/river_edges.gd",
+    "sha256": "713bdf99152a977a78fe6cd2e8e66a25b65fec03508d215fabaaa28be0d904b9"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/World/river_generator.gd",
+    "sha256": "e9f318d9e0e1fec5def7aa544c28abcdd1c6a8ee2030e71a500c401198538310"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/World/topology_generator.gd",
+    "sha256": "9020c496fc5477c85dd3ef3bd30202cfb71099fe29ddf8d68d9ca09167c4d044"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/World/travel_cost.gd",
+    "sha256": "a491f1cc25c86bccf02953aed298b8dc8b3d49e5526b28462f7028a5ae77faad"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/Persistence/autosave_journal.gd",
+    "sha256": "d71de5902d864c9619cbe0be63702fb0f48c7ee8494a57a0b2cd75b5c5189e58"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/Persistence/map_state.gd",
+    "sha256": "7fe24c9892d0a9c5ec972e07c1607e5d523d9d83c76c3040c6fd187548da0167"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/Persistence/persistent_actor_world.gd",
+    "sha256": "30003b29f75f1b70cab4fd7d6982204a28dcb10eca82d699a41085acaafa60a0"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/Persistence/storage_paths.gd",
+    "sha256": "fcd222e152b969674d40b67f7c17df8bd03f5a88a56d4cd0d598e7c8071383a7"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/actor_game.gd",
+    "sha256": "ad6d3511c8fb5302107ee2c127cdcd53b085abb941982e3f0502f7ed8f2dea3d"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/actor_sprite.gd",
+    "sha256": "6a738f889f281d8139c64190f9edfc6c6e8f176a532dd5d57d537fab31456af5"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/actor_view.gd",
+    "sha256": "5e7198dd35ecdba8395a03a1cd0078a8f3e6cd21e8e520b98e4c4295be98f03c"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/base_game.gd",
+    "sha256": "edf852588a9570e572083e7f8f6d12f7b118a394ea5c45ed6db50aec763aee87"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/bottom_hud.gd",
+    "sha256": "38c52249ed32b4f912cba50f69755736541d489b897541f72dcefc543290aca2"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/die_slot.gd",
+    "sha256": "dbe1d31211831fe012ff2df7d0e940ee97cb1513d1d97b768c1dfa940a3909ba"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/drag_context.gd",
+    "sha256": "72b1814bf6d1c506b37ce28fbb7770dfc4360e71ca3b32b415f7c835b7711781"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/game_ui.gd",
+    "sha256": "e47fa7f303dff0857c2a3afffa7100b746240c957cc4b27bfbe53f5685d16e5f"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/hex_board.gd",
+    "sha256": "5a1fa880a71590fe5a00fc42bc2dc3c1453ca6203b89075d5f4d2aae2900fff5"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/inventory_grid.gd",
+    "sha256": "c66e59a6b682db1b922a0d5902f7bacbfd7059e3f83de86c6c291a822d59ea12"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/item_art.gd",
+    "sha256": "d8b3712e8166b128c07c6ac0bbb2993958cc9af9f59b47ae69613364481ed066"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/item_card.gd",
+    "sha256": "1892c23d5c940db82d53c2efa9d3268af835f7c64edb81d376b0efcea3215d30"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/item_icon.gd",
+    "sha256": "be97d1d1e9d334fea5debf8f147ee67053b8e893e0a74b75285d955d1663594b"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/item_target.gd",
+    "sha256": "c628037d809dfaf9333dad45ac2dfbba41e95c1dbc65ea00f0d51c5644205cb2"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/marsh_art.gd",
+    "sha256": "273d1e7404586357df1ac0e220162e336372868144ab450864c5f299b78c8661"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/navigation_rail.gd",
+    "sha256": "347c1495a7e76beff4475459075ed483b3165cb6d06e384431b543db44f87c26"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/panel_host.gd",
+    "sha256": "4ac3b67ddfca5b3671e78490993b82a3e9d49c5301d0e8812c818558f7a1b25d"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/poi_art.gd",
+    "sha256": "65489996cbbcf7d268049cbfa80b386771b07fac53b449ac29b4a6fe34141808"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/river_art.gd",
+    "sha256": "bf283e98cbb18b89f85e54efc81244087cb58277cb555dad1f795d8b8fa3261f"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/splash_art.gd",
+    "sha256": "0700eb6e3dcf8c92a27f267716ddc03d91bc23a8e24aac2e19522be901947daa"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/terrain_variation.gd",
+    "sha256": "86aa2d524b8675a386b02e84e5e46d6b5238d7a004cc9502c190997262afc7b2"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/ui_parts.gd",
+    "sha256": "2073e8f18bb0c34565389525726db790b008bc607bc43e7e6756faf6706b26ce"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/wasteland_art.gd",
+    "sha256": "5cc8d958ea1dd2e1bf675b99dba7c32a4e2a0b037130b4afab94cb9ae8b4bd2e"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/world_game.gd",
+    "sha256": "4645ea27d155f7db80e9eff86c5dacc981849699a287e7f5875628e7c5e79854"
+  },
+  {
+    "source": "Workshop/Rooms/Regional Foundation/UI/world_view.gd",
+    "sha256": "f5cb8a033dbe5a043b0a7494832164c4500834b4354890477047c5411a87c7b0"
+  }
+]

@@ -9,8 +9,11 @@ var selected_actor_id: int = -1
 func _make_board() -> Control:
 	return ActorView.new()
 
+func _make_simulation(seed_value: int) -> RefCounted:
+	return Simulation.new(seed_value)
+
 func _start_run() -> void:
-	simulation = Simulation.new(randi_range(1,2147480000))
+	simulation = _make_simulation(randi_range(1,2147480000))
 	simulation.difficulty = difficulty
 	map_world = simulation.maps
 	player = Actors.create(dice_slots.slice(6,12))

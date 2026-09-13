@@ -1,6 +1,9 @@
 # UI Foundation Workshop
 Updated: 2026-09-11
 
+
+**World Foundation update (2026-09-11):** The hierarchy architecture is now implemented in the separate [World Foundation scene](../World%20Foundation/README.md). See its [generation reference](../World%20Foundation/GENERATION.md) and [validation](../World%20Foundation/CURRENT_STATE.md). Descriptions below of missing hierarchy features apply to the earlier UI/Actor generator, not the new scene.
+
 Working interface and gameplay prototype. Open [Prototype/ui/main.tscn](Prototype/ui/main.tscn) in the root Godot project and press **F6** for the current Workshop iteration. Root F5 is documented as the prior promoted Production entry.
 
 [Current state and controls](CURRENT_STATE.md) · [DOTS](DOTS.md)
@@ -14,3 +17,5 @@ Local destinations now use seeded spacing on dry land, preserving Return and lak
 Current generation reference: [How the Game Is Generated Now](GAME_GENERATION.md) explains the active Workshop world/Local/POI pipeline, encounter and item randomness, persistence and unimplemented systems. Checkpoint [UI Foundation]+[Documentation]+[GenerationReference] complete; documentation-only inspection, no fresh runtime tests.
 
 The new actor-enabled Workshop iteration is [Actor Foundation/main.tscn](../Actor%20Foundation/main.tscn), also launched with F6. It adds sprites, shared enemy/player actions, multiple persistent actors and map pursuit. This Room’s original scene remains available as the earlier baseline. [Actor controls and limits](../Actor%20Foundation/README.md).
+
+Hierarchy design comparison: [Hierarchical World Generation — Alignment Review](WORLD_GENERATION_ALIGNMENT.md). Current lazy maps implement only part of the imported design; recursive templates, inherited boundary constraints and save/unload persistence are proposed next work, not delivered features.

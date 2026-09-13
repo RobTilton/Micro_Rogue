@@ -1,0 +1,1409 @@
+{
+  "schema_version": 1,
+  "material_families": {
+    "metal": [
+      {
+        "id": "metal_1",
+        "name": "Lead",
+        "tier": 1
+      },
+      {
+        "id": "metal_2",
+        "name": "Bronze",
+        "tier": 2
+      },
+      {
+        "id": "metal_3",
+        "name": "Iron",
+        "tier": 3
+      },
+      {
+        "id": "metal_4",
+        "name": "Steel",
+        "tier": 4
+      },
+      {
+        "id": "metal_5",
+        "name": "Silver",
+        "tier": 5
+      },
+      {
+        "id": "metal_6",
+        "name": "Mithril",
+        "tier": 6
+      },
+      {
+        "id": "metal_7",
+        "name": "Adamant",
+        "tier": 7
+      },
+      {
+        "id": "metal_8",
+        "name": "Orichalcum",
+        "tier": 8
+      }
+    ],
+    "leather": [
+      {
+        "id": "leather_1",
+        "name": "Rawhide",
+        "tier": 1
+      },
+      {
+        "id": "leather_2",
+        "name": "Leather",
+        "tier": 2
+      },
+      {
+        "id": "leather_3",
+        "name": "Hardened Leather",
+        "tier": 3
+      },
+      {
+        "id": "leather_4",
+        "name": "Beast Hide",
+        "tier": 4
+      },
+      {
+        "id": "leather_5",
+        "name": "Trollhide",
+        "tier": 5
+      },
+      {
+        "id": "leather_6",
+        "name": "Wyvernhide",
+        "tier": 6
+      },
+      {
+        "id": "leather_7",
+        "name": "Drakehide",
+        "tier": 7
+      },
+      {
+        "id": "leather_8",
+        "name": "Dragonhide",
+        "tier": 8
+      }
+    ],
+    "cloth": [
+      {
+        "id": "cloth_1",
+        "name": "Burlap",
+        "tier": 1
+      },
+      {
+        "id": "cloth_2",
+        "name": "Linen",
+        "tier": 2
+      },
+      {
+        "id": "cloth_3",
+        "name": "Wool",
+        "tier": 3
+      },
+      {
+        "id": "cloth_4",
+        "name": "Cotton",
+        "tier": 4
+      },
+      {
+        "id": "cloth_5",
+        "name": "Silk",
+        "tier": 5
+      },
+      {
+        "id": "cloth_6",
+        "name": "Spidersilk",
+        "tier": 6
+      },
+      {
+        "id": "cloth_7",
+        "name": "Runic Silk",
+        "tier": 7
+      },
+      {
+        "id": "cloth_8",
+        "name": "Starweave",
+        "tier": 8
+      }
+    ],
+    "wood": [
+      {
+        "id": "wood_1",
+        "name": "Pine",
+        "tier": 1
+      },
+      {
+        "id": "wood_2",
+        "name": "Oak",
+        "tier": 2
+      },
+      {
+        "id": "wood_3",
+        "name": "Ash",
+        "tier": 3
+      },
+      {
+        "id": "wood_4",
+        "name": "Yew",
+        "tier": 4
+      },
+      {
+        "id": "wood_5",
+        "name": "Ironwood",
+        "tier": 5
+      },
+      {
+        "id": "wood_6",
+        "name": "Blackwood",
+        "tier": 6
+      },
+      {
+        "id": "wood_7",
+        "name": "Elderwood",
+        "tier": 7
+      },
+      {
+        "id": "wood_8",
+        "name": "Worldwood",
+        "tier": 8
+      }
+    ],
+    "gem": [
+      {
+        "id": "gem_1",
+        "name": "Quartz",
+        "tier": 1
+      },
+      {
+        "id": "gem_2",
+        "name": "Amethyst",
+        "tier": 2
+      },
+      {
+        "id": "gem_3",
+        "name": "Topaz",
+        "tier": 3
+      },
+      {
+        "id": "gem_4",
+        "name": "Opal",
+        "tier": 4
+      },
+      {
+        "id": "gem_5",
+        "name": "Sapphire",
+        "tier": 5
+      },
+      {
+        "id": "gem_6",
+        "name": "Emerald",
+        "tier": 6
+      },
+      {
+        "id": "gem_7",
+        "name": "Ruby",
+        "tier": 7
+      },
+      {
+        "id": "gem_8",
+        "name": "Diamond",
+        "tier": 8
+      }
+    ]
+  },
+  "qualities": [
+    {
+      "id": "trash",
+      "name": "Trash",
+      "color": "Grey",
+      "weight": 20
+    },
+    {
+      "id": "common",
+      "name": "Common",
+      "color": "White",
+      "weight": 40
+    },
+    {
+      "id": "exceptional",
+      "name": "Exceptional",
+      "color": "Green",
+      "weight": 20
+    },
+    {
+      "id": "masterwork",
+      "name": "Masterwork",
+      "color": "Blue",
+      "weight": 15
+    },
+    {
+      "id": "mythic",
+      "name": "Mythic",
+      "color": "Purple",
+      "weight": 4
+    },
+    {
+      "id": "touched_by_the_gods",
+      "name": "Touched by the Gods",
+      "color": "Orange",
+      "weight": 1
+    }
+  ],
+  "slots": [
+    "main",
+    "off",
+    "body",
+    "head",
+    "arms",
+    "legs",
+    "belt"
+  ],
+  "affix_layers": [
+    "prefixes",
+    "suffixes"
+  ],
+  "categories": {
+    "swords": {
+      "name": "Swords",
+      "kind": "weapon",
+      "slot": "main",
+      "material_families": [
+        "metal"
+      ]
+    },
+    "spears": {
+      "name": "Spears",
+      "kind": "weapon",
+      "slot": "main",
+      "material_families": [
+        "metal"
+      ]
+    },
+    "maces": {
+      "name": "Maces",
+      "kind": "weapon",
+      "slot": "main",
+      "material_families": [
+        "metal"
+      ]
+    },
+    "daggers": {
+      "name": "Daggers",
+      "kind": "weapon",
+      "slot": "main",
+      "material_families": [
+        "metal"
+      ]
+    },
+    "axes": {
+      "name": "Axes",
+      "kind": "weapon",
+      "slot": "main",
+      "material_families": [
+        "metal"
+      ]
+    },
+    "shields": {
+      "name": "Shields",
+      "kind": "shield",
+      "slot": "off",
+      "material_families": [
+        "metal",
+        "wood"
+      ]
+    },
+    "plate_body": {
+      "name": "Plate Armor",
+      "kind": "armor",
+      "slot": "body",
+      "material_families": [
+        "metal"
+      ]
+    },
+    "leather_body": {
+      "name": "Leather Armor",
+      "kind": "armor",
+      "slot": "body",
+      "material_families": [
+        "leather"
+      ]
+    },
+    "cloth_body": {
+      "name": "Cloth Armor",
+      "kind": "armor",
+      "slot": "body",
+      "material_families": [
+        "cloth"
+      ]
+    },
+    "bows": {
+      "name": "Bows",
+      "kind": "weapon",
+      "slot": "main",
+      "material_families": [
+        "wood"
+      ]
+    },
+    "staffs": {
+      "name": "Staffs",
+      "kind": "weapon",
+      "slot": "main",
+      "material_families": [
+        "wood"
+      ]
+    },
+    "leather_head": {
+      "name": "Leather Head",
+      "kind": "armor",
+      "slot": "head",
+      "material_families": [
+        "leather"
+      ]
+    },
+    "leather_arms": {
+      "name": "Leather Arms",
+      "kind": "armor",
+      "slot": "arms",
+      "material_families": [
+        "leather"
+      ]
+    },
+    "leather_legs": {
+      "name": "Leather Legs",
+      "kind": "armor",
+      "slot": "legs",
+      "material_families": [
+        "leather"
+      ]
+    },
+    "cloth_head": {
+      "name": "Cloth Head",
+      "kind": "armor",
+      "slot": "head",
+      "material_families": [
+        "cloth"
+      ]
+    },
+    "cloth_arms": {
+      "name": "Cloth Arms",
+      "kind": "armor",
+      "slot": "arms",
+      "material_families": [
+        "cloth"
+      ]
+    },
+    "cloth_legs": {
+      "name": "Cloth Legs",
+      "kind": "armor",
+      "slot": "legs",
+      "material_families": [
+        "cloth"
+      ]
+    },
+    "plate_head": {
+      "name": "Plate Head",
+      "kind": "armor",
+      "slot": "head",
+      "material_families": [
+        "metal"
+      ]
+    },
+    "plate_arms": {
+      "name": "Plate Arms",
+      "kind": "armor",
+      "slot": "arms",
+      "material_families": [
+        "metal"
+      ]
+    },
+    "plate_legs": {
+      "name": "Plate Legs",
+      "kind": "armor",
+      "slot": "legs",
+      "material_families": [
+        "metal"
+      ]
+    },
+    "belts": {
+      "name": "Belts",
+      "kind": "belt",
+      "slot": "belt",
+      "material_families": [
+        "leather"
+      ]
+    }
+  },
+  "base_types": [
+    {
+      "id": "swords_1",
+      "name": "Shortsword",
+      "category": "swords",
+      "rank": 1
+    },
+    {
+      "id": "swords_2",
+      "name": "Arming Sword",
+      "category": "swords",
+      "rank": 2
+    },
+    {
+      "id": "swords_3",
+      "name": "Longsword",
+      "category": "swords",
+      "rank": 3
+    },
+    {
+      "id": "swords_4",
+      "name": "Bastard Sword",
+      "category": "swords",
+      "rank": 4
+    },
+    {
+      "id": "swords_5",
+      "name": "Greatsword",
+      "category": "swords",
+      "rank": 5
+    },
+    {
+      "id": "swords_6",
+      "name": "Falchion",
+      "category": "swords",
+      "rank": 6
+    },
+    {
+      "id": "swords_7",
+      "name": "Scimitar",
+      "category": "swords",
+      "rank": 7
+    },
+    {
+      "id": "swords_8",
+      "name": "Sabre",
+      "category": "swords",
+      "rank": 8
+    },
+    {
+      "id": "spears_1",
+      "name": "Short Spear",
+      "category": "spears",
+      "rank": 1
+    },
+    {
+      "id": "spears_2",
+      "name": "Hunting Spear",
+      "category": "spears",
+      "rank": 2
+    },
+    {
+      "id": "spears_3",
+      "name": "War Spear",
+      "category": "spears",
+      "rank": 3
+    },
+    {
+      "id": "spears_4",
+      "name": "Pike",
+      "category": "spears",
+      "rank": 4
+    },
+    {
+      "id": "spears_5",
+      "name": "Partisan",
+      "category": "spears",
+      "rank": 5
+    },
+    {
+      "id": "spears_6",
+      "name": "Glaive",
+      "category": "spears",
+      "rank": 6
+    },
+    {
+      "id": "spears_7",
+      "name": "Halberd",
+      "category": "spears",
+      "rank": 7
+    },
+    {
+      "id": "spears_8",
+      "name": "Lance",
+      "category": "spears",
+      "rank": 8
+    },
+    {
+      "id": "maces_1",
+      "name": "Club",
+      "category": "maces",
+      "rank": 1,
+      "material_families": [
+        "wood"
+      ]
+    },
+    {
+      "id": "maces_2",
+      "name": "Mace",
+      "category": "maces",
+      "rank": 2
+    },
+    {
+      "id": "maces_3",
+      "name": "Flanged Mace",
+      "category": "maces",
+      "rank": 3
+    },
+    {
+      "id": "maces_4",
+      "name": "Morning Star",
+      "category": "maces",
+      "rank": 4
+    },
+    {
+      "id": "maces_5",
+      "name": "Warhammer",
+      "category": "maces",
+      "rank": 5
+    },
+    {
+      "id": "maces_6",
+      "name": "Maul",
+      "category": "maces",
+      "rank": 6
+    },
+    {
+      "id": "maces_7",
+      "name": "Scepter",
+      "category": "maces",
+      "rank": 7
+    },
+    {
+      "id": "maces_8",
+      "name": "Great Maul",
+      "category": "maces",
+      "rank": 8
+    },
+    {
+      "id": "daggers_1",
+      "name": "Knife",
+      "category": "daggers",
+      "rank": 1
+    },
+    {
+      "id": "daggers_2",
+      "name": "Dagger",
+      "category": "daggers",
+      "rank": 2
+    },
+    {
+      "id": "daggers_3",
+      "name": "Dirk",
+      "category": "daggers",
+      "rank": 3
+    },
+    {
+      "id": "daggers_4",
+      "name": "Rondel",
+      "category": "daggers",
+      "rank": 4
+    },
+    {
+      "id": "daggers_5",
+      "name": "Stiletto",
+      "category": "daggers",
+      "rank": 5
+    },
+    {
+      "id": "daggers_6",
+      "name": "Kris",
+      "category": "daggers",
+      "rank": 6
+    },
+    {
+      "id": "daggers_7",
+      "name": "Main-Gauche",
+      "category": "daggers",
+      "rank": 7
+    },
+    {
+      "id": "daggers_8",
+      "name": "Assassin Blade",
+      "category": "daggers",
+      "rank": 8
+    },
+    {
+      "id": "axes_1",
+      "name": "Hatchet",
+      "category": "axes",
+      "rank": 1
+    },
+    {
+      "id": "axes_2",
+      "name": "Hand Axe",
+      "category": "axes",
+      "rank": 2
+    },
+    {
+      "id": "axes_3",
+      "name": "Battle Axe",
+      "category": "axes",
+      "rank": 3
+    },
+    {
+      "id": "axes_4",
+      "name": "Bearded Axe",
+      "category": "axes",
+      "rank": 4
+    },
+    {
+      "id": "axes_5",
+      "name": "War Axe",
+      "category": "axes",
+      "rank": 5
+    },
+    {
+      "id": "axes_6",
+      "name": "Dane Axe",
+      "category": "axes",
+      "rank": 6
+    },
+    {
+      "id": "axes_7",
+      "name": "Greataxe",
+      "category": "axes",
+      "rank": 7
+    },
+    {
+      "id": "axes_8",
+      "name": "Executioner Axe",
+      "category": "axes",
+      "rank": 8
+    },
+    {
+      "id": "shields_1",
+      "name": "Buckler",
+      "category": "shields",
+      "rank": 1
+    },
+    {
+      "id": "shields_2",
+      "name": "Round Shield",
+      "category": "shields",
+      "rank": 2
+    },
+    {
+      "id": "shields_3",
+      "name": "Heater Shield",
+      "category": "shields",
+      "rank": 3
+    },
+    {
+      "id": "shields_4",
+      "name": "Kite Shield",
+      "category": "shields",
+      "rank": 4
+    },
+    {
+      "id": "shields_5",
+      "name": "Tower Shield",
+      "category": "shields",
+      "rank": 5
+    },
+    {
+      "id": "shields_6",
+      "name": "Pavise",
+      "category": "shields",
+      "rank": 6
+    },
+    {
+      "id": "shields_7",
+      "name": "Warded Shield",
+      "category": "shields",
+      "rank": 7
+    },
+    {
+      "id": "shields_8",
+      "name": "Greatshield",
+      "category": "shields",
+      "rank": 8
+    },
+    {
+      "id": "plate_body_1",
+      "name": "Brigandine",
+      "category": "plate_body",
+      "rank": 1
+    },
+    {
+      "id": "plate_body_2",
+      "name": "Scale Mail",
+      "category": "plate_body",
+      "rank": 2
+    },
+    {
+      "id": "plate_body_3",
+      "name": "Chainmail",
+      "category": "plate_body",
+      "rank": 3
+    },
+    {
+      "id": "plate_body_4",
+      "name": "Half Plate",
+      "category": "plate_body",
+      "rank": 4
+    },
+    {
+      "id": "plate_body_5",
+      "name": "Plate Harness",
+      "category": "plate_body",
+      "rank": 5
+    },
+    {
+      "id": "plate_body_6",
+      "name": "Full Plate",
+      "category": "plate_body",
+      "rank": 6
+    },
+    {
+      "id": "plate_body_7",
+      "name": "Gothic Plate",
+      "category": "plate_body",
+      "rank": 7
+    },
+    {
+      "id": "plate_body_8",
+      "name": "Dreadplate",
+      "category": "plate_body",
+      "rank": 8
+    },
+    {
+      "id": "leather_body_1",
+      "name": "Rawhide Armor",
+      "category": "leather_body",
+      "rank": 1
+    },
+    {
+      "id": "leather_body_2",
+      "name": "Treated Leather",
+      "category": "leather_body",
+      "rank": 2
+    },
+    {
+      "id": "leather_body_3",
+      "name": "Hardened Leather",
+      "category": "leather_body",
+      "rank": 3
+    },
+    {
+      "id": "leather_body_4",
+      "name": "Studded Leather",
+      "category": "leather_body",
+      "rank": 4
+    },
+    {
+      "id": "leather_body_5",
+      "name": "Reinforced Leather",
+      "category": "leather_body",
+      "rank": 5
+    },
+    {
+      "id": "leather_body_6",
+      "name": "Layered Leather",
+      "category": "leather_body",
+      "rank": 6
+    },
+    {
+      "id": "leather_body_7",
+      "name": "Scalehide Armor",
+      "category": "leather_body",
+      "rank": 7
+    },
+    {
+      "id": "leather_body_8",
+      "name": "Beastplate",
+      "category": "leather_body",
+      "rank": 8
+    },
+    {
+      "id": "cloth_body_1",
+      "name": "Cloth Wraps",
+      "category": "cloth_body",
+      "rank": 1
+    },
+    {
+      "id": "cloth_body_2",
+      "name": "Padded Robes",
+      "category": "cloth_body",
+      "rank": 2
+    },
+    {
+      "id": "cloth_body_3",
+      "name": "Woven Vestments",
+      "category": "cloth_body",
+      "rank": 3
+    },
+    {
+      "id": "cloth_body_4",
+      "name": "Enchanted Robes",
+      "category": "cloth_body",
+      "rank": 4
+    },
+    {
+      "id": "cloth_body_5",
+      "name": "Runed Vestments",
+      "category": "cloth_body",
+      "rank": 5
+    },
+    {
+      "id": "cloth_body_6",
+      "name": "Spellwoven Robes",
+      "category": "cloth_body",
+      "rank": 6
+    },
+    {
+      "id": "cloth_body_7",
+      "name": "Arcane Raiment",
+      "category": "cloth_body",
+      "rank": 7
+    },
+    {
+      "id": "cloth_body_8",
+      "name": "Astral Vestments",
+      "category": "cloth_body",
+      "rank": 8
+    },
+    {
+      "id": "bows_1",
+      "name": "Shortbow",
+      "category": "bows",
+      "rank": 1
+    },
+    {
+      "id": "bows_2",
+      "name": "Hunting Bow",
+      "category": "bows",
+      "rank": 2
+    },
+    {
+      "id": "bows_3",
+      "name": "Recurve Bow",
+      "category": "bows",
+      "rank": 3
+    },
+    {
+      "id": "bows_4",
+      "name": "Longbow",
+      "category": "bows",
+      "rank": 4
+    },
+    {
+      "id": "bows_5",
+      "name": "Warbow",
+      "category": "bows",
+      "rank": 5
+    },
+    {
+      "id": "bows_6",
+      "name": "Composite Bow",
+      "category": "bows",
+      "rank": 6
+    },
+    {
+      "id": "bows_7",
+      "name": "Greatbow",
+      "category": "bows",
+      "rank": 7
+    },
+    {
+      "id": "bows_8",
+      "name": "Ranger Bow",
+      "category": "bows",
+      "rank": 8
+    },
+    {
+      "id": "staffs_1",
+      "name": "Walking Staff",
+      "category": "staffs",
+      "rank": 1
+    },
+    {
+      "id": "staffs_2",
+      "name": "Quarterstaff",
+      "category": "staffs",
+      "rank": 2
+    },
+    {
+      "id": "staffs_3",
+      "name": "Battlestaff",
+      "category": "staffs",
+      "rank": 3
+    },
+    {
+      "id": "staffs_4",
+      "name": "Mage Staff",
+      "category": "staffs",
+      "rank": 4
+    },
+    {
+      "id": "staffs_5",
+      "name": "Runed Staff",
+      "category": "staffs",
+      "rank": 5
+    },
+    {
+      "id": "staffs_6",
+      "name": "Channeling Staff",
+      "category": "staffs",
+      "rank": 6
+    },
+    {
+      "id": "staffs_7",
+      "name": "Archmage Staff",
+      "category": "staffs",
+      "rank": 7
+    },
+    {
+      "id": "staffs_8",
+      "name": "Grand Staff",
+      "category": "staffs",
+      "rank": 8
+    },
+    {
+      "id": "leather_head_1",
+      "name": "Hide Hood",
+      "category": "leather_head",
+      "rank": 1
+    },
+    {
+      "id": "leather_head_2",
+      "name": "Leather Cap",
+      "category": "leather_head",
+      "rank": 2
+    },
+    {
+      "id": "leather_head_3",
+      "name": "Hardened Leather Hood",
+      "category": "leather_head",
+      "rank": 3
+    },
+    {
+      "id": "leather_head_4",
+      "name": "Studded Leather Helm",
+      "category": "leather_head",
+      "rank": 4
+    },
+    {
+      "id": "leather_head_5",
+      "name": "Reinforced Leather Hood",
+      "category": "leather_head",
+      "rank": 5
+    },
+    {
+      "id": "leather_head_6",
+      "name": "Layered Leather Helm",
+      "category": "leather_head",
+      "rank": 6
+    },
+    {
+      "id": "leather_head_7",
+      "name": "Scalehide Hood",
+      "category": "leather_head",
+      "rank": 7
+    },
+    {
+      "id": "leather_head_8",
+      "name": "Beastplate Helm",
+      "category": "leather_head",
+      "rank": 8
+    },
+    {
+      "id": "leather_arms_1",
+      "name": "Hide Bracers",
+      "category": "leather_arms",
+      "rank": 1
+    },
+    {
+      "id": "leather_arms_2",
+      "name": "Leather Bracers",
+      "category": "leather_arms",
+      "rank": 2
+    },
+    {
+      "id": "leather_arms_3",
+      "name": "Hardened Vambraces",
+      "category": "leather_arms",
+      "rank": 3
+    },
+    {
+      "id": "leather_arms_4",
+      "name": "Studded Bracers",
+      "category": "leather_arms",
+      "rank": 4
+    },
+    {
+      "id": "leather_arms_5",
+      "name": "Reinforced Vambraces",
+      "category": "leather_arms",
+      "rank": 5
+    },
+    {
+      "id": "leather_arms_6",
+      "name": "Layered Bracers",
+      "category": "leather_arms",
+      "rank": 6
+    },
+    {
+      "id": "leather_arms_7",
+      "name": "Scalehide Vambraces",
+      "category": "leather_arms",
+      "rank": 7
+    },
+    {
+      "id": "leather_arms_8",
+      "name": "Beastplate Bracers",
+      "category": "leather_arms",
+      "rank": 8
+    },
+    {
+      "id": "leather_legs_1",
+      "name": "Hide Leggings",
+      "category": "leather_legs",
+      "rank": 1
+    },
+    {
+      "id": "leather_legs_2",
+      "name": "Leather Trousers",
+      "category": "leather_legs",
+      "rank": 2
+    },
+    {
+      "id": "leather_legs_3",
+      "name": "Hardened Legguards",
+      "category": "leather_legs",
+      "rank": 3
+    },
+    {
+      "id": "leather_legs_4",
+      "name": "Studded Leggings",
+      "category": "leather_legs",
+      "rank": 4
+    },
+    {
+      "id": "leather_legs_5",
+      "name": "Reinforced Legguards",
+      "category": "leather_legs",
+      "rank": 5
+    },
+    {
+      "id": "leather_legs_6",
+      "name": "Layered Leggings",
+      "category": "leather_legs",
+      "rank": 6
+    },
+    {
+      "id": "leather_legs_7",
+      "name": "Scalehide Legguards",
+      "category": "leather_legs",
+      "rank": 7
+    },
+    {
+      "id": "leather_legs_8",
+      "name": "Beastplate Greaves",
+      "category": "leather_legs",
+      "rank": 8
+    },
+    {
+      "id": "cloth_head_1",
+      "name": "Cloth Hood",
+      "category": "cloth_head",
+      "rank": 1
+    },
+    {
+      "id": "cloth_head_2",
+      "name": "Padded Hood",
+      "category": "cloth_head",
+      "rank": 2
+    },
+    {
+      "id": "cloth_head_3",
+      "name": "Woven Cowl",
+      "category": "cloth_head",
+      "rank": 3
+    },
+    {
+      "id": "cloth_head_4",
+      "name": "Enchanted Hood",
+      "category": "cloth_head",
+      "rank": 4
+    },
+    {
+      "id": "cloth_head_5",
+      "name": "Runed Cowl",
+      "category": "cloth_head",
+      "rank": 5
+    },
+    {
+      "id": "cloth_head_6",
+      "name": "Spellwoven Hood",
+      "category": "cloth_head",
+      "rank": 6
+    },
+    {
+      "id": "cloth_head_7",
+      "name": "Arcane Circlet",
+      "category": "cloth_head",
+      "rank": 7
+    },
+    {
+      "id": "cloth_head_8",
+      "name": "Astral Crown",
+      "category": "cloth_head",
+      "rank": 8
+    },
+    {
+      "id": "cloth_arms_1",
+      "name": "Cloth Wraps",
+      "category": "cloth_arms",
+      "rank": 1
+    },
+    {
+      "id": "cloth_arms_2",
+      "name": "Padded Sleeves",
+      "category": "cloth_arms",
+      "rank": 2
+    },
+    {
+      "id": "cloth_arms_3",
+      "name": "Woven Sleeves",
+      "category": "cloth_arms",
+      "rank": 3
+    },
+    {
+      "id": "cloth_arms_4",
+      "name": "Enchanted Wraps",
+      "category": "cloth_arms",
+      "rank": 4
+    },
+    {
+      "id": "cloth_arms_5",
+      "name": "Runed Sleeves",
+      "category": "cloth_arms",
+      "rank": 5
+    },
+    {
+      "id": "cloth_arms_6",
+      "name": "Spellwoven Wraps",
+      "category": "cloth_arms",
+      "rank": 6
+    },
+    {
+      "id": "cloth_arms_7",
+      "name": "Arcane Sleeves",
+      "category": "cloth_arms",
+      "rank": 7
+    },
+    {
+      "id": "cloth_arms_8",
+      "name": "Astral Wraps",
+      "category": "cloth_arms",
+      "rank": 8
+    },
+    {
+      "id": "cloth_legs_1",
+      "name": "Cloth Leggings",
+      "category": "cloth_legs",
+      "rank": 1
+    },
+    {
+      "id": "cloth_legs_2",
+      "name": "Padded Trousers",
+      "category": "cloth_legs",
+      "rank": 2
+    },
+    {
+      "id": "cloth_legs_3",
+      "name": "Woven Leggings",
+      "category": "cloth_legs",
+      "rank": 3
+    },
+    {
+      "id": "cloth_legs_4",
+      "name": "Enchanted Trousers",
+      "category": "cloth_legs",
+      "rank": 4
+    },
+    {
+      "id": "cloth_legs_5",
+      "name": "Runed Leggings",
+      "category": "cloth_legs",
+      "rank": 5
+    },
+    {
+      "id": "cloth_legs_6",
+      "name": "Spellwoven Trousers",
+      "category": "cloth_legs",
+      "rank": 6
+    },
+    {
+      "id": "cloth_legs_7",
+      "name": "Arcane Leggings",
+      "category": "cloth_legs",
+      "rank": 7
+    },
+    {
+      "id": "cloth_legs_8",
+      "name": "Astral Leggings",
+      "category": "cloth_legs",
+      "rank": 8
+    },
+    {
+      "id": "plate_head_1",
+      "name": "Brigandine Cap",
+      "category": "plate_head",
+      "rank": 1
+    },
+    {
+      "id": "plate_head_2",
+      "name": "Scale Helm",
+      "category": "plate_head",
+      "rank": 2
+    },
+    {
+      "id": "plate_head_3",
+      "name": "Chain Coif",
+      "category": "plate_head",
+      "rank": 3
+    },
+    {
+      "id": "plate_head_4",
+      "name": "Half-Plate Helm",
+      "category": "plate_head",
+      "rank": 4
+    },
+    {
+      "id": "plate_head_5",
+      "name": "Plate Helm",
+      "category": "plate_head",
+      "rank": 5
+    },
+    {
+      "id": "plate_head_6",
+      "name": "Full Helm",
+      "category": "plate_head",
+      "rank": 6
+    },
+    {
+      "id": "plate_head_7",
+      "name": "Gothic Helm",
+      "category": "plate_head",
+      "rank": 7
+    },
+    {
+      "id": "plate_head_8",
+      "name": "Dread Helm",
+      "category": "plate_head",
+      "rank": 8
+    },
+    {
+      "id": "plate_arms_1",
+      "name": "Brigandine Bracers",
+      "category": "plate_arms",
+      "rank": 1
+    },
+    {
+      "id": "plate_arms_2",
+      "name": "Scale Bracers",
+      "category": "plate_arms",
+      "rank": 2
+    },
+    {
+      "id": "plate_arms_3",
+      "name": "Chain Vambraces",
+      "category": "plate_arms",
+      "rank": 3
+    },
+    {
+      "id": "plate_arms_4",
+      "name": "Half-Plate Gauntlets",
+      "category": "plate_arms",
+      "rank": 4
+    },
+    {
+      "id": "plate_arms_5",
+      "name": "Plate Gauntlets",
+      "category": "plate_arms",
+      "rank": 5
+    },
+    {
+      "id": "plate_arms_6",
+      "name": "Full Gauntlets",
+      "category": "plate_arms",
+      "rank": 6
+    },
+    {
+      "id": "plate_arms_7",
+      "name": "Gothic Gauntlets",
+      "category": "plate_arms",
+      "rank": 7
+    },
+    {
+      "id": "plate_arms_8",
+      "name": "Dread Gauntlets",
+      "category": "plate_arms",
+      "rank": 8
+    },
+    {
+      "id": "plate_legs_1",
+      "name": "Brigandine Legguards",
+      "category": "plate_legs",
+      "rank": 1
+    },
+    {
+      "id": "plate_legs_2",
+      "name": "Scale Greaves",
+      "category": "plate_legs",
+      "rank": 2
+    },
+    {
+      "id": "plate_legs_3",
+      "name": "Chain Leggings",
+      "category": "plate_legs",
+      "rank": 3
+    },
+    {
+      "id": "plate_legs_4",
+      "name": "Half-Plate Greaves",
+      "category": "plate_legs",
+      "rank": 4
+    },
+    {
+      "id": "plate_legs_5",
+      "name": "Plate Greaves",
+      "category": "plate_legs",
+      "rank": 5
+    },
+    {
+      "id": "plate_legs_6",
+      "name": "Full Greaves",
+      "category": "plate_legs",
+      "rank": 6
+    },
+    {
+      "id": "plate_legs_7",
+      "name": "Gothic Greaves",
+      "category": "plate_legs",
+      "rank": 7
+    },
+    {
+      "id": "plate_legs_8",
+      "name": "Dread Greaves",
+      "category": "plate_legs",
+      "rank": 8
+    },
+    {
+      "id": "belt",
+      "name": "Belt",
+      "category": "belts",
+      "rank": 1,
+      "base_capacity": 2
+    }
+  ]
+}

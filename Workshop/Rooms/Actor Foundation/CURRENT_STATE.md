@@ -1,11 +1,14 @@
 # Actor Foundation — Current State
 Updated: 2026-09-11
 Checkpoint: [Actor Foundation]+[Validation]+[Integration]
+
+**World Foundation handoff (2026-09-11):** Hierarchical generation, recursive templates, saves and event POIs now run in [World Foundation](../World%20Foundation/README.md), composed with this accepted actor system. This scene retains its original generator. Map/simulation factory hooks and optional seeded actor/item generation support the new composition; actor 134/UI 17 and shared regression checks pass after those changes.
+
 Implementation baseline/evidence: inherited UI Foundation Prototype with LocalPoiSpacing; BASELINE.json records pre-change input hashes. New Actor Foundation files are uncommitted; UI Foundation gains only a board-construction factory hook. No Production changes.
 
 ## Rapid Shape
 
-A new runnable Workshop scene uses a persistent actor registry and a shared action boundary. Player input and enemy decisions call the same legal operations. Multiple enemies can coexist, pick up/equip loot, use potion/skill rules and pursue an observed map exit. Geography, POI spacing and initial enemy generation are reused. Runtime is at main.tscn; open it and use F6. Agent validation is delivered; Rob's acceptance remains pending.
+A new runnable Workshop scene uses a persistent actor registry and a shared action boundary. Player input and enemy decisions call the same legal operations. Multiple enemies can coexist, pick up/equip loot, use potion/skill rules and pursue an observed map exit. Geography, POI spacing and initial enemy generation are reused. Runtime is at main.tscn; open it and use F6. Agent validation is delivered; Rob accepted the current actor pass on 2026-09-11: “No gameplay issue. love this so far.”
 
 ## Locations And Ownership
 
@@ -66,6 +69,8 @@ Godot 4.4.1, Windows engine through WSL:
 - Existing UI Foundation regression: baseline 2,027, UI 79, drag input 8, floating panels 14 — all pass after the board factory hook.
 - Actual OpenGL 1440×900 capture inspected: `tests/actor_gameplay.png`. Player and two goblins appear over Local terrain with transparent runtime surroundings, rings and bars. It is a staged capture fixture, not random Local spawning. Sprite shader color multiplication was corrected after the first render.
 
-An initial typed-array error in enemy pursuit was found and corrected; the final simulation checks pass. Runtime sprites use a magenta-key shader because the image tool supplied opaque output, not a true alpha cutout. The atlas was edited/generated from the supplied reference; it is not a pixel-exact extraction. Static south-facing player/goblin only: no animation, species variety, paper-doll gear rendering or sprite-dependent mechanics yet. Human visual acceptance remains pending.
+An initial typed-array error in enemy pursuit was found and corrected; the final simulation checks pass. Runtime sprites use a magenta-key shader because the image tool supplied opaque output, not a true alpha cutout. The atlas was edited/generated from the supplied reference; it is not a pixel-exact extraction. Static south-facing player/goblin only: no animation, species variety, paper-doll gear rendering or sprite-dependent mechanics yet. Rob accepted the current actor pass; equipment-changing sprites remain an explicit stretch goal.
 
 No random Local enemies, random ground treasure, chests, doors, boats or broader object catalogue were added. These remain separate future work. Existing map generation and tile art, including permanent tile outlines, remain as before.
+
+Hierarchy alignment review: [World Generation Alignment](../UI%20Foundation/WORLD_GENERATION_ALIGNMENT.md). This is a design/code assessment, not an implemented generator migration. Equipment-dependent sprites are an explicit stretch goal; static actor sprites satisfy the current pass.

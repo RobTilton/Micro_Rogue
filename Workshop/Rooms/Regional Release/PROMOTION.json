@@ -1,0 +1,342 @@
+{
+  "previous": {
+    "Production/Actors/actors.gd": "4e5ac3d5cd5bf78fbc37620a8a8a1681c11dde5954ea859d6475b8b90f8b05f7",
+    "Production/Actors/actor_world.gd": "df1db92aad4498f398c38cac51e9cbd15a41ddf1d50189d662b62cf1fa9385a5",
+    "Production/Actors/combat.gd": "7350d5d3c730bf4aa100aa591542846613d94e447d5020c6f3ebf2139e6c90ba",
+    "Production/Actors/cooldowns.gd": "d5eb658ea3302dabc5d8c0958383a0827bc549cd7db23263780a8b8987863721",
+    "Production/Actors/enemy_brain.gd": "dac6fae650cab53bfae3b7eb02310ee7d4c7ed2b6d268c55c4e0eb15415a5df6",
+    "Production/Actors/grid_inventory.gd": "e133a5dbacbcf7ced342c71fbf8823cd8c62f2187edcd10034b791563400c0e6",
+    "Production/Actors/inventory.gd": "cdb1c031bd2b6dd067245b20908c1b15f9611f13ba4c760c21dc869c64783619",
+    "Production/Actors/items.gd": "922297015a04937d30e6a6ad96699c14b852fd5b18877f55a40788662957d5da",
+    "Production/Actors/item_inspection.gd": "e279a3610b4e7f479f601cb2da86b84e09d7f1a439f72f76df5983537cbf4f33",
+    "Production/Actors/perception.gd": "508414bae4e34d9fb1eca6ad2fc52090e951a3570f02e80832c6574aa79b059e",
+    "Production/World/biome_generator.gd": "838f10cbb248cd754c962e6688664e89c6634985ceeb37becc40f54ca39e02fe",
+    "Production/World/continent_generator.gd": "eaedd298dbe963ee8eda810112dedfc1094bd7895c6520da143322f91e6c6621",
+    "Production/World/geographic_contracts.gd": "7dc629262ffe8108eea44e78b3c5cc5195a1dba5b27a0946cbc4d25060335e76",
+    "Production/World/hex_map.gd": "80b05747c4bf1e6693999b5fc2465255bbaf08e38378621631c90688171378e9",
+    "Production/World/local_poi_placement.gd": "45c15bc2af08d5dac5899f25cdc0d2d2be4e671b72909d70934b9e49431655ca",
+    "Production/World/local_terrain.gd": "b08ba0608246dd125822189e57b48b18c02864ee21cfb5bee09251dfe70c6a6d",
+    "Production/World/local_water.gd": "ef65c61cacfab44ff17617aef26d2f4cdf05329149af27a2e17ea1a9a900f529",
+    "Production/World/location_templates.gd": "148c05293cda2d1127cdf96d200744b50a829fb482f46b7a4b43e5fb850ecad8",
+    "Production/World/location_world.gd": "42b422e0a9c8c1c85a98c8fb66835a5f744fbc700d06b8a01b4979b4db51e1b4",
+    "Production/World/map_world.gd": "78ec77bd607d245121dec576b113de951d355f9dd141daf53b03be73c71396c4",
+    "Production/World/movement_preview.gd": "2a82a575d38f218f495d862cf3b9615a654919d0a18e70e065ab8859c5e8012b",
+    "Production/World/river_edges.gd": "713bdf99152a977a78fe6cd2e8e66a25b65fec03508d215fabaaa28be0d904b9",
+    "Production/World/river_generator.gd": "895d31e2bf082860f03f1cd28bbcd58c3d6f7ab2f245c9ae9f2b2997b08abe6f",
+    "Production/World/topology_generator.gd": "a06916d027e3a794500b79b9a52ca9d9cc9d3ad3034a8d6385409b540bb7f75f",
+    "Production/World/travel_cost.gd": "a491f1cc25c86bccf02953aed298b8dc8b3d49e5526b28462f7028a5ae77faad",
+    "Production/Persistence/autosave_journal.gd": "3cedf4787906621e55663f03177848817c40b9c833a2136ec467ae870005e27a",
+    "Production/Persistence/map_state.gd": "f24d6e716563ef76dccaffb4fca48dc50fbcc4cfceb9acc01a80c031dec2e0eb",
+    "Production/Persistence/persistent_actor_world.gd": "c07c3c91349ae4b6621fb742035c0b61a39d6403c5cfda2756781948f6469bf9",
+    "Production/Persistence/storage_paths.gd": "e1698c09026b24181399e43700dfa71c36af4086077b586835b9fb29e633aeee",
+    "Production/UI/actor_game.gd": "e700478dd37b9d20f55da854ab1b5b44a9ae5d4250ab1f49b96737a66d3ed585",
+    "Production/UI/actor_sprite.gd": "6a738f889f281d8139c64190f9edfc6c6e8f176a532dd5d57d537fab31456af5",
+    "Production/UI/actor_view.gd": "0764db73a3271b4c4a7a3b24b28c5cacb14e7b8a8a4d9a22b5566e623465848d",
+    "Production/UI/base_game.gd": "365388341fc49ca6b98a0c22ebc59c28de51e817d841b07130f1412f7b86350e",
+    "Production/UI/bottom_hud.gd": "19816d60bf75af330fb6c29d2e2f5216a7855161e3a463e019165b2a1d332a2d",
+    "Production/UI/die_slot.gd": "dbe1d31211831fe012ff2df7d0e940ee97cb1513d1d97b768c1dfa940a3909ba",
+    "Production/UI/drag_context.gd": "72b1814bf6d1c506b37ce28fbb7770dfc4360e71ca3b32b415f7c835b7711781",
+    "Production/UI/game_ui.gd": "d97a56bf9a87315224a308a9b5e2a48063ab4326ad15652112b5b3fc90cc24e1",
+    "Production/UI/hex_board.gd": "d31e0e08c26e72ddd81a130f19491f8ef1547ce625daf8bad90fa6d74e75919f",
+    "Production/UI/inventory_grid.gd": "d3b0d79de8091bc2fc7b340870c03945f50d1e245b1e37bfd94c8c4176b3f220",
+    "Production/UI/item_art.gd": "d8b3712e8166b128c07c6ac0bbb2993958cc9af9f59b47ae69613364481ed066",
+    "Production/UI/item_card.gd": "a70e9d1b64bfb478fd52daf5de102a8221475adf564606e583440b1f4f895b8e",
+    "Production/UI/item_icon.gd": "36620edfbc64ee7f4daa32f4a32667a07ee41d12b96615148c63f7fb33300ff0",
+    "Production/UI/item_target.gd": "7d14591aed958ac6608a1ee405fbe4ea7cbfbf919de019d171cfb6608ac97b2c",
+    "Production/UI/marsh_art.gd": "f7b35e77212d1563404359ebd83bf4d1ae977a319f6994be65343673470f22f4",
+    "Production/UI/navigation_rail.gd": "4a8153dd504e9da45d1efbea2e4b7555f12af271ff24f839e13f13cb897769c3",
+    "Production/UI/panel_host.gd": "2bf908ae54a08075cf6f140ea4d42c008674def0dddfc7e7d748b1d757ca11e6",
+    "Production/UI/poi_art.gd": "65489996cbbcf7d268049cbfa80b386771b07fac53b449ac29b4a6fe34141808",
+    "Production/UI/river_art.gd": "2660bdebf1dc82be7a65eb6654bd1e11d69098e70b0214634cf6b90d0b7853dc",
+    "Production/UI/splash_art.gd": "0700eb6e3dcf8c92a27f267716ddc03d91bc23a8e24aac2e19522be901947daa",
+    "Production/UI/terrain_variation.gd": "86aa2d524b8675a386b02e84e5e46d6b5238d7a004cc9502c190997262afc7b2",
+    "Production/UI/ui_parts.gd": "2073e8f18bb0c34565389525726db790b008bc607bc43e7e6756faf6706b26ce",
+    "Production/UI/wasteland_art.gd": "f1df9e879622a5b4d164d03b4898069c074cb1079e8f5c72e04ebf8c5eb208e0",
+    "Production/UI/world_game.gd": "86e217c812c28699f58ae885cb1319b8ec37a20fb53ede2265e5dd8efebac260",
+    "Production/UI/world_view.gd": "c09cad6c2df7c89b1d8cde9bdfd6fe5fb67389ba4cb790d34264d483925cdab3"
+  },
+  "regional_source": [
+    {
+      "source": "Workshop/Rooms/Regional Foundation/Actors/actors.gd",
+      "sha256": "d4e372dcb1d04d3e4cef4b87ba019d75b5cb58c5dad5f1bfa09c0429b3a2990e"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/Actors/actor_world.gd",
+      "sha256": "de6633e3ce8664f153d370c6ab6387e16c7ec154fd717054e8600e0a0eaeb66d"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/Actors/combat.gd",
+      "sha256": "63ca7b6974020d35e9dd0c3735f563984c24a96bfe4e80c63658f41d3a2469f6"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/Actors/cooldowns.gd",
+      "sha256": "d5eb658ea3302dabc5d8c0958383a0827bc549cd7db23263780a8b8987863721"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/Actors/enemy_brain.gd",
+      "sha256": "dac6fae650cab53bfae3b7eb02310ee7d4c7ed2b6d268c55c4e0eb15415a5df6"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/Actors/grid_inventory.gd",
+      "sha256": "4f1f5b7ffbd64f014a7ee30a53c85c2c4f6f3565161c8ff14d022906feca676c"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/Actors/inventory.gd",
+      "sha256": "cdb1c031bd2b6dd067245b20908c1b15f9611f13ba4c760c21dc869c64783619"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/Actors/items.gd",
+      "sha256": "922297015a04937d30e6a6ad96699c14b852fd5b18877f55a40788662957d5da"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/Actors/item_inspection.gd",
+      "sha256": "e279a3610b4e7f479f601cb2da86b84e09d7f1a439f72f76df5983537cbf4f33"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/Actors/perception.gd",
+      "sha256": "508414bae4e34d9fb1eca6ad2fc52090e951a3570f02e80832c6574aa79b059e"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/World/biome_generator.gd",
+      "sha256": "838f10cbb248cd754c962e6688664e89c6634985ceeb37becc40f54ca39e02fe"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/World/continent_generator.gd",
+      "sha256": "89d6c1a0a032c49d511f3ddcc715a666ee9df2b933585b2c256e86ab39b9d408"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/World/geographic_contracts.gd",
+      "sha256": "44258fa1b4d3db3df595d22a4dee370143366ab47d8e3c83448697db6a5a8620"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/World/hex_map.gd",
+      "sha256": "2e937f9859b56679f90f27ce50ec83397cf56363f2ce443c93dfac37be02a2d2"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/World/local_poi_placement.gd",
+      "sha256": "7864fd030fe2d21256292b64817c385c815419280dbae86bb10e9bd952ba34aa"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/World/local_terrain.gd",
+      "sha256": "7857ef8dd0422fc819c08e21669e4b6480717ad5f9c6b00fbbb1375b4501c978"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/World/local_water.gd",
+      "sha256": "c8aeeaa5c914571194f81fe4b9685abf9a2b41b54aa4d4c94f85cacf8e80ff0b"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/World/location_templates.gd",
+      "sha256": "148c05293cda2d1127cdf96d200744b50a829fb482f46b7a4b43e5fb850ecad8"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/World/location_world.gd",
+      "sha256": "10bb819a0b2b81de2d0ba5c1ef62f8a3136d26f431954b8f4a60616e468b8035"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/World/map_world.gd",
+      "sha256": "cc95c82debaf6b5b63d7aeb5f9ea5dc12903bd1a062d50db81fdf8b03e9ed335"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/World/movement_preview.gd",
+      "sha256": "2eda2c63f9766ed6930430b92130bbaeebc66663b854221eeaf8c56f03b37e9b"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/World/regional_state.gd",
+      "sha256": "d6f0ecd6b255c2fa7ad091e9e0ce083e02913647c8b5822ec5a4f024291741d6"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/World/river_edges.gd",
+      "sha256": "713bdf99152a977a78fe6cd2e8e66a25b65fec03508d215fabaaa28be0d904b9"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/World/river_generator.gd",
+      "sha256": "e9f318d9e0e1fec5def7aa544c28abcdd1c6a8ee2030e71a500c401198538310"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/World/topology_generator.gd",
+      "sha256": "9020c496fc5477c85dd3ef3bd30202cfb71099fe29ddf8d68d9ca09167c4d044"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/World/travel_cost.gd",
+      "sha256": "a491f1cc25c86bccf02953aed298b8dc8b3d49e5526b28462f7028a5ae77faad"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/Persistence/autosave_journal.gd",
+      "sha256": "d71de5902d864c9619cbe0be63702fb0f48c7ee8494a57a0b2cd75b5c5189e58"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/Persistence/map_state.gd",
+      "sha256": "7fe24c9892d0a9c5ec972e07c1607e5d523d9d83c76c3040c6fd187548da0167"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/Persistence/persistent_actor_world.gd",
+      "sha256": "30003b29f75f1b70cab4fd7d6982204a28dcb10eca82d699a41085acaafa60a0"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/Persistence/storage_paths.gd",
+      "sha256": "fcd222e152b969674d40b67f7c17df8bd03f5a88a56d4cd0d598e7c8071383a7"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/actor_game.gd",
+      "sha256": "ad6d3511c8fb5302107ee2c127cdcd53b085abb941982e3f0502f7ed8f2dea3d"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/actor_sprite.gd",
+      "sha256": "6a738f889f281d8139c64190f9edfc6c6e8f176a532dd5d57d537fab31456af5"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/actor_view.gd",
+      "sha256": "5e7198dd35ecdba8395a03a1cd0078a8f3e6cd21e8e520b98e4c4295be98f03c"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/base_game.gd",
+      "sha256": "edf852588a9570e572083e7f8f6d12f7b118a394ea5c45ed6db50aec763aee87"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/bottom_hud.gd",
+      "sha256": "38c52249ed32b4f912cba50f69755736541d489b897541f72dcefc543290aca2"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/die_slot.gd",
+      "sha256": "dbe1d31211831fe012ff2df7d0e940ee97cb1513d1d97b768c1dfa940a3909ba"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/drag_context.gd",
+      "sha256": "72b1814bf6d1c506b37ce28fbb7770dfc4360e71ca3b32b415f7c835b7711781"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/game_ui.gd",
+      "sha256": "e47fa7f303dff0857c2a3afffa7100b746240c957cc4b27bfbe53f5685d16e5f"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/hex_board.gd",
+      "sha256": "5a1fa880a71590fe5a00fc42bc2dc3c1453ca6203b89075d5f4d2aae2900fff5"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/inventory_grid.gd",
+      "sha256": "c66e59a6b682db1b922a0d5902f7bacbfd7059e3f83de86c6c291a822d59ea12"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/item_art.gd",
+      "sha256": "d8b3712e8166b128c07c6ac0bbb2993958cc9af9f59b47ae69613364481ed066"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/item_card.gd",
+      "sha256": "1892c23d5c940db82d53c2efa9d3268af835f7c64edb81d376b0efcea3215d30"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/item_icon.gd",
+      "sha256": "be97d1d1e9d334fea5debf8f147ee67053b8e893e0a74b75285d955d1663594b"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/item_target.gd",
+      "sha256": "c628037d809dfaf9333dad45ac2dfbba41e95c1dbc65ea00f0d51c5644205cb2"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/marsh_art.gd",
+      "sha256": "273d1e7404586357df1ac0e220162e336372868144ab450864c5f299b78c8661"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/navigation_rail.gd",
+      "sha256": "347c1495a7e76beff4475459075ed483b3165cb6d06e384431b543db44f87c26"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/panel_host.gd",
+      "sha256": "4ac3b67ddfca5b3671e78490993b82a3e9d49c5301d0e8812c818558f7a1b25d"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/poi_art.gd",
+      "sha256": "65489996cbbcf7d268049cbfa80b386771b07fac53b449ac29b4a6fe34141808"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/river_art.gd",
+      "sha256": "bf283e98cbb18b89f85e54efc81244087cb58277cb555dad1f795d8b8fa3261f"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/splash_art.gd",
+      "sha256": "0700eb6e3dcf8c92a27f267716ddc03d91bc23a8e24aac2e19522be901947daa"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/terrain_variation.gd",
+      "sha256": "86aa2d524b8675a386b02e84e5e46d6b5238d7a004cc9502c190997262afc7b2"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/ui_parts.gd",
+      "sha256": "2073e8f18bb0c34565389525726db790b008bc607bc43e7e6756faf6706b26ce"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/wasteland_art.gd",
+      "sha256": "5cc8d958ea1dd2e1bf675b99dba7c32a4e2a0b037130b4afab94cb9ae8b4bd2e"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/world_game.gd",
+      "sha256": "4645ea27d155f7db80e9eff86c5dacc981849699a287e7f5875628e7c5e79854"
+    },
+    {
+      "source": "Workshop/Rooms/Regional Foundation/UI/world_view.gd",
+      "sha256": "f5cb8a033dbe5a043b0a7494832164c4500834b4354890477047c5411a87c7b0"
+    }
+  ],
+  "promoted": {
+    "Production/Actors/actors.gd": "4e5ac3d5cd5bf78fbc37620a8a8a1681c11dde5954ea859d6475b8b90f8b05f7",
+    "Production/Actors/actor_world.gd": "887e20072bfbc9db3a2bb89aa1afa40e7d27449afb7264660c44df8f9b308626",
+    "Production/Actors/combat.gd": "7350d5d3c730bf4aa100aa591542846613d94e447d5020c6f3ebf2139e6c90ba",
+    "Production/Actors/cooldowns.gd": "d5eb658ea3302dabc5d8c0958383a0827bc549cd7db23263780a8b8987863721",
+    "Production/Actors/enemy_brain.gd": "dac6fae650cab53bfae3b7eb02310ee7d4c7ed2b6d268c55c4e0eb15415a5df6",
+    "Production/Actors/grid_inventory.gd": "e133a5dbacbcf7ced342c71fbf8823cd8c62f2187edcd10034b791563400c0e6",
+    "Production/Actors/inventory.gd": "cdb1c031bd2b6dd067245b20908c1b15f9611f13ba4c760c21dc869c64783619",
+    "Production/Actors/items.gd": "922297015a04937d30e6a6ad96699c14b852fd5b18877f55a40788662957d5da",
+    "Production/Actors/item_inspection.gd": "e279a3610b4e7f479f601cb2da86b84e09d7f1a439f72f76df5983537cbf4f33",
+    "Production/Actors/perception.gd": "508414bae4e34d9fb1eca6ad2fc52090e951a3570f02e80832c6574aa79b059e",
+    "Production/World/biome_generator.gd": "838f10cbb248cd754c962e6688664e89c6634985ceeb37becc40f54ca39e02fe",
+    "Production/World/continent_generator.gd": "eaedd298dbe963ee8eda810112dedfc1094bd7895c6520da143322f91e6c6621",
+    "Production/World/geographic_contracts.gd": "862aaf12a888688063b6784b5b170cefd0335278c455ed1b0670485ef1a90c57",
+    "Production/World/hex_map.gd": "2e937f9859b56679f90f27ce50ec83397cf56363f2ce443c93dfac37be02a2d2",
+    "Production/World/local_entry.gd": "56f5714ea1eb56804172e38a826fdb44c4144df0375a61027162f074579900a4",
+    "Production/World/local_poi_placement.gd": "45c15bc2af08d5dac5899f25cdc0d2d2be4e671b72909d70934b9e49431655ca",
+    "Production/World/local_terrain.gd": "b08ba0608246dd125822189e57b48b18c02864ee21cfb5bee09251dfe70c6a6d",
+    "Production/World/local_water.gd": "ef65c61cacfab44ff17617aef26d2f4cdf05329149af27a2e17ea1a9a900f529",
+    "Production/World/location_templates.gd": "148c05293cda2d1127cdf96d200744b50a829fb482f46b7a4b43e5fb850ecad8",
+    "Production/World/location_world.gd": "5857e19c37e38a34a0b5efe4236e6de5800166a91ae8e1fe49dc019183708a44",
+    "Production/World/map_world.gd": "78ec77bd607d245121dec576b113de951d355f9dd141daf53b03be73c71396c4",
+    "Production/World/movement_preview.gd": "2a82a575d38f218f495d862cf3b9615a654919d0a18e70e065ab8859c5e8012b",
+    "Production/World/regional_state.gd": "d6f0ecd6b255c2fa7ad091e9e0ce083e02913647c8b5822ec5a4f024291741d6",
+    "Production/World/river_edges.gd": "713bdf99152a977a78fe6cd2e8e66a25b65fec03508d215fabaaa28be0d904b9",
+    "Production/World/river_generator.gd": "895d31e2bf082860f03f1cd28bbcd58c3d6f7ab2f245c9ae9f2b2997b08abe6f",
+    "Production/World/topology_generator.gd": "a06916d027e3a794500b79b9a52ca9d9cc9d3ad3034a8d6385409b540bb7f75f",
+    "Production/World/travel_cost.gd": "a491f1cc25c86bccf02953aed298b8dc8b3d49e5526b28462f7028a5ae77faad",
+    "Production/Persistence/autosave_journal.gd": "f670f4cb43a2f53ed28c132f1990c6141216306783651ff1efe1be531b045cc0",
+    "Production/Persistence/map_state.gd": "eba82097964a2f3f9f4560684daf510562877e7fee3d32e3060007e6c2a4edd4",
+    "Production/Persistence/persistent_actor_world.gd": "d34e699222a2d1929e86192db95d2ea5f8252e5eb1e1488ca4fb66e63ba86139",
+    "Production/Persistence/storage_paths.gd": "e1698c09026b24181399e43700dfa71c36af4086077b586835b9fb29e633aeee",
+    "Production/Persistence/world_slot.gd": "201e8d7db7d30c9bfab8d85fbdf23f1208a0323a0268f492842a9d9dd2e44ee7",
+    "Production/UI/actor_game.gd": "e700478dd37b9d20f55da854ab1b5b44a9ae5d4250ab1f49b96737a66d3ed585",
+    "Production/UI/actor_sprite.gd": "6a738f889f281d8139c64190f9edfc6c6e8f176a532dd5d57d537fab31456af5",
+    "Production/UI/actor_view.gd": "0764db73a3271b4c4a7a3b24b28c5cacb14e7b8a8a4d9a22b5566e623465848d",
+    "Production/UI/base_game.gd": "365388341fc49ca6b98a0c22ebc59c28de51e817d841b07130f1412f7b86350e",
+    "Production/UI/bottom_hud.gd": "19816d60bf75af330fb6c29d2e2f5216a7855161e3a463e019165b2a1d332a2d",
+    "Production/UI/die_slot.gd": "dbe1d31211831fe012ff2df7d0e940ee97cb1513d1d97b768c1dfa940a3909ba",
+    "Production/UI/drag_context.gd": "72b1814bf6d1c506b37ce28fbb7770dfc4360e71ca3b32b415f7c835b7711781",
+    "Production/UI/game_ui.gd": "2f9d37ee2a8f04bd889874eacedb7f38e02eba77c86bb8ca353474ee74610bec",
+    "Production/UI/hex_board.gd": "d31e0e08c26e72ddd81a130f19491f8ef1547ce625daf8bad90fa6d74e75919f",
+    "Production/UI/hex_menu_button.gd": "03ade629dda1748b7f84fd959dc4970cb6277724a8047f8e0cd7a763f40854a9",
+    "Production/UI/inventory_grid.gd": "d3b0d79de8091bc2fc7b340870c03945f50d1e245b1e37bfd94c8c4176b3f220",
+    "Production/UI/item_art.gd": "d8b3712e8166b128c07c6ac0bbb2993958cc9af9f59b47ae69613364481ed066",
+    "Production/UI/item_card.gd": "a70e9d1b64bfb478fd52daf5de102a8221475adf564606e583440b1f4f895b8e",
+    "Production/UI/item_icon.gd": "36620edfbc64ee7f4daa32f4a32667a07ee41d12b96615148c63f7fb33300ff0",
+    "Production/UI/item_target.gd": "7d14591aed958ac6608a1ee405fbe4ea7cbfbf919de019d171cfb6608ac97b2c",
+    "Production/UI/marsh_art.gd": "f7b35e77212d1563404359ebd83bf4d1ae977a319f6994be65343673470f22f4",
+    "Production/UI/navigation_rail.gd": "4a8153dd504e9da45d1efbea2e4b7555f12af271ff24f839e13f13cb897769c3",
+    "Production/UI/panel_host.gd": "2bf908ae54a08075cf6f140ea4d42c008674def0dddfc7e7d748b1d757ca11e6",
+    "Production/UI/poi_art.gd": "65489996cbbcf7d268049cbfa80b386771b07fac53b449ac29b4a6fe34141808",
+    "Production/UI/river_art.gd": "2660bdebf1dc82be7a65eb6654bd1e11d69098e70b0214634cf6b90d0b7853dc",
+    "Production/UI/splash_art.gd": "0700eb6e3dcf8c92a27f267716ddc03d91bc23a8e24aac2e19522be901947daa",
+    "Production/UI/start_menu.gd": "39d647ec35c310e12cbf98836ba0afb716f3aa3f5905439bfcc83feaba62f672",
+    "Production/UI/terrain_variation.gd": "86aa2d524b8675a386b02e84e5e46d6b5238d7a004cc9502c190997262afc7b2",
+    "Production/UI/ui_parts.gd": "2073e8f18bb0c34565389525726db790b008bc607bc43e7e6756faf6706b26ce",
+    "Production/UI/wasteland_art.gd": "f1df9e879622a5b4d164d03b4898069c074cb1079e8f5c72e04ebf8c5eb208e0",
+    "Production/UI/world_game.gd": "b75bdfc133921d00c8207d8fae5d4e01ab2098051e578e6cf5b2dea70b7a56d8",
+    "Production/UI/world_view.gd": "c09cad6c2df7c89b1d8cde9bdfd6fe5fb67389ba4cb790d34264d483925cdab3",
+    "Production/main.tscn": "6df5ada4dca7ba29f7d276de40630e66400291187cbbea0b82c634d7bc654e78"
+  }
+}

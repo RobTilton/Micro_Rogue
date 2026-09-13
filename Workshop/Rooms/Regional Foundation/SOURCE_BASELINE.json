@@ -1,0 +1,218 @@
+[
+  {
+    "source": "Production/Actors/actors.gd",
+    "sha256": "4e5ac3d5cd5bf78fbc37620a8a8a1681c11dde5954ea859d6475b8b90f8b05f7"
+  },
+  {
+    "source": "Production/Actors/actor_world.gd",
+    "sha256": "df1db92aad4498f398c38cac51e9cbd15a41ddf1d50189d662b62cf1fa9385a5"
+  },
+  {
+    "source": "Production/Actors/combat.gd",
+    "sha256": "7350d5d3c730bf4aa100aa591542846613d94e447d5020c6f3ebf2139e6c90ba"
+  },
+  {
+    "source": "Production/Actors/cooldowns.gd",
+    "sha256": "d5eb658ea3302dabc5d8c0958383a0827bc549cd7db23263780a8b8987863721"
+  },
+  {
+    "source": "Production/Actors/enemy_brain.gd",
+    "sha256": "dac6fae650cab53bfae3b7eb02310ee7d4c7ed2b6d268c55c4e0eb15415a5df6"
+  },
+  {
+    "source": "Production/Actors/grid_inventory.gd",
+    "sha256": "e133a5dbacbcf7ced342c71fbf8823cd8c62f2187edcd10034b791563400c0e6"
+  },
+  {
+    "source": "Production/Actors/inventory.gd",
+    "sha256": "cdb1c031bd2b6dd067245b20908c1b15f9611f13ba4c760c21dc869c64783619"
+  },
+  {
+    "source": "Production/Actors/items.gd",
+    "sha256": "922297015a04937d30e6a6ad96699c14b852fd5b18877f55a40788662957d5da"
+  },
+  {
+    "source": "Production/Actors/item_inspection.gd",
+    "sha256": "e279a3610b4e7f479f601cb2da86b84e09d7f1a439f72f76df5983537cbf4f33"
+  },
+  {
+    "source": "Production/Actors/perception.gd",
+    "sha256": "508414bae4e34d9fb1eca6ad2fc52090e951a3570f02e80832c6574aa79b059e"
+  },
+  {
+    "source": "Production/World/biome_generator.gd",
+    "sha256": "838f10cbb248cd754c962e6688664e89c6634985ceeb37becc40f54ca39e02fe"
+  },
+  {
+    "source": "Production/World/continent_generator.gd",
+    "sha256": "eaedd298dbe963ee8eda810112dedfc1094bd7895c6520da143322f91e6c6621"
+  },
+  {
+    "source": "Production/World/geographic_contracts.gd",
+    "sha256": "7dc629262ffe8108eea44e78b3c5cc5195a1dba5b27a0946cbc4d25060335e76"
+  },
+  {
+    "source": "Production/World/hex_map.gd",
+    "sha256": "80b05747c4bf1e6693999b5fc2465255bbaf08e38378621631c90688171378e9"
+  },
+  {
+    "source": "Production/World/local_poi_placement.gd",
+    "sha256": "45c15bc2af08d5dac5899f25cdc0d2d2be4e671b72909d70934b9e49431655ca"
+  },
+  {
+    "source": "Production/World/local_terrain.gd",
+    "sha256": "b08ba0608246dd125822189e57b48b18c02864ee21cfb5bee09251dfe70c6a6d"
+  },
+  {
+    "source": "Production/World/local_water.gd",
+    "sha256": "ef65c61cacfab44ff17617aef26d2f4cdf05329149af27a2e17ea1a9a900f529"
+  },
+  {
+    "source": "Production/World/location_templates.gd",
+    "sha256": "148c05293cda2d1127cdf96d200744b50a829fb482f46b7a4b43e5fb850ecad8"
+  },
+  {
+    "source": "Production/World/location_world.gd",
+    "sha256": "42b422e0a9c8c1c85a98c8fb66835a5f744fbc700d06b8a01b4979b4db51e1b4"
+  },
+  {
+    "source": "Production/World/map_world.gd",
+    "sha256": "78ec77bd607d245121dec576b113de951d355f9dd141daf53b03be73c71396c4"
+  },
+  {
+    "source": "Production/World/movement_preview.gd",
+    "sha256": "2a82a575d38f218f495d862cf3b9615a654919d0a18e70e065ab8859c5e8012b"
+  },
+  {
+    "source": "Production/World/river_edges.gd",
+    "sha256": "713bdf99152a977a78fe6cd2e8e66a25b65fec03508d215fabaaa28be0d904b9"
+  },
+  {
+    "source": "Production/World/river_generator.gd",
+    "sha256": "895d31e2bf082860f03f1cd28bbcd58c3d6f7ab2f245c9ae9f2b2997b08abe6f"
+  },
+  {
+    "source": "Production/World/topology_generator.gd",
+    "sha256": "a06916d027e3a794500b79b9a52ca9d9cc9d3ad3034a8d6385409b540bb7f75f"
+  },
+  {
+    "source": "Production/World/travel_cost.gd",
+    "sha256": "a491f1cc25c86bccf02953aed298b8dc8b3d49e5526b28462f7028a5ae77faad"
+  },
+  {
+    "source": "Production/Persistence/autosave_journal.gd",
+    "sha256": "3cedf4787906621e55663f03177848817c40b9c833a2136ec467ae870005e27a"
+  },
+  {
+    "source": "Production/Persistence/map_state.gd",
+    "sha256": "f24d6e716563ef76dccaffb4fca48dc50fbcc4cfceb9acc01a80c031dec2e0eb"
+  },
+  {
+    "source": "Production/Persistence/persistent_actor_world.gd",
+    "sha256": "c07c3c91349ae4b6621fb742035c0b61a39d6403c5cfda2756781948f6469bf9"
+  },
+  {
+    "source": "Production/Persistence/storage_paths.gd",
+    "sha256": "e1698c09026b24181399e43700dfa71c36af4086077b586835b9fb29e633aeee"
+  },
+  {
+    "source": "Production/UI/actor_game.gd",
+    "sha256": "e700478dd37b9d20f55da854ab1b5b44a9ae5d4250ab1f49b96737a66d3ed585"
+  },
+  {
+    "source": "Production/UI/actor_sprite.gd",
+    "sha256": "6a738f889f281d8139c64190f9edfc6c6e8f176a532dd5d57d537fab31456af5"
+  },
+  {
+    "source": "Production/UI/actor_view.gd",
+    "sha256": "0764db73a3271b4c4a7a3b24b28c5cacb14e7b8a8a4d9a22b5566e623465848d"
+  },
+  {
+    "source": "Production/UI/base_game.gd",
+    "sha256": "365388341fc49ca6b98a0c22ebc59c28de51e817d841b07130f1412f7b86350e"
+  },
+  {
+    "source": "Production/UI/bottom_hud.gd",
+    "sha256": "19816d60bf75af330fb6c29d2e2f5216a7855161e3a463e019165b2a1d332a2d"
+  },
+  {
+    "source": "Production/UI/die_slot.gd",
+    "sha256": "dbe1d31211831fe012ff2df7d0e940ee97cb1513d1d97b768c1dfa940a3909ba"
+  },
+  {
+    "source": "Production/UI/drag_context.gd",
+    "sha256": "72b1814bf6d1c506b37ce28fbb7770dfc4360e71ca3b32b415f7c835b7711781"
+  },
+  {
+    "source": "Production/UI/game_ui.gd",
+    "sha256": "d97a56bf9a87315224a308a9b5e2a48063ab4326ad15652112b5b3fc90cc24e1"
+  },
+  {
+    "source": "Production/UI/hex_board.gd",
+    "sha256": "d31e0e08c26e72ddd81a130f19491f8ef1547ce625daf8bad90fa6d74e75919f"
+  },
+  {
+    "source": "Production/UI/inventory_grid.gd",
+    "sha256": "d3b0d79de8091bc2fc7b340870c03945f50d1e245b1e37bfd94c8c4176b3f220"
+  },
+  {
+    "source": "Production/UI/item_art.gd",
+    "sha256": "d8b3712e8166b128c07c6ac0bbb2993958cc9af9f59b47ae69613364481ed066"
+  },
+  {
+    "source": "Production/UI/item_card.gd",
+    "sha256": "a70e9d1b64bfb478fd52daf5de102a8221475adf564606e583440b1f4f895b8e"
+  },
+  {
+    "source": "Production/UI/item_icon.gd",
+    "sha256": "36620edfbc64ee7f4daa32f4a32667a07ee41d12b96615148c63f7fb33300ff0"
+  },
+  {
+    "source": "Production/UI/item_target.gd",
+    "sha256": "7d14591aed958ac6608a1ee405fbe4ea7cbfbf919de019d171cfb6608ac97b2c"
+  },
+  {
+    "source": "Production/UI/marsh_art.gd",
+    "sha256": "f7b35e77212d1563404359ebd83bf4d1ae977a319f6994be65343673470f22f4"
+  },
+  {
+    "source": "Production/UI/navigation_rail.gd",
+    "sha256": "4a8153dd504e9da45d1efbea2e4b7555f12af271ff24f839e13f13cb897769c3"
+  },
+  {
+    "source": "Production/UI/panel_host.gd",
+    "sha256": "2bf908ae54a08075cf6f140ea4d42c008674def0dddfc7e7d748b1d757ca11e6"
+  },
+  {
+    "source": "Production/UI/poi_art.gd",
+    "sha256": "65489996cbbcf7d268049cbfa80b386771b07fac53b449ac29b4a6fe34141808"
+  },
+  {
+    "source": "Production/UI/river_art.gd",
+    "sha256": "2660bdebf1dc82be7a65eb6654bd1e11d69098e70b0214634cf6b90d0b7853dc"
+  },
+  {
+    "source": "Production/UI/splash_art.gd",
+    "sha256": "0700eb6e3dcf8c92a27f267716ddc03d91bc23a8e24aac2e19522be901947daa"
+  },
+  {
+    "source": "Production/UI/terrain_variation.gd",
+    "sha256": "86aa2d524b8675a386b02e84e5e46d6b5238d7a004cc9502c190997262afc7b2"
+  },
+  {
+    "source": "Production/UI/ui_parts.gd",
+    "sha256": "2073e8f18bb0c34565389525726db790b008bc607bc43e7e6756faf6706b26ce"
+  },
+  {
+    "source": "Production/UI/wasteland_art.gd",
+    "sha256": "f1df9e879622a5b4d164d03b4898069c074cb1079e8f5c72e04ebf8c5eb208e0"
+  },
+  {
+    "source": "Production/UI/world_game.gd",
+    "sha256": "86e217c812c28699f58ae885cb1319b8ec37a20fb53ede2265e5dd8efebac260"
+  },
+  {
+    "source": "Production/UI/world_view.gd",
+    "sha256": "c09cad6c2df7c89b1d8cde9bdfd6fe5fb67389ba4cb790d34264d483925cdab3"
+  }
+]
