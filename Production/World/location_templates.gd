@@ -1,6 +1,8 @@
 extends RefCounted
 ## Templates own layout, population, placement, and lazy child declarations.
 const DEFINITIONS: Dictionary = {
+	"Encounter": {"role":"POI","population":0,"layout":"outdoor","allowed":[],"children":[]},
+	"Cave": {"role":"POI","population":0,"layout":"cave","allowed":[],"children":[]},
 	"Local": {"role":"Local","population":0,"layout":"terrain","allowed":[],"children":[]},
 	"Dungeon": {"role":"POI","population":1,"layout":"ruin","allowed":[],"children":[{"slot":"floor_2","template":"DungeonFloor","label":"Dungeon Floor 2"}]},
 	"DungeonFloor": {"role":"Submap","population":1,"layout":"ruin","allowed":[],"children":[]},

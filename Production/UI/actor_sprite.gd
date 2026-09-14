@@ -20,3 +20,6 @@ func _draw() -> void:
 	draw_texture_rect_region(SHEET,Rect2(Vector2(-extent.x*0.5,15-extent.y),extent),source)
 	draw_rect(Rect2(-16,19,32,3),Color("282b30"))
 	draw_rect(Rect2(-16,19,32*float(actor.hp)/maxi(1,actor.max_hp),3),color)
+
+	if actor.faction == "town" or actor.get("boss",false):
+		draw_string(ThemeDB.fallback_font,Vector2(-30,-44),actor.name,HORIZONTAL_ALIGNMENT_LEFT,-1,11,Color("f2dfa7"))

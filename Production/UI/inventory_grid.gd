@@ -62,3 +62,6 @@ func _draw() -> void:
 	if hover_cell.x >= 0 and not drag_context.payload.is_empty():
 		var rect: Rect2 = Rect2(Vector2(hover_cell)*CELL,Vector2(Grid.footprint(drag_context.payload.item,drag_context.payload.rotated))*CELL)
 		draw_rect(rect,Color(0.4,0.8,0.5,0.4) if preview_valid else Color(0.9,0.3,0.3,0.4))
+
+func _get_tooltip(at_position: Vector2) -> String:
+	return preload("res://Production/Actors/item_inspection.gd").tooltip(item_at(at_position))

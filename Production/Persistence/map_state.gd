@@ -1,6 +1,6 @@
 extends RefCounted
 const Map = preload("res://Production/World/hex_map.gd")
-const FIELDS: Array[String] = ["hex_radius","regional_revision","regional_values","id","title","layer","dimensions","wrap_horizontal","continents","spawn_cell","walls","view_offset","view_initialized","rivers","elevations","river_routes","water_cells","biomes","region_biome","links","shops"]
+const FIELDS: Array[String] = ["hex_radius","regional_revision","regional_values","id","title","layer","dimensions","wrap_horizontal","continents","spawn_cell","walls","view_zoom","view_offset","view_initialized","rivers","elevations","river_routes","water_cells","biomes","region_biome","links","shops","cave_layout","room_layout","props"]
 static func capture(map) -> Dictionary:
 	var result: Dictionary = {}
 	for field: String in FIELDS:
@@ -9,12 +9,12 @@ static func capture(map) -> Dictionary:
 	return result
 static func restore(state: Dictionary):
 	var map = Map.new(state.id,state.title,state.layer,state.dimensions)
-	for field: String in FIELDS: map.set(field,state.get(field,{}) if field == "shops" else state[field])
+	for field: String in FIELDS: map.set(field,state.get(field,1.0) if field == "view_zoom" else state.get(field,{}) if field in ["shops","cave_layout","room_layout","props"] else state[field])
 	return map
 static func valid(state) -> bool:
 	if not state is Dictionary: return false
 	for field: String in FIELDS:
-		if field != "shops" and not state.has(field): return false
+		if field not in ["view_zoom","shops","cave_layout","room_layout","props"] and not state.has(field): return false
 	for field: String in ["id","title","layer","region_biome"]:
 		if not state[field] is String: return false
 	if not state.hex_radius is int or state.hex_radius < 0 or not state.regional_revision is int or not state.regional_values is Dictionary: return false
@@ -22,6 +22,7 @@ static func valid(state) -> bool:
 	for field: String in ["continents","rivers","elevations","water_cells","biomes","links"]:
 		if not state[field] is Dictionary: return false
 	if not state.dimensions is Vector2i or state.dimensions.x < 1 or state.dimensions.y < 1 or state.dimensions.x > 1024 or state.dimensions.y > 1024: return false
+	if not (state.get("view_zoom",1.0) is float or state.get("view_zoom",1.0) is int) or not is_finite(float(state.get("view_zoom",1.0))) or state.get("view_zoom",1.0) < 0.5 or state.get("view_zoom",1.0) > 2.5: return false
 	if not state.spawn_cell is Vector2i or not state.view_offset is Vector2 or not state.view_initialized is bool or not state.wrap_horizontal is bool: return false
 	if not state.walls is Array or not state.river_routes is Array: return false
 	for cell in state.walls:
@@ -44,5 +45,11 @@ static func valid(state) -> bool:
 		var shop = state.shops[cell]
 		if not cell is Vector2i or not geometry.contains(cell) or cell in state.walls or state.links.has(cell) or cell == state.spawn_cell: return false
 		if not shop is Dictionary or not shop.get("id") is String or shop.id in ids or not shop.get("name") is String or not shop.get("roof") is int or shop.roof not in range(6) or not shop.get("closed") is bool: return false
+		if not shop.get("stock",[]) is Array or not shop.get("prosperity",0) is int or shop.get("prosperity",0) < 0: return false
+		for entry in shop.get("stock",[]):
+			if not entry is Dictionary or not entry.get("item") is Dictionary or not entry.get("price") is int or entry.price < 1: return false
 		ids.append(shop.id)
+	if not preload("res://Production/World/cave_generator.gd").valid(state.get("cave_layout",{}),state.dimensions,state.walls): return false
+	if not preload("res://Production/World/dense_room_generator.gd").valid(state.get("room_layout",{}),state.dimensions,state.walls): return false
+	if not preload("res://Production/World/interior_props.gd").valid(state.get("props",{}),geometry,state.walls,state.links): return false
 	return true

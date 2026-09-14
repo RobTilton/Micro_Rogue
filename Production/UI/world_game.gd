@@ -49,6 +49,10 @@ func _new_character() -> void:
 
 func _start_run() -> void:
 	super._start_run()
+	simulation.start_in_town()
+	_note("Welcome to "+simulation.maps.maps[player.map_id].title+". Speak to the Town Crier about reopening the trade road; its bounty awards a skill point.")
+	_sync()
+	_arena_ui()
 	simulation.creation.clear()
 	_automatic_checkpoint()
 
@@ -248,8 +252,14 @@ func _unload_inactive() -> void:
 
 func _map_panel(parent: Node) -> void:
 	super._map_panel(parent)
+	var truth: Dictionary = map_world.records.global.regional.hexes[player.pos] if active_map.layer == "Global" else active_map.regional_values
+	Parts.label(parent,"Hostility: "+str(truth.get("hostility",0))+" · Prosperity: "+str(truth.get("prosperity",0)),17)
+	_wrap(parent,"Each Global border costs six hours. Global movement follows gold trade routes one hex at a time. Otherwise enter a Local map and cross a dry edge.")
+	var towns: Array = map_world.records.global.constraints.get("route_towns",[])
+	if towns.size() == 2: _wrap(parent,"Starter trade road: "+map_world.records[towns[0]].label+" ↔ "+map_world.records[towns[1]].label)
 	if player.map_id != "global":
 		Parts.button(parent,"Discover another dungeon",_discover_dungeon)
+		if active_map.layer == "Local": Parts.button(parent,"Discover a cave",_discover_cave)
 
 func _discover_dungeon() -> void:
 	var outcome: Dictionary = map_world.request_poi(player.map_id,"Dungeon")
@@ -306,3 +316,9 @@ func _clear() -> void:
 	if overlay != null:
 		add_child(overlay)
 		travel_cover.size = get_viewport_rect().size
+
+func _discover_cave() -> void:
+	var outcome: Dictionary = map_world.request_poi(player.map_id,"Cave")
+	_note(outcome.reason)
+	_refresh()
+	if outcome.ok: _automatic_checkpoint()

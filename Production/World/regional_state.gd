@@ -49,6 +49,7 @@ static func valid(data, global_map, records: Dictionary) -> bool:
 	for cell in data.hexes:
 		var value = data.hexes[cell]
 		if not cell is Vector2i or not global_map.contains(cell) or not value is Dictionary: return false
+		if not value.get("prosperity",0) is int or value.get("prosperity",0) < 0: return false
 		if value.get("biome") != global_map.biomes.get(cell,"Plains") or not value.get("biome") is String or not BASE.has(value.biome) or value.get("base_hostility") != BASE[value.biome]: return false
 		if not value.get("resolved") is bool or not value.get("revision") is int or value.revision < 0 or not value.get("contributions") is Dictionary or not value.get("pois") is Dictionary or not value.get("hostility") is int: return false
 		var contributions: Dictionary = {}

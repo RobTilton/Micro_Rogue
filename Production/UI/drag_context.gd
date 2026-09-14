@@ -16,7 +16,7 @@ func rotate() -> void:
 	update_preview()
 	changed.emit()
 func update_preview() -> void:
-	if is_instance_valid(preview_label): preview_label.text = payload.item.name + (" ↻" if payload.rotated else "") + "\nR: rotate · release to place"
+	if is_instance_valid(preview_label): preview_label.text = payload.item.name + (" ↻" if payload.rotated else "") + "\nRight-click or R: rotate · release to place"
 func finish() -> void:
 	payload = {}
 	changed.emit()

@@ -2,7 +2,7 @@ extends Control
 signal closed
 const Parts = preload("res://Production/UI/ui_parts.gd")
 const DEFAULT_SIZE: Vector2 = Vector2(550,460)
-const PANEL_SIZES: Dictionary = {"Tile":Vector2(390,350),"Look":Vector2(520,480),"Character":Vector2(390,430),"Inventory":Vector2(670,570),"Skills":Vector2(540,410),"Logs":Vector2(620,460),"Options":Vector2(430,350),"Activate":Vector2(430,480)}
+const PANEL_SIZES: Dictionary = {"Tile":Vector2(390,350),"Look":Vector2(520,480),"Character":Vector2(390,430),"Inventory":Vector2(710,840),"Skills":Vector2(540,410),"Logs":Vector2(620,460),"Options":Vector2(430,350),"Activate":Vector2(430,480)}
 const EDGE_MARGIN: float = 8.0
 const SNAP_DISTANCE: float = 20.0
 var placements: Dictionary = {}

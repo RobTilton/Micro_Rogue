@@ -31,6 +31,7 @@ static func heal(actor: Dictionary) -> int:
 	actor.hp = mini(actor.max_hp, actor.hp + actor.stats.CON)
 	return actor.hp - before
 static func loot_cost(actions: Dictionary) -> bool:
+	if actions.get("exploration",false): return true
 	for kind: String in ["activation", "attack", "move"]:
 		if actions[kind] > 0:
 			actions[kind] -= 1
@@ -39,9 +40,11 @@ static func loot_cost(actions: Dictionary) -> bool:
 	return spend(actions,"free")
 
 static func available(actions: Dictionary, kind: String) -> int:
+	if actions.get("exploration",false): return maxi(1,int(actions.get(kind,0)))
 	return int(actions.get(kind,0))+int(actions.get("free",0))
 
 static func spend(actions: Dictionary, kind: String) -> bool:
+	if actions.get("exploration",false): return true
 	if actions.get(kind,0) > 0:
 		actions[kind] -= 1
 		if kind == "attack": actions.used_attacks += 1

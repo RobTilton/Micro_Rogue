@@ -49,9 +49,9 @@ static func make(kind: String, _enemy: bool = false, rng: RandomNumberGenerator 
 static func potion() -> Dictionary:
 	return {"item_id":identity(),"kind":"potion","name":"Lesser Health","appearance":"Glass potion bottle"}
 static func roll(item: Dictionary) -> int:
-	return randi_range(1,item.die)+item.bonus
+	return randi_range(1,item.die)+Rules.damage_bonus(item)
 static func valid_generated(item: Dictionary) -> bool:
-	if item.get("rules_version") != 1 or not item.get("base_id") is String or not item.get("quality") is Dictionary or not item.get("material") is Dictionary: return false
+	if item.get("rules_version") not in [1,2] or not item.get("base_id") is String or not item.get("quality") is Dictionary or not item.get("material") is Dictionary: return false
 	for field: String in ["material_tier","base_rank","rarity","die","bonus","capacity"]:
 		if not item.get(field) is int: return false
 	var base: Dictionary = {}
@@ -70,7 +70,7 @@ static func valid_generated(item: Dictionary) -> bool:
 	if not matching or not item.get("affixes") is Dictionary: return false
 	for layer: String in generator.catalog.affix_layers:
 		if not item.affixes.get(layer) is Array or not item.affixes[layer].is_empty(): return false
-	var expected: Dictionary = Rules.resolve({"quality":item.quality,"material":item.material,"material_tier":item.material_tier,"base_name":base.name,"slot":category.slot,"category":base.category,"kind":category.kind},base)
+	var expected: Dictionary = Rules.resolve({"quality":item.quality,"material":item.material,"material_tier":item.material_tier,"base_name":base.name,"slot":category.slot,"category":base.category,"kind":category.kind},base,int(item.rules_version))
 	for field: String in ["kind","slot","die","bonus","rarity"]:
 		if item.get(field) != expected[field]: return false
 	if Rules.is_weapon(item):

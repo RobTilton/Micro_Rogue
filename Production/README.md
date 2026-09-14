@@ -1,5 +1,5 @@
 # Production Runtime
-Updated: 2026-09-13
+Updated: 2026-09-14
 Checkpoint: [Regional Release]+[Delivery]+[Promotion]
 
 Press **F5** in the root project. `Production/main.tscn` is the active game. Regional Foundation generation, dry edge entry and the hex start menu are now adopted. Runtime scripts and artwork resolve entirely within Production.
@@ -44,3 +44,25 @@ Momentum scheduling is adopted with threshold **3**, effective speed **DEX + eff
 Equipment Integration is now adopted: generated material/quality gear, Physical/Magical damage with zero minimum, fixed armor contributions, seven equipment slots, handedness and initial ranged attacks. See [current rules and test evidence](<../Workshop/Rooms/Equipment Integration/CURRENT_STATE.md>). Existing compatible saves gain empty accessory slots; no world reset is required.
 
 New Town locations now contain six single-hex roof shop placeholders. Approach and click to open the service menu. Trading/rest are not implemented yet; existing saved Town layouts remain unchanged. [Village state and screenshot](<../Workshop/Rooms/Village Foundation/CURRENT_STATE.md>).
+
+Cave POIs now generate compact caverns connected by narrow passages, a looped main route and side branches no deeper than one cavern. New Locals include Cave entrances; Map → Discover a cave adds one to an existing Local. Room contents persist. [Cave implementation and evidence](<../Workshop/Rooms/Cave Foundation/CURRENT_STATE.md>).
+
+Dense Dungeon/Tower generation (2026-09-13): packed hex-cell rooms, cyclic single-door connections, persisted per-room content and a player-revealed tower return ladder. Existing saved layouts retained. See `Workshop/Rooms/Dungeon Foundation/CURRENT_STATE.md` for scope and validation.
+
+Interior scenery (2026-09-13): new caves/dungeons/towers get persistent walkable props and fixed container loot. Shared search exposes contents for pickup; enemy corpses retain possessions. Temporary symbols pending transparent art. Details: `Workshop/Rooms/Interior Scenery/CURRENT_STATE.md`.
+
+Town Market (2026-09-13): new radius-three towns with perimeter shops, persistent seeded stock and containers; shared purchases, new characters empty-equipped with 100 gold. Provisional prosperity and no restocking yet. See `Workshop/Rooms/Town Market/CURRENT_STATE.md`.
+
+Town Life (2026-09-13): named-town starts, three allied NPCs, crier boss bounties, persistent hostility-based gold and player-relative monster levels. Rules and provisional formulas: `Workshop/Rooms/Town Life/CURRENT_STATE.md`.
+
+Mouse Play (2026-09-13): contextual mouse actions, self double-click travel, wheel zoom with saved camera state, actor slides, Quests rail and minimap. Controls and evidence: `Workshop/Rooms/Mouse Play/CURRENT_STATE.md`.
+
+World Time and Frontier (2026-09-13): adopted calendar, six-hour border travel, Local-edge exploration, starter trade route with two towns and a one-skill-point crier tutorial, sparse towns, outdoor encounters, independent monster aging, faction combat, stat spending and weekly stock. Authoritative scope and limits: `Workshop/Rooms/World Time and Frontier/CURRENT_STATE.md`. This supersedes earlier statements deferring these features or retaining player-relative monster scaling.
+
+Living Frontier (2026-09-14): 1-gold inn recovery (2 × CON, one six-hour block), quest bearing/terrain hex, seven-day cleared-Local replenishment and monthly survivor occupation of visited cleared POIs. Supersedes prior inn-service deferral. Rules and validation: `Workshop/Rooms/Living Frontier/CURRENT_STATE.md`.
+
+Free Exploration (2026-09-14): action budgets now apply during combat; safe shopping, inventory and exploration need no end-turn prompts. Shop stock has inspection tooltips. Gold and six-hour time costs remain. See `Workshop/Rooms/Free Exploration/CURRENT_STATE.md`.
+
+Shop Sales (2026-09-14): backpack gear sells for half retail rounded down into the receiving merchant stock. Buy/sell confirmations support Ctrl bypass. New characters start with 50 gold; existing balances preserved. See `Workshop/Rooms/Shop Sales/CURRENT_STATE.md`.
+
+Weapon Bonus Balance (2026-09-14): weapon material/quality damage modifiers doubled, including existing generated gear through compatible runtime resolution. Armor/HP/base dice/stat scaling unchanged. See `Workshop/Rooms/Weapon Bonus Balance/CURRENT_STATE.md`.

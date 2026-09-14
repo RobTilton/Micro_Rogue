@@ -41,6 +41,7 @@ func _init(seed_value: int = 1729, create_root: bool = true) -> void:
 		maps.global.links[cell] = entrance(link.id,link.label,"Local",Vector2i(20,20))
 	records.global.regional = Regional.create(global_map)
 	resolve_regions(global_map.spawn_cell)
+	_plan_starter_route()
 
 func declare(id: String, parent: String, template: String, label: String, constraints: Dictionary) -> void:
 	assert(not records.has(id) and records.has(parent) and not Templates.get_template(template).is_empty(),"Production/World/location_world.gd: invalid location declaration")
@@ -90,7 +91,8 @@ func _generate_local(record: Dictionary):
 	map.region_biome = record.constraints.biome
 	map.links[map.spawn_cell] = entrance(record.parent,"Return to Global","Return",record.constraints.return_cell)
 	# Initial candidates remain inside the playable hex; spacing runs after terrain.
-	for entry: Array in [[Vector2i(24,20),"Dungeon"],[Vector2i(20,24),"Town"],[Vector2i(16,24),"Tower"]]:
+	for entry: Array in [[Vector2i(24,20),"Dungeon"],[Vector2i(20,24),"Town"],[Vector2i(16,24),"Tower"],[Vector2i(16,16),"Cave"]]:
+		if entry[1] == "Town" and not record.constraints.get("guaranteed_town",false) and record.constraints.global_cell != maps.global.spawn_cell and Contracts.seed_for(record.seed,"settlement")%100 >= 20: continue
 		map.links[entry[0]] = {"kind":entry[1],"return_cell":entry[0]}
 	Water.generate(map,Contracts.seed_for(record.seed,"water"))
 	Terrain.generate(map,Contracts.seed_for(record.seed,"terrain"))
@@ -116,6 +118,40 @@ func _generate_local(record: Dictionary):
 	return map
 
 func _generate_interior(record: Dictionary):
+	if record.template == "Encounter":
+		var arena = preload("res://Production/World/outdoor_arena.gd").generate(record.id,record.label,record.constraints.get("biome","Plains"))
+		arena.links[arena.spawn_cell] = entrance(record.parent,"Return to Local","Return",record.constraints.return_cell)
+		return arena
+	if record.template == "Town":
+		var town = Map.new(record.id,record.label,"POI",Vector2i(7,7))
+		town.hex_radius = 3
+		town.spawn_cell = Vector2i(0,3)
+		town.links[town.spawn_cell] = entrance(record.parent,"Return to "+records[record.parent].label,"Return",record.constraints.return_cell)
+		var well_cell := Vector2i(3,3)
+		var child_id: String = record.id+"/well"
+		declare(child_id,record.id,"Well","Town Well",{"return_cell":well_cell})
+		town.links[well_cell] = entrance(child_id,"Town Well","Well")
+		preload("res://Production/World/village_shops.gd").populate(town,record.seed)
+		return town
+	if record.template in ["Dungeon","DungeonFloor","Tower","TowerFloor"]:
+		var dense = preload("res://Production/World/dense_room_generator.gd").generate(record.id,record.label,record.seed,record.template.begins_with("Tower"))
+		dense.links[dense.spawn_cell] = entrance(record.parent,"Return to "+records[record.parent].label,"Return",record.constraints.return_cell)
+		for child: Dictionary in Templates.get_template(record.template).children:
+			var cell: Vector2i = dense.room_layout.rooms.back().center
+			var id: String = record.id+"/"+child.slot
+			declare(id,record.id,child.template,child.label,{"return_cell":cell})
+			dense.links[cell] = entrance(id,child.label,child.template,dense.spawn_cell)
+		if record.template == "TowerFloor":
+			var first = ensure_location(record.parent)
+			var bottom: Vector2i = first.spawn_cell+Vector2i(1,0)
+			var top: Vector2i = dense.room_layout.rooms.back().center
+			dense.links[top] = entrance(record.parent,"Descend ladder to first floor","Ladder",bottom)
+			dense.links[top].reveal_ladder = true
+		return dense
+	if record.template == "Cave":
+		var cave = preload("res://Production/World/cave_generator.gd").generate(record.id,record.label,record.seed)
+		cave.links[cave.spawn_cell] = entrance(record.parent,"Return to "+records[record.parent].label,"Return",record.constraints.return_cell)
+		return cave
 	var definition: Dictionary = Templates.get_template(record.template)
 	var extent := Vector2i(12,10) if definition.layout == "well" else Vector2i(18,14)
 	var map = Map.new(record.id,record.label,"POI",extent)
@@ -246,7 +282,7 @@ func all_states() -> Dictionary:
 
 # Temporary strengths for existing generic content, not monster-family assignments.
 static func default_hostility(template: String) -> int:
-	return 1 if template in ["Dungeon","Tower"] else 0
+	return 1 if template in ["Dungeon","Tower","Cave"] else 0
 
 func regional_local(id: String) -> String:
 	while records.has(id) and id != "global":
@@ -291,3 +327,39 @@ func sync_region(id: String) -> void:
 
 func sync_loaded_regions() -> void:
 	for id: String in maps: sync_region(id)
+
+func _plan_starter_route() -> void:
+	var global_map = maps.global
+	var start: Vector2i = global_map.spawn_cell
+	var queue: Array = [[start]]
+	var seen: Dictionary = {start:true}
+	var route: Array = [start]
+	while not queue.is_empty():
+		var path: Array = queue.pop_front()
+		if path.size() > route.size(): route = path
+		if path.size() >= 4: break
+		for next: Vector2i in global_map.neighbors(path.back()):
+			if seen.has(next) or not global_map.links.has(next) or global_map.biomes.get(next,"") in ["Sea","Lakes","Ice Wall","Salt Marsh"]: continue
+			seen[next] = true
+			queue.append(path+[next])
+	records.global.constraints.trade_routes = {}
+	records.global.constraints.starter_route = route
+	if route.size() < 2: return
+	for index: int in range(route.size()-1):
+		var a: Vector2i = route[index]
+		var b: Vector2i = route[index+1]
+		records.global.constraints.trade_routes[str(a)+">"+str(b)] = true
+		records.global.constraints.trade_routes[str(b)+">"+str(a)] = true
+	var first: String = global_map.links[route.front()].id
+	var last: String = global_map.links[route.back()].id
+	records[first].constraints.guaranteed_town = true
+	records[last].constraints.guaranteed_town = true
+	for cell: Vector2i in route: ensure_location(global_map.links[cell].id)
+	var first_town: String = first+"/poi_town_1"
+	var last_town: String = last+"/poi_town_1"
+	ensure_location(first_town)
+	ensure_location(last_town)
+	records.global.constraints.route_towns = [first_town,last_town]
+	var middle: String = global_map.links[route[route.size()/2]].id
+	records.global.constraints.route_poi = middle+"/poi_dungeon_1"
+	set_poi_hostility(records.global.constraints.route_poi,3)

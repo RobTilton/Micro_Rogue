@@ -11,7 +11,7 @@ func _ready() -> void:
 	map.custom_minimum_size = Vector2(166,110)
 	map.tooltip_text = "Open the current map and enter a region or POI at your position."
 	for index: int in range(9):
-		var title: String = ["Character","Inventory","Skills","—","—","—","—","Logs","Options"][index]
+		var title: String = ["Character","Inventory","Skills","Quests","—","—","—","Logs","Options"][index]
 		var button: Button = Button.new()
 		button.text = "%d   %s" % [index+1,title]
 		button.custom_minimum_size = Vector2(166,43)

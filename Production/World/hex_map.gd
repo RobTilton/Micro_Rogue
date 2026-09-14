@@ -13,6 +13,10 @@ var layer: String
 var dimensions: Vector2i
 var walls: Array = []
 var shops: Dictionary = {}
+var props: Dictionary = {}
+var cave_layout: Dictionary = {}
+var room_layout: Dictionary = {}
+var view_zoom: float = 1.0
 var view_offset: Vector2 = Vector2.ZERO
 var view_initialized: bool = false
 var rivers: Dictionary = {}

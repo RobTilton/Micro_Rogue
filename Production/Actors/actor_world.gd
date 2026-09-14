@@ -19,6 +19,7 @@ const Equipment = preload("res://Production/Actors/equipment_rules.gd")
 const Momentum = preload("res://Production/Actors/momentum.gd")
 var turn_threshold: int = Momentum.DEFAULT_THRESHOLD
 var tick: int = 0
+var motion_events: Array = []
 
 func _init(seed_value: int = 1729) -> void:
 	maps = _make_maps(seed_value)
@@ -68,25 +69,34 @@ func can_see(actor: Dictionary, cell: Vector2i) -> bool:
 func hostiles(actor: Dictionary) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for other: Dictionary in on_map(actor.map_id):
-		if other.faction != actor.faction and can_see(actor,other.pos): result.append(other)
+		if hostile(actor,other) and can_see(actor,other.pos): result.append(other)
 	return result
 
 func engaged(actor: Dictionary) -> bool:
 	if not hostiles(actor).is_empty(): return true
 	for other: Dictionary in actors.values():
-		if other.hp > 0 and other.faction != actor.faction and (not other.trail.is_empty() or not other.last_seen.is_empty()): return true
+		if other.hp > 0 and hostile(actor,other) and (not other.trail.is_empty() or not other.last_seen.is_empty()): return true
 	return false
 
 func result(ok: bool, reason: String) -> Dictionary:
 	return {"ok":ok,"reason":reason}
 
+func refresh_action_mode(actor: Dictionary) -> void:
+	var safe: bool = actor.hp > 0 and not engaged(actor) and actor.pending.is_empty() and not actor.retreat
+	if actor.actions.get("exploration",false) and not safe:
+		# Exploration cannot accumulate extra combat actions or momentum grants.
+		actor.actions = Combat.allowance(actor)
+	actor.actions.exploration = safe
+
 func ready(actor: Dictionary) -> bool:
+	refresh_action_mode(actor)
 	return actor.hp > 0 and actor.pending.is_empty() and not actor.retreat
 
 func move(actor: Dictionary, destination: Vector2i, expected: Array = []) -> Dictionary:
 	if not ready(actor) or Combat.available(actor.actions,"move") <= 0: return result(false,"No movement action available.")
 	var available: Dictionary = paths(actor)
 	if not available.has(destination) or (not expected.is_empty() and available[destination] != expected): return result(false,"That path is no longer available.")
+	_record_motion(actor,available[destination])
 	record_global_approach(actor,available[destination])
 	actor.pos = destination
 	Combat.spend(actor.actions,"move")
@@ -118,6 +128,7 @@ func skill_available(actor: Dictionary, skill: String) -> bool:
 func lunge(actor: Dictionary, destination: Vector2i) -> Dictionary:
 	if not skill_available(actor,"Lunge"): return result(false,"Lunge is unavailable.")
 	if not paths(actor,actor.stats.DEX).has(destination): return result(false,"No legal Lunge path.")
+	_record_motion(actor,paths(actor,actor.stats.DEX)[destination])
 	record_global_approach(actor,paths(actor,actor.stats.DEX)[destination])
 	actor.pending = spend_attack(actor)
 	actor.clock.start("Lunge",4)
@@ -137,15 +148,17 @@ func cancel(actor: Dictionary) -> void:
 
 func retreat(actor: Dictionary, destination: Vector2i) -> Dictionary:
 	if not actor.retreat or actor.hp <= 0 or not paths(actor,ceili(actor.stats.DEX*0.5)).has(destination): return result(false,"No legal retreat.")
+	_record_motion(actor,paths(actor,ceili(actor.stats.DEX*0.5))[destination])
 	actor.pos = destination
 	actor.retreat = false
 	return result(true,"Retreated.")
 
 func attack(actor: Dictionary, target_id: int) -> Dictionary:
+	refresh_action_mode(actor)
 	if actor.hp <= 0 or actor.retreat or not actors.has(target_id): return result(false,"No valid attack.")
 	var target: Dictionary = actors[target_id]
 	var map = maps.maps[actor.map_id]
-	if target.hp <= 0 or target.faction == actor.faction or target.map_id != actor.map_id or not can_see(actor,target.pos) or map.distance(actor.pos,target.pos) > Combat.attack_range(actor): return result(false,"Target is out of reach or sight.")
+	if target.hp <= 0 or not hostile(actor,target) or target.map_id != actor.map_id or not can_see(actor,target.pos) or map.distance(actor.pos,target.pos) > Combat.attack_range(actor): return result(false,"Target is out of reach or sight.")
 	var lunging: bool = not actor.pending.is_empty()
 	var weapon: Dictionary = actor.pending if lunging else next_weapon(actor)
 	if weapon.is_empty(): return result(false,"No attack action or weapon available.")
@@ -185,7 +198,7 @@ func transfer(actor: Dictionary, source: Dictionary, target: Dictionary, preview
 		for entry: Dictionary in ground[actor.map_id]:
 			if entry.item.item_id == source.get("id") and can_see(actor,entry.pos): visible = true
 		if not visible: return result(false,"That item is not visible.")
-	return Grid.transfer(actor,ground[actor.map_id],actor.actions,true,source,target,preview,maps.maps[actor.map_id])
+	return Grid.transfer(actor,ground[actor.map_id],actor.actions,not actor.actions.get("exploration",false),source,target,preview,maps.maps[actor.map_id])
 
 func drink(actor: Dictionary, item_id: int) -> Dictionary:
 	if not ready(actor) or Combat.available(actor.actions,"activation") <= 0: return result(false,"No activation action available.")
@@ -201,6 +214,7 @@ func drink(actor: Dictionary, item_id: int) -> Dictionary:
 func learn(actor: Dictionary, skill: String) -> Dictionary:
 	var sequence: Array[String] = ["Lunge","Riposte","Show-Off"]
 	var index: int = sequence.find(skill)
+	if not actor.get("can_use_skills",true): return result(false,"This actor spends advancement points on stats.")
 	if actor.hp <= 0 or index < 0 or actor.points <= 0 or skill in actor.skills or (index > 0 and sequence[index-1] not in actor.skills): return result(false,"Skill prerequisites are not met.")
 	actor.skills.append(skill)
 	actor.points -= 1
@@ -236,7 +250,7 @@ func travel(actor: Dictionary) -> Dictionary:
 	var arrival: Vector2i = travel_arrival(actor,origin,destination,link)
 	if arrival == Vector2i(-1,-1): return result(false,"No free, passable arrival is available; wait or approach from another side.")
 	for observer: Dictionary in on_map(actor.map_id):
-		if observer.faction == actor.faction or not can_see(observer,actor.pos): continue
+		if not hostile(actor,observer) or not can_see(observer,actor.pos): continue
 		observer.last_seen = {"map_id":origin.id,"pos":actor.pos}
 		observer.trail = [{"map_id":origin.id,"pos":actor.pos,"destination":destination.id,"arrival":arrival}]
 	Combat.spend(actor.actions,"activation")
@@ -249,6 +263,7 @@ func interact(actor: Dictionary, request: Dictionary) -> Dictionary:
 	# Both controllers address existing world objects through this boundary.
 	match request.get("kind",""):
 		"entrance": return travel(actor)
+		"search": return search_container(actor,request.get("cell",Vector2i(-1,-1)))
 		"pickup": return transfer(actor,{"zone":"ground","id":request.get("item_id",-1)},{"zone":"pickup"})
 	return result(false,"This world object has no implemented interaction.")
 
@@ -314,3 +329,71 @@ func inspect_shop(actor: Dictionary, cell: Vector2i) -> Dictionary:
 	var map = maps.maps[actor.map_id]
 	if actor.hp <= 0 or not map.shops.has(cell) or map.distance(actor.pos,cell) > 1 or not can_see(actor,cell): return result(false,"Production/Actors/actor_world.gd: approach the shop to interact.")
 	return {"ok":true,"shop":map.shops[cell].duplicate(true)}
+
+func search_container(actor: Dictionary, cell: Vector2i) -> Dictionary:
+	var map = maps.maps[actor.map_id]
+	if not ready(actor) or Combat.available(actor.actions,"activation") <= 0: return result(false,"Production/Actors/actor_world.gd: searching requires an activation.")
+	if not map.props.has(cell) or map.distance(actor.pos,cell) > 1 or not can_see(actor,cell): return result(false,"Production/Actors/actor_world.gd: approach a visible container to search.")
+	var prop: Dictionary = map.props[cell]
+	if prop.kind in ["rug","rubble"] or prop.opened: return result(false,"Production/Actors/actor_world.gd: nothing left to search.")
+	Combat.spend(actor.actions,"activation")
+	for item: Dictionary in prop.contents: ground[map.id].append({"item":item,"pos":cell})
+	actor.gold = actor.get("gold",0)+prop.get("gold",0)
+	prop.gold = 0
+	prop.contents = []
+	prop.opened = true
+	return result(true,"Searched "+prop.name+". Its contents are available nearby.")
+
+func buy(actor: Dictionary, cell: Vector2i, item_id: int) -> Dictionary:
+	var access: Dictionary = inspect_shop(actor,cell)
+	if not access.ok or access.shop.closed or not ready(actor) or Combat.available(actor.actions,"activation") <= 0: return result(false,"Production/Actors/actor_world.gd: approach an open shop with an activation available.")
+	var shop: Dictionary = maps.maps[actor.map_id].shops[cell]
+	for index: int in range(shop.get("stock",[]).size()):
+		var entry: Dictionary = shop.stock[index]
+		if entry.item.item_id != item_id: continue
+		if actor.get("gold",0) < entry.price: return result(false,"Production/Actors/actor_world.gd: not enough gold.")
+		var staged: Array = actor.bag.duplicate(true)
+		if not Grid.place_auto(staged,entry.item.duplicate(true)): return result(false,"Production/Actors/actor_world.gd: backpack is full.")
+		actor.bag = staged
+		actor.gold = actor.get("gold",0)-entry.price
+		shop.stock.remove_at(index)
+		Combat.spend(actor.actions,"activation")
+		return result(true,"Bought "+entry.item.name+".")
+	return result(false,"Production/Actors/actor_world.gd: that item is no longer in stock.")
+
+func hostile(a: Dictionary, b: Dictionary) -> bool:
+	if a.faction == "enemy" and b.faction == "enemy": return a.get("family","goblins") != b.get("family","goblins")
+	return a.faction != b.faction and not (a.faction in ["player","town"] and b.faction in ["player","town"])
+
+func _record_motion(actor: Dictionary, route: Array) -> void:
+	motion_events.append({"actor_id":actor.id,"map_id":actor.map_id,"from":actor.pos,"route":route.duplicate()})
+	if motion_events.size() > 256: motion_events.pop_front()
+
+func spend_stat(actor: Dictionary, stat: String) -> Dictionary:
+	if actor.hp <= 0 or stat not in Actors.STATS or actor.points < 1: return result(false,"Production/Actors/actor_world.gd: one skill point is required for a valid stat.")
+	actor.points -= 1
+	actor.stats[stat] += 1
+	if not actor.has("stat_training"): actor.stat_training = {}
+	actor.stat_training[stat] = actor.stat_training.get(stat,0)+1
+	if stat == "WIL":
+		actor.max_hp += 3
+		actor.hp += 3
+	return result(true,stat+" increased by 1.")
+
+func sell(actor: Dictionary, cell: Vector2i, item_id: int) -> Dictionary:
+	var access: Dictionary = inspect_shop(actor,cell)
+	if not access.ok or access.shop.closed or access.shop.id == "inn" or not ready(actor) or Combat.available(actor.actions,"activation") <= 0:
+		return result(false,"Production/Actors/actor_world.gd: approach an open merchant with an activation available during combat.")
+	var pricing = preload("res://Production/World/village_shops.gd")
+	for index: int in range(actor.bag.size()):
+		var item: Dictionary = actor.bag[index]
+		if item.item_id != item_id: continue
+		if not pricing.sellable(item): return result(false,"Production/Actors/actor_world.gd: sell backpack gear; empty a loaded belt first.")
+		var shop: Dictionary = maps.maps[actor.map_id].shops[cell]
+		var price: int = pricing.sale_price(item)
+		actor.bag.remove_at(index)
+		shop.stock.append({"item":item,"price":pricing.retail_price(item)})
+		actor.gold = actor.get("gold",0)+price
+		Combat.spend(actor.actions,"activation")
+		return result(true,"Sold "+item.name+" for "+str(price)+" gold.")
+	return result(false,"Production/Actors/actor_world.gd: that gear is no longer in the backpack.")

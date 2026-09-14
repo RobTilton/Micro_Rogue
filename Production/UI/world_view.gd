@@ -3,6 +3,11 @@ const ShopRoofs = preload("res://Production/UI/shop_roofs.gd")
 var shop_nodes: Dictionary = {}
 var shop_map_id: String = ""
 signal hex_intent(cell: Vector2i, bypass: bool)
+signal context_requested(cell: Vector2i)
+signal double_clicked(cell: Vector2i)
+var zoom: float = 1.0
+var trade_route: Array = []
+var route_labels: Dictionary = {}
 var preview_path: Array = []
 var pan_offset: Vector2 = Vector2.ZERO
 var pan_button: int = 0
@@ -28,7 +33,9 @@ var floor_texture: Texture2D
 const FLOOR_SHEET: String = "res://Production/Assets/Terrain/ground_prototype_02.png"
 func _ready() -> void:
 	resized.connect(_resize_view)
-	if map_data != null: pan_offset = map_data.view_offset
+	if map_data != null:
+		pan_offset = map_data.view_offset
+		zoom = map_data.view_zoom
 	_initialize_view.call_deferred()
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	river_texture = load(RiverArt.SHEET) as Texture2D
@@ -41,7 +48,7 @@ func _ready() -> void:
 	poi_texture = load(PoiArt.SHEET) as Texture2D
 	biome_texture = load("res://Production/Assets/Terrain/OVERWORLD_TILES_BIOME.png") as Texture2D
 func cell_radius() -> float:
-	return SIZE
+	return SIZE*zoom
 func center(cell: Vector2i) -> Vector2:
 	var radius: float = cell_radius()
 	var extent: Vector2i = map_data.dimensions if map_data != null else Vector2i(7,7)
@@ -52,6 +59,22 @@ func center(cell: Vector2i) -> Vector2:
 		point.x += round((size.x*0.5-point.x)/period)*period
 	return point
 func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index in [MOUSE_BUTTON_WHEEL_UP,MOUSE_BUTTON_WHEEL_DOWN]:
+			set_zoom(zoom*(1.15 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 1.0/1.15),event.position)
+			accept_event()
+			return
+		if event.button_index == MOUSE_BUTTON_RIGHT:
+			var cell = _interaction_cell_at(event.position)
+			context_requested.emit(player_cell if cell == null else cell)
+			accept_event()
+			return
+		if event.button_index == MOUSE_BUTTON_LEFT and event.double_click:
+			var cell = _interaction_cell_at(event.position)
+			pan_button = 0
+			if cell != null: double_clicked.emit(cell)
+			accept_event()
+			return
 	if event is InputEventMouseButton and event.button_index in [MOUSE_BUTTON_LEFT,MOUSE_BUTTON_MIDDLE]:
 		if event.pressed:
 			if pan_button != 0: return
@@ -65,7 +88,7 @@ func _gui_input(event: InputEvent) -> void:
 			pan_button = 0
 			mouse_default_cursor_shape = Control.CURSOR_ARROW
 			if click:
-				var cell = _cell_at(event.position)
+				var cell = _interaction_cell_at(event.position)
 				if cell != null: hex_intent.emit(cell,event.shift_pressed)
 		accept_event()
 	elif event is InputEventMouseMotion:
@@ -80,7 +103,7 @@ func _gui_input(event: InputEvent) -> void:
 			accept_event()
 		else:
 			tooltip_text = ""
-			var cell = _cell_at(event.position)
+			var cell = _interaction_cell_at(event.position)
 			if cell != null and map_data != null and map_data.links.has(cell): tooltip_text = map_data.links[cell].label
 
 func _cell_at(position_value: Vector2):
@@ -92,7 +115,7 @@ func _cell_at(position_value: Vector2):
 
 func board_cells() -> Array:
 	var visible_cells: Array = []
-	var visible_area: Rect2 = Rect2(Vector2.ZERO,size).grow(SIZE)
+	var visible_area: Rect2 = Rect2(Vector2.ZERO,size).grow(cell_radius())
 	for cell: Vector2i in super.board_cells():
 		if visible_area.has_point(center(cell)): visible_cells.append(cell)
 	return visible_cells
@@ -111,6 +134,7 @@ func focus_player() -> void:
 
 func _store_view() -> void:
 	if map_data != null:
+		map_data.view_zoom = zoom
 		map_data.view_offset = pan_offset
 		map_data.view_initialized = true
 
@@ -126,6 +150,10 @@ func _notification(what: int) -> void:
 func _draw() -> void:
 	super._draw()
 	_sync_shop_roofs()
+	for index: int in range(1,trade_route.size()): draw_line(center(trade_route[index-1]),center(trade_route[index]),Color("eac56d"),4)
+	for cell: Vector2i in route_labels:
+		draw_circle(center(cell),5,Color("eac56d"))
+		draw_string(ThemeDB.fallback_font,center(cell)+Vector2(-30,30),route_labels[cell],HORIZONTAL_ALIGNMENT_LEFT,-1,13,Color("fff0c2"))
 	if map_data != null:
 		for cell: Vector2i in map_data.links:
 			if map_data.layer == "Global": continue
@@ -144,7 +172,7 @@ func _draw_floor(cell: Vector2i, _points: PackedVector2Array) -> void:
 	if map_data != null and map_data.layer == "Local" and map_data.links.has(cell) and PoiArt.supports(map_data.links[cell].kind):
 		PoiArt.draw_badge(self,poi_texture,map_data.links[cell].kind,center(cell),cell_radius()-2)
 		return
-	if map_data != null and map_data.layer == "Local":
+	if map_data != null and map_data.layer in ["Local","Encounter"]:
 		var terrain: String = map_data.biomes.get(cell,map_data.region_biome)
 		if map_data.water_cells.has(cell): _draw_water(cell)
 		elif terrain == "Wasteland": _draw_wasteland(cell)
@@ -260,3 +288,19 @@ func _sync_shop_roofs() -> void:
 		var scale_value: float = minf((cell_radius()*sqrt(3.0)-2)/256.0,(cell_radius()*2-2)/222.0)
 		sprite.scale = Vector2.ONE*scale_value
 		draw_string(ThemeDB.fallback_font,center(cell)+Vector2(-25,cell_radius()-1),"Closed" if shop.closed else shop.name,HORIZONTAL_ALIGNMENT_LEFT,-1,10,Color("f0e7ca"))
+
+func set_zoom(value: float, anchor: Vector2) -> void:
+	var next: float = clampf(value,0.5,2.5)
+	var ratio: float = next/zoom
+	pan_offset = anchor-size*0.5-(anchor-size*0.5-pan_offset)*ratio
+	zoom = next
+	_store_view()
+	queue_redraw()
+
+func focus_cell(cell: Vector2i) -> void:
+	pan_offset += size*0.5-center(cell)
+	_store_view()
+	queue_redraw()
+
+func _interaction_cell_at(point: Vector2):
+	return _cell_at(point)

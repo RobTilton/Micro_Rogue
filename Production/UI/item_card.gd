@@ -10,6 +10,7 @@ var horizontal: bool = false
 var card_width: float = 180
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_PASS
+	tooltip_text = Inspection.tooltip(item,within_reach)
 	var frame: StyleBoxFlat = Parts.style(Color("171f27"))
 	frame.border_color = Art.quality_color(item,within_reach)
 	frame.content_margin_left = 8

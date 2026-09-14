@@ -45,6 +45,17 @@ func _arena_ui() -> void:
 	arena_active = true
 	var theme: Theme = Theme.new()
 	theme.default_font_size = 17
+	var tooltip_panel := StyleBoxFlat.new()
+	tooltip_panel.bg_color = Color("080d12")
+	tooltip_panel.border_color = Color("9b927b")
+	tooltip_panel.set_border_width_all(1)
+	tooltip_panel.content_margin_left = 12
+	tooltip_panel.content_margin_right = 12
+	tooltip_panel.content_margin_top = 10
+	tooltip_panel.content_margin_bottom = 10
+	theme.set_stylebox("panel","TooltipPanel",tooltip_panel)
+	theme.set_color("font_color","TooltipLabel",Color("f4f0e6"))
+	theme.set_font_size("font_size","TooltipLabel",16)
 	root.theme = theme
 	var top: HBoxContainer = HBoxContainer.new()
 	top.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -94,6 +105,11 @@ func _process(delta: float) -> void:
 
 func _input(event: InputEvent) -> void:
 	if not frame_ready: return
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT and not drag.payload.is_empty():
+		drag.rotate()
+		if is_instance_valid(current_grid): current_grid.queue_redraw()
+		get_viewport().set_input_as_handled()
+		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_R and not drag.payload.is_empty():
 			drag.rotate()
@@ -172,6 +188,7 @@ func _refresh() -> void:
 		"Look": _look_panel(host.content)
 		"Tile": _tile_panel(host.content)
 		"Shop": _shop_panel(host.content)
+		"Quests": _quests_panel(host.content)
 
 func _wrap(parent: Node, text: String, width: float = 300) -> Label:
 	var label: Label = Parts.label(parent,text,16)
@@ -208,24 +225,54 @@ func _options_panel(parent: Node) -> void:
 	toggle.button_pressed = confirm_movement
 	toggle.toggled.connect(func(value: bool): confirm_movement = value; _cancel_preview())
 	parent.add_child(toggle)
-	_wrap(parent,"Shift-click bypasses confirmation.\nR rotates a dragged item.\nEscape closes a panel or cancels targeting.\nDifficulty: " + ["Normal","Hard","True Rogue"][difficulty])
+	_wrap(parent,"Shift-click bypasses confirmation.\nRight-click or R rotates a dragged item.\nEscape closes a panel or cancels targeting.\nDifficulty: " + ["Normal","Hard","True Rogue"][difficulty])
 
 func _inventory_panel(parent: Node) -> void:
-	Parts.label(parent,"Equipment · drag items between slots and backpack",16)
-	var equipment: GridContainer = GridContainer.new()
-	equipment.columns = 3
-	parent.add_child(equipment)
+	var layout := HBoxContainer.new()
+	layout.add_theme_constant_override("separation",16)
+	parent.add_child(layout)
+	var left := VBoxContainer.new()
+	layout.add_child(left)
+	Parts.label(left,"Equipment",20)
+	var doll = preload("res://Production/UI/paper_doll.gd").new()
+	left.add_child(doll)
+	var locations: Dictionary = {
+		"head":Rect2(161,0,98,58),"armor":Rect2(151,72,118,100),
+		"main":Rect2(12,72,100,122),"off":Rect2(304,72,100,122),
+		"arms":Rect2(12,213,100,68),"belt":Rect2(151,185,118,38),"legs":Rect2(161,239,98,75)}
+	var names: Dictionary = {"head":"Head","armor":"Chest","main":"Main hand","off":"Off hand","arms":"Hands / arms","belt":"Belt","legs":"Legs / feet"}
 	for slot: String in Grid.EQUIPMENT:
 		var item: Dictionary = player[slot]
-		var target: Button = _item_target(equipment,item,{"zone":"equipment","slot":slot,"id":item.get("item_id",-1)},{"zone":"equipment","slot":slot},("Chest" if slot == "armor" else slot.capitalize())+"\n"+item.get("name","Empty"))
-		target.custom_minimum_size = Vector2(200,58)
+		var target: Button = _item_target(doll,item,{"zone":"equipment","slot":slot,"id":item.get("item_id",-1)},{"zone":"equipment","slot":slot},names[slot]+"\n"+item.get("name","Empty"))
+		target.position = locations[slot].position
+		target.size = locations[slot].size
+		target.add_theme_font_size_override("font_size",13)
 		target.pressed.connect(func():
 			selected_item = item.get("item_id",-1)
 			if slot == "belt": inspected_belt = selected_item
 			_refresh.call_deferred())
-	Parts.label(parent,"Backpack · 8 × 5 · no stacking · R rotates during drag",16)
-	var body: HBoxContainer = HBoxContainer.new()
-	parent.add_child(body)
+	for index: int in range(8):
+		var ring: Button = Parts.button(doll,"○",func(): pass,false)
+		ring.position = Vector2(299+(index%4)*27,215+(index/4)*28)
+		ring.size = Vector2(25,26)
+		ring.tooltip_text = "Ring %d · future equipment slot" % (index+1)
+	for index: int in range(2):
+		var necklace: Button = Parts.button(doll,"◇",func(): pass,false)
+		necklace.position = Vector2(299+index*38,278)
+		necklace.size = Vector2(34,30)
+		necklace.tooltip_text = "Necklace %d · future equipment slot" % (index+1)
+	Parts.label(left,"Equipped belt pouches",16)
+	var pouches := HBoxContainer.new()
+	left.add_child(pouches)
+	if player.belt.is_empty(): Parts.label(pouches,"No belt equipped",15)
+	else:
+		for index: int in range(player.belt.capacity):
+			var potion: Dictionary = {}
+			for content: Dictionary in player.belt.contents:
+				if content.pouch == index: potion = content
+			var target: Button = _item_target(pouches,potion,{"zone":"belt","belt_id":player.belt.item_id,"id":potion.get("item_id",-1)},{"zone":"belt","belt_id":player.belt.item_id,"pouch":index},str(index+1)+" · "+("Empty" if potion.is_empty() else "HP"))
+			target.custom_minimum_size = Vector2(72,38)
+	Parts.label(left,"Backpack · drag gear to equip",16)
 	current_grid = BackpackGrid.new()
 	current_grid.drag_context = drag
 	current_grid.items = player.bag
@@ -234,22 +281,35 @@ func _inventory_panel(parent: Node) -> void:
 	current_grid.transfer_requested.connect(_transfer)
 	current_grid.item_selected.connect(_select_item)
 	current_grid.selection_completed.connect(func(): _refresh.call_deferred())
-	body.add_child(current_grid)
-	var details: VBoxContainer = VBoxContainer.new()
-	details.custom_minimum_size.x = 180
-	body.add_child(details)
+	left.add_child(current_grid)
+	var drop: Button = _item_target(left,{}, {},{"zone":"ground"},"Drop at feet — drag here")
+	drop.custom_minimum_size.y = 34
+	var details := VBoxContainer.new()
+	details.custom_minimum_size.x = 200
+	layout.add_child(details)
+	Parts.label(details,"Adventurer · Level %d" % player.level,20)
+	Parts.label(details,"HP %d / %d" % [player.hp,player.max_hp])
+	for stat: String in Actors.STATS: Parts.label(details,"%s    %d" % [stat,player.stats[stat]])
+	_wrap(details,"Physical Defense: %d\nMagical Defense: %d" % [Combat.defense(player,"physical"),Combat.defense(player,"magical")],200)
+	if not player.main.is_empty():
+		var rules = preload("res://Production/Actors/equipment_rules.gd")
+		var flat: int = rules.damage_bonus(player.main)+rules.stat_bonus(player,player.main)+int(player.get("attack_modifier",0))
+		_wrap(details,"Main-hand %s damage\n%d–%d · average %.1f\nBefore target defense" % [player.main.get("damage_type","physical"),1+flat,player.main.die+flat,(player.main.die+1)*0.5+flat],200)
+	else: Parts.label(details,"Main hand: empty",16)
+	Parts.label(details,"Gold: %d" % player.get("gold",0),20)
+	_wrap(details,_inventory_time_label(),200)
+	_wrap(details,"Ring and necklace slots: coming later.",200)
 	var selection: Dictionary = _selected_source()
 	if not selection.is_empty():
 		var item: Dictionary = Grid.source_item(player,loot,selection)
-		_add_item_card(details,item,true,false,180)
+		_add_item_card(details,item,true,false,200)
 		if item.kind == "belt": Parts.button(details,"Inspect / load belt",func(): inspected_belt = item.item_id; _refresh())
-		if selection.zone == "bag":
-			Parts.button(details,"Rotate",func(): _transfer(selection,{"zone":"bag","cell":item.grid_pos,"rotated":not item.get("rotated",false)}))
+		if selection.zone == "bag": Parts.button(details,"Rotate",func(): _transfer(selection,{"zone":"bag","cell":item.grid_pos,"rotated":not item.get("rotated",false)}))
 		Parts.button(details,"Drop at feet",func(): _transfer(selection,{"zone":"ground"}))
-	else: _wrap(details,"Select an item for details. Drag onto the grid or an equipment slot.\n\nDrag a potion to reveal belt targets below.",180)
-	var drop: Button = _item_target(parent,{}, {},{"zone":"ground"},"Drop at feet — drag here")
-	drop.custom_minimum_size.y = 38
-	_wrap(parent,"Equipping, dropping, and moving potions into/out of belts costs activation in combat. Rearranging the backpack is free. Invalid transfers change nothing.",580)
+	else: _wrap(details,"Hover any item for details. Drag between backpack, equipment and belt pouches.",200)
+
+func _inventory_time_label() -> String:
+	return ""
 
 func _item_target(parent: Node, item: Dictionary, source: Dictionary, target: Dictionary, text: String) -> Button:
 	var button: Button = Target.new()
@@ -273,6 +333,7 @@ func _select_item(item_id: int) -> void:
 	current_grid.queue_redraw()
 
 func _selected_source() -> Dictionary:
+	if selected_item < 0: return {}
 	for item: Dictionary in player.bag:
 		if item.item_id == selected_item: return {"zone":"bag","id":selected_item}
 	for slot: String in Grid.EQUIPMENT:
@@ -380,7 +441,8 @@ func _look_panel(parent: Node) -> void:
 		if nearby and inspection_looting:
 			var source: Dictionary = {"zone":"ground","id":entry.item.item_id}
 			var target: Dictionary = {"zone":"pickup"}
-			Parts.button(parent,"Take",func(): _transfer(source,target),player.hp > 0)
+			var take: Button = Parts.button(parent,"Take",func(): _transfer(source,target),player.hp > 0)
+			take.tooltip_text = preload("res://Production/Actors/item_inspection.gd").tooltip(entry.item)
 	if found == 0: Parts.label(parent,"Nothing remains on this tile.")
 	if nearby and battle:
 		_wrap(parent,"Each item costs activation, then attack actions, then movement. No space or no actions means nothing is taken.",450)
@@ -534,3 +596,6 @@ func _map_distance(a: Vector2i, b: Vector2i) -> int:
 
 func _shop_panel(parent: Node) -> void:
 	Parts.label(parent,"Shop")
+
+func _quests_panel(parent: Node) -> void:
+	Parts.label(parent,"No quests available.")

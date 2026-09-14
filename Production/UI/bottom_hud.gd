@@ -4,6 +4,7 @@ signal transfer_requested(source: Dictionary, target: Dictionary)
 const Parts = preload("res://Production/UI/ui_parts.gd")
 const Target = preload("res://Production/UI/item_target.gd")
 var drag_context: RefCounted
+var gold: Label
 var hp: Label
 var state: Label
 var buttons: Dictionary = {}
@@ -35,7 +36,7 @@ func _ready() -> void:
 	for name: String in ["Attack","Lunge","Riposte","Activate","End Turn","Cancel"]:
 		buttons[name] = Parts.button(actions,name,func(): command.emit(name))
 		buttons[name].custom_minimum_size.y = 38
-	Parts.label(row,"Gold\n—",18).tooltip_text = "Currency is not defined yet."
+	gold = Parts.label(row,"Gold\n0",18)
 	belt_section = VBoxContainer.new()
 	layout.add_child(belt_section)
 	belt_name = Parts.label(belt_section,"",14)

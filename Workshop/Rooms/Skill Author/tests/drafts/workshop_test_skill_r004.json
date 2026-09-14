@@ -1,0 +1,68 @@
+{
+	"adjacency_notes": "",
+	"adjacency_rules": [
+		{
+			"bonus_or_notes": "Bonus effect idea.",
+			"count_by": "Undecided",
+			"minimum": 3,
+			"required_tags": [],
+			"requirement": "Optional bonus",
+			"skill_bucket": "Martial",
+			"specific_skill_ids": []
+		}
+	],
+	"allow_mirror": false,
+	"allow_rotation": true,
+	"balance_notes": "",
+	"chain_amount": 5,
+	"chain_bucket": "Same as skill",
+	"chain_measure": "Minimum qualifying cells",
+	"chain_notes": "",
+	"chain_tags": [],
+	"custom_bucket": "",
+	"display_name": "Workshop Test Skill",
+	"effect_description": "Adjacent Martial skills receive -1 cooldown. WIP: decide minimum cooldown later.",
+	"footprint": [
+		[
+			0,
+			0
+		],
+		[
+			-1,
+			1
+		],
+		[
+			-2,
+			2
+		],
+		[
+			-1,
+			2
+		]
+	],
+	"is_origin": false,
+	"minimum_points_in_bucket": 0,
+	"open_questions": "Should repeated cell contacts stack?",
+	"optional_bonus_description": "",
+	"origin_skill_id": "",
+	"prerequisite_mode": "All listed",
+	"prerequisite_notes": "",
+	"prerequisite_skill_ids": [
+		"mental_origin"
+	],
+	"requires_origin": true,
+	"resolved_bucket": "Mental Mastery",
+	"revision": 4,
+	"rotation_steps": 2,
+	"schema_version": 1,
+	"shape": "Four hex hook",
+	"skill_bucket": "Mental Mastery",
+	"skill_id": "workshop_test_skill",
+	"skill_kind": "Undecided",
+	"skill_point_cost": 1,
+	"status": "idea_only",
+	"tags": [
+		"support",
+		"cooldown"
+	]
+}

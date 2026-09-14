@@ -18,6 +18,9 @@ func _start_run() -> void:
 	simulation.difficulty = difficulty
 	map_world = simulation.maps
 	player = Actors.create(dice_slots.slice(6,12))
+	for slot: String in Grid.EQUIPMENT: player[slot] = {}
+	player.bag = []
+	player.gold = 50
 	simulation.add_actor(player,"global",map_world.maps.global.spawn_cell,"player","player")
 	simulation.advance_to_player(brain)
 	cooldowns = player.clock
@@ -30,6 +33,7 @@ func _start_run() -> void:
 
 func _sync() -> void:
 	if simulation == null: return
+	simulation.refresh_action_mode(player)
 	active_map = map_world.maps[player.map_id]
 	loot = simulation.ground[player.map_id]
 	actions = player.actions
@@ -44,23 +48,61 @@ func _sync() -> void:
 
 func _refresh() -> void:
 	if simulation == null: return
+	if frame_ready and board.map_data.id != player.map_id:
+		_sync()
+		_arena_ui()
+		return
 	_sync()
 	super._refresh()
 	if not frame_ready or not drag.payload.is_empty(): return
 	var visible_actors: Array[Dictionary] = [player]
 	for actor: Dictionary in simulation.on_map(player.map_id):
 		if actor.id != player.id and simulation.can_see(player,actor.pos): visible_actors.append(actor)
+	board.trade_route = map_world.records.global.constraints.get("starter_route",[]) if active_map.layer == "Global" else []
+	board.route_labels = {}
+	if board.trade_route.size() >= 2:
+		var towns: Array = map_world.records.global.constraints.get("route_towns",[])
+		if towns.size() == 2:
+			board.route_labels[board.trade_route.front()] = map_world.records[towns[0]].label
+			board.route_labels[board.trade_route.back()] = map_world.records[towns[1]].label
 	board.show_actors(visible_actors,selected_actor_id)
+	for event: Dictionary in simulation.motion_events:
+		if event.map_id != player.map_id: continue
+		var visible: bool = simulation.can_see(player,event.from)
+		for cell: Vector2i in event.route:
+			if not simulation.can_see(player,cell): visible = false
+		if visible: board.animate_motion(event)
+	simulation.motion_events.clear()
+	if is_instance_valid(minimap):
+		minimap.trade_route = board.trade_route
+		minimap.update_map(active_map,player.pos,visible_actors)
+	board.visible_props = []
+	for cell: Vector2i in active_map.props:
+		if simulation.can_see(player,cell): board.visible_props.append(cell)
 	board.loot_cells = []
+	board.item_tooltips = {}
 	for entry: Dictionary in loot:
-		if simulation.can_see(player,entry.pos) and entry.pos not in board.loot_cells: board.loot_cells.append(entry.pos)
+		if simulation.can_see(player,entry.pos):
+			if entry.pos not in board.loot_cells: board.loot_cells.append(entry.pos)
+			var description: String = preload("res://Production/Actors/item_inspection.gd").tooltip(entry.item,active_map.distance(player.pos,entry.pos) <= 1)
+			board.item_tooltips[entry.pos] = board.item_tooltips.get(entry.pos,"")+("\n\n" if board.item_tooltips.has(entry.pos) else "")+description
+	for cell: Vector2i in board.visible_props:
+		var prop: Dictionary = active_map.props[cell]
+		var text: String = prop.get("name","Container")+(" · searched" if prop.get("opened",false) else " · search to reveal contents")
+		board.item_tooltips[cell] = text+("\n\n"+board.item_tooltips[cell] if board.item_tooltips.has(cell) else "")
 	if mode == "lunge": board.highlights = simulation.paths(player,player.stats.DEX).keys() if _skill_available("Lunge") else []
 	board.queue_redraw()
+	hud.gold.text = "Gold\n"+str(player.get("gold",0))
+	hud.state.text += "\n"+preload("res://Production/World/world_clock.gd").label(simulation.world_hours)
 	hud.buttons["End Turn"].disabled = player.hp <= 0
 	hud.buttons["End Turn"].text = "End Turn" if battle and Combat.remaining(player.actions) > 0 else "Wait"
 	hud.state.tooltip_text = "World threshold %d. DEX + effects = %.2f speed. Momentum carries over; each extra grant adds one free action." % [simulation.turn_threshold,simulation.Momentum.speed(player)]
-	hud.state.text += "\nMomentum %.2f / %d · Speed %.2f" % [player.get("momentum",0.0),simulation.turn_threshold,simulation.Momentum.speed(player)]
-	preview_label.text = "Move to %s · %d hexes · %s" % [preview_destination,preview_path.size(),"1 movement action" if battle else "advances one world turn"]
+	if battle:
+		hud.state.text += "\nMomentum %.2f / %d · Speed %.2f" % [player.get("momentum",0.0),simulation.turn_threshold,simulation.Momentum.speed(player)]
+	else:
+		hud.state.text = "Exploration · actions are free\n"+preload("res://Production/World/world_clock.gd").label(simulation.world_hours)
+		hud.state.tooltip_text = "Turn budgets apply during combat. Gold costs and travel/rest time still apply."
+	preview_label.text = "Move to %s · %d hexes · %s" % [preview_destination,preview_path.size(),"1 movement action" if battle else "free exploration"]
 
 func _process(_delta: float) -> void:
 	# Actor Foundation uses world turns, including pursuit outside combat.
@@ -100,6 +142,7 @@ func _confirm_move() -> void:
 	_finish(outcome)
 
 func _board_intent(cell: Vector2i, bypass: bool) -> void:
+	if cell == player.pos: return
 	if player.hp <= 0: return
 	if mode == "move" and player.pending.is_empty() and active_map.shops.has(cell):
 		_open_shop(cell)
@@ -162,7 +205,8 @@ func _enter_map() -> void:
 	mode = "move"
 	_cancel_preview(false)
 	# Travel spends the existing budget; it cannot refill momentum/free actions.
-	if Combat.remaining(player.actions) == 0: simulation.advance_to_player(brain)
+	simulation.refresh_action_mode(player)
+	if simulation.engaged(player) and Combat.remaining(player.actions) == 0: simulation.advance_to_player(brain)
 	_flush_events()
 	_sync()
 	_arena_ui()
@@ -184,6 +228,9 @@ func _spawn_enemy() -> void:
 	_refresh()
 
 func _skills_panel(parent: Node) -> void:
+	Parts.label(parent,"Spend a point: +1 stat",20)
+	for stat: String in Actors.STATS:
+		Parts.button(parent,"+1 "+stat,_raise_stat.bind(stat),player.points > 0 and player.hp > 0)
 	Parts.label(parent,"Sword Mastery · points %d" % player.points,20)
 	for skill: String in ["Lunge","Riposte","Show-Off"]:
 		var previous: String = "" if skill == "Lunge" else "Lunge" if skill == "Riposte" else "Riposte"
@@ -203,17 +250,35 @@ func _look_panel(parent: Node) -> void:
 
 func _activate_panel(parent: Node) -> void:
 	_map_transition_button(parent)
+	for crossing: Dictionary in simulation.border_options(player):
+		Parts.button(parent,"Cross "+["east","northeast","northwest","west","southwest","southeast"][crossing.side]+" · 6 hours",_cross_border.bind(crossing.side))
+	for npc: Dictionary in simulation.on_map(player.map_id):
+		if npc.get("role","") != "crier" or active_map.distance(player.pos,npc.pos) > 1 or not simulation.can_see(player,npc.pos): continue
+		Parts.label(parent,"Town Crier · Local bounties",20)
+		for quest: Dictionary in simulation.town_quests(player).values():
+			_wrap(parent,quest.title,360)
+			_quest_direction(parent,quest.target)
+			if quest.get("tutorial",false): _wrap(parent,quest.get("effects","Follow the gold trade route. Remove its hostile boss to reduce pressure and improve both towns prosperity."),360)
+			var text: String = "Accept bounty" if quest.status == "available" else "Check bounty" if quest.status == "accepted" else "Claim reward" if quest.status == "claim reward" else "Reward claimed"
+			Parts.button(parent,text+" · "+_quest_reward_text(quest),_crier_quest.bind(quest.target),quest.status != "rewarded")
 	for cell: Vector2i in active_map.shops:
 		if simulation.inspect_shop(player,cell).ok:
 			Parts.button(parent,active_map.shops[cell].name,_open_shop.bind(cell))
+	for cell: Vector2i in active_map.props:
+		var prop: Dictionary = active_map.props[cell]
+		if prop.kind in ["rug","rubble"] or active_map.distance(player.pos,cell) > 1 or not simulation.can_see(player,cell): continue
+		if prop.opened: Parts.label(parent,prop.name+" · searched")
+		else: Parts.button(parent,"Search "+prop.name,_search_prop.bind(cell))
 	Parts.label(parent,"Equipped belt",20)
 	for potion: Dictionary in player.belt.get("contents",[]):
-		Parts.button(parent,"Use Lesser Health",_drink_potion.bind(potion.item_id),_inventory_allowed())
+		var use: Button = Parts.button(parent,"Use Lesser Health",_drink_potion.bind(potion.item_id),_inventory_allowed())
+		use.tooltip_text = preload("res://Production/Actors/item_inspection.gd").tooltip(potion)
 	Parts.button(parent,"Backpack",func(): _toggle_panel("Inventory",200))
 	Parts.label(parent,"Nearby visible items",20)
 	for entry: Dictionary in loot:
 		if active_map.distance(player.pos,entry.pos) <= 1 and simulation.can_see(player,entry.pos):
-			Parts.button(parent,"Take "+entry.item.name,func(): _transfer({"zone":"ground","id":entry.item.item_id},{"zone":"pickup"}))
+			var take: Button = Parts.button(parent,"Take "+entry.item.name,func(): _transfer({"zone":"ground","id":entry.item.item_id},{"zone":"pickup"}))
+			take.tooltip_text = preload("res://Production/Actors/item_inspection.gd").tooltip(entry.item)
 
 func _inventory_panel(parent: Node) -> void:
 	if player.main.get("hands","") == "versatile":
@@ -240,8 +305,189 @@ func _shop_panel(parent: Node) -> void:
 	if shop.closed:
 		_wrap(parent,"Closed.")
 	elif shop.id == "inn":
-		Parts.button(parent,"Rest unavailable",func(): pass,false)
-		_wrap(parent,"Inn services are not available yet.")
+		Parts.button(parent,"Rest · 1 gold · 1 block (6 hours)",_rest_inn,player.get("gold",0) >= 1)
+		_wrap(parent,"Recover up to "+str(2*player.stats.CON)+" HP. No ration required.")
 	else:
-		Parts.button(parent,"Trading unavailable",func(): pass,false)
-		_wrap(parent,"Shop services are not available yet.")
+		Parts.label(parent,"Gold: "+str(player.get("gold",0))+" · Prosperity: "+str(shop.get("prosperity",0)))
+		for entry: Dictionary in shop.get("stock",[]):
+			var buy_button: Button = Parts.button(parent,entry.item.name+" · "+str(entry.price)+" gold",_buy_item.bind(entry.item.item_id),player.get("gold",0) >= entry.price)
+			var description: Dictionary = preload("res://Production/Actors/item_inspection.gd").describe(entry.item,true)
+			buy_button.tooltip_text = description.title+"\n"+description.details+"\nPrice: "+str(entry.price)+" gold"
+		if shop.get("stock",[]).is_empty(): Parts.label(parent,"No stock available.")
+		Parts.label(parent,"Sell backpack gear",20)
+		_wrap(parent,"Unequip gear to sell it. Empty loaded belts first. Ctrl-click buys or sells without confirmation.")
+		for item: Dictionary in player.bag:
+			if not preload("res://Production/World/village_shops.gd").sellable(item): continue
+			var price: int = preload("res://Production/World/village_shops.gd").sale_price(item)
+			var button: Button = Parts.button(parent,"Sell "+item.name+" · "+str(price)+" gold",_sell_item.bind(item.item_id))
+			var description: Dictionary = preload("res://Production/Actors/item_inspection.gd").describe(item,true)
+			button.tooltip_text = description.title+"\n"+description.details+"\nSell for: "+str(price)+" gold"
+
+func _search_prop(cell: Vector2i) -> void:
+	_finish(simulation.interact(player,{"kind":"search","cell":cell}),false)
+
+func _rest_inn() -> void:
+	_finish(simulation.rest_at_inn(player,selected_shop_cell),false)
+
+func _buy_item(item_id: int) -> void:
+	_request_trade("buy",item_id)
+
+func _sell_item(item_id: int) -> void:
+	_request_trade("sell",item_id)
+
+var trade_confirmation: ConfirmationDialog
+var pending_trade: Dictionary = {}
+
+func _request_trade(kind: String, item_id: int) -> void:
+	var access: Dictionary = simulation.inspect_shop(player,selected_shop_cell)
+	if not access.ok or access.shop.closed or access.shop.id == "inn": return
+	var item: Dictionary = {}
+	var price: int = 0
+	if kind == "buy":
+		for entry: Dictionary in access.shop.stock:
+			if entry.item.item_id == item_id: item = entry.item; price = entry.price; break
+	else:
+		for candidate: Dictionary in player.bag:
+			if candidate.item_id == item_id: item = candidate; break
+		if not preload("res://Production/World/village_shops.gd").sellable(item): return
+		price = preload("res://Production/World/village_shops.gd").sale_price(item)
+	if item.is_empty(): return
+	pending_trade = {"kind":kind,"item_id":item_id,"price":price,"map_id":player.map_id,"cell":selected_shop_cell}
+	if Input.is_key_pressed(KEY_CTRL):
+		_confirm_trade()
+		return
+	if not is_instance_valid(trade_confirmation):
+		trade_confirmation = ConfirmationDialog.new()
+		add_child(trade_confirmation)
+		trade_confirmation.confirmed.connect(_confirm_trade)
+		trade_confirmation.canceled.connect(func(): pending_trade = {})
+	trade_confirmation.title = "Confirm purchase" if kind == "buy" else "Confirm sale"
+	trade_confirmation.dialog_text = ("Buy " if kind == "buy" else "Sell ")+item.name+" for "+str(price)+" gold?"
+	trade_confirmation.get_ok_button().text = "Buy" if kind == "buy" else "Sell"
+	trade_confirmation.popup_centered()
+
+func _confirm_trade() -> void:
+	var request: Dictionary = pending_trade
+	pending_trade = {}
+	if request.is_empty(): return
+	if player.map_id != request.map_id:
+		_finish({"ok":false,"reason":"The shop is no longer in reach."},false)
+		return
+	var access: Dictionary = simulation.inspect_shop(player,request.cell)
+	if not access.ok: _finish(access,false); return
+	var price: int = -1
+	if request.kind == "buy":
+		for entry: Dictionary in access.shop.get("stock",[]):
+			if entry.item.item_id == request.item_id: price = entry.price; break
+	else:
+		for item: Dictionary in player.bag:
+			if item.item_id == request.item_id: price = preload("res://Production/World/village_shops.gd").sale_price(item); break
+	if price != request.price:
+		_finish({"ok":false,"reason":"That offer changed. Select the item again."},false)
+		return
+	_finish(simulation.buy(player,request.cell,request.item_id) if request.kind == "buy" else simulation.sell(player,request.cell,request.item_id),false)
+
+func _crier_quest(target_id: String) -> void:
+	_finish(simulation.quest_action(player,target_id),false)
+
+var context_popup: PopupMenu
+var context_actions: Array[Callable] = []
+var minimap: Control
+func _arena_ui() -> void:
+	super._arena_ui()
+	board.context_requested.connect(_show_context)
+	board.double_clicked.connect(_double_hex)
+	context_popup = PopupMenu.new()
+	board.add_child(context_popup)
+	context_popup.id_pressed.connect(func(id: int):
+		if id >= 0 and id < context_actions.size(): context_actions[id].call())
+	host.z_index = 20
+	minimap = preload("res://Production/UI/mini_map.gd").new()
+	minimap.z_index = 10
+	board.add_child(minimap)
+	minimap.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	minimap.offset_left = -202
+	minimap.offset_right = -12
+	minimap.offset_top = 12
+	minimap.offset_bottom = 162
+	minimap.cell_selected.connect(board.focus_cell)
+	_refresh()
+
+func _double_hex(cell: Vector2i) -> void:
+	if cell == player.pos and active_map.links.has(cell): _enter_map()
+
+func _context_action(text: String, action: Callable) -> void:
+	context_popup.add_item(text,context_actions.size())
+	context_actions.append(action)
+
+func _show_context(cell: Vector2i) -> void:
+	if not frame_ready or player.hp <= 0 or not drag.payload.is_empty(): return
+	context_popup.clear()
+	context_actions.clear()
+	_context_action("Focus on player",board.focus_player)
+	for crossing: Dictionary in simulation.border_options(player):
+		_context_action("Cross "+["east","northeast","northwest","west","southwest","southeast"][crossing.side]+" · 6 hours",_cross_border.bind(crossing.side))
+	if cell == player.pos:
+		for panel: String in ["Character","Inventory","Skills","Quests"]:
+			_context_action(panel,_toggle_panel.bind(panel,160))
+		_context_action("Interact / nearby loot",_command.bind("Activate"))
+		_context_action("Wait / end turn",_command.bind("End Turn"))
+		if active_map.links.has(cell): _context_action(active_map.links[cell].label,_enter_map)
+	else:
+		_context_action("Move here",_board_intent.bind(cell,true))
+	if simulation.can_see(player,cell):
+		_context_action("Information",_open_tile_choices.bind(cell))
+		if active_map.shops.has(cell): _context_action("Visit "+active_map.shops[cell].name,_open_shop.bind(cell))
+		if active_map.props.has(cell) and active_map.props[cell].kind not in ["rug","rubble"] and not active_map.props[cell].opened:
+			_context_action("Search "+active_map.props[cell].name,_search_prop.bind(cell))
+		var target: Dictionary = simulation.actor_at(player.map_id,cell,player.id)
+		if not target.is_empty():
+			if simulation.hostile(player,target): _context_action("Attack "+target.name,_mouse_attack.bind(target.id))
+			elif target.get("role","") == "crier": _context_action("Talk to town crier",_command.bind("Activate"))
+		for entry: Dictionary in loot:
+			if entry.pos == cell:
+				_context_action("Take "+entry.item.name,_transfer.bind({"zone":"ground","id":entry.item.item_id},{"zone":"pickup"}))
+				context_popup.set_item_tooltip(context_popup.item_count-1,preload("res://Production/Actors/item_inspection.gd").tooltip(entry.item))
+	var point: Vector2i = Vector2i(get_viewport().get_mouse_position()) if get_window().is_embedding_subwindows() else DisplayServer.mouse_get_position()
+	context_popup.popup(Rect2i(point,Vector2i.ZERO))
+
+func _mouse_attack(target_id: int) -> void:
+	_finish(simulation.attack(player,target_id),false)
+
+func _quests_panel(parent: Node) -> void:
+	var count: int = 0
+	for record: Dictionary in map_world.records.values():
+		var entries: Array = record.constraints.get("quests",{}).values()
+		entries.sort_custom(func(a: Dictionary,b: Dictionary): return a.get("tutorial",false) and not b.get("tutorial",false))
+		for quest: Dictionary in entries:
+			count += 1
+			var status: String = quest.status
+			var boss_id: int = map_world.records[quest.target].constraints.get("boss_id",-1)
+			if status != "rewarded" and simulation.actors.has(boss_id) and simulation.actors[boss_id].hp <= 0: status = "Return to the crier"
+			_wrap(parent,quest.title,360)
+			_quest_direction(parent,quest.target)
+			if quest.get("tutorial",false): _wrap(parent,quest.get("effects","Follow the gold trade route. Remove its hostile boss to reduce pressure and improve both towns prosperity."),360)
+			Parts.label(parent,record.label+" · "+status+" · "+_quest_reward_text(quest),16)
+	if count == 0: Parts.label(parent,"Speak to a town crier to find local bounties.")
+
+func _raise_stat(stat: String) -> void:
+	_finish(simulation.spend_stat(player,stat),false)
+
+func _cross_border(side: int) -> void:
+	_finish(simulation.cross_border(player,side),false)
+
+func _quest_reward_text(quest: Dictionary) -> String:
+	return str(quest.skill_reward)+" skill point" if quest.get("skill_reward",0) > 0 else str(quest.reward)+" gold"
+
+func _quest_direction(parent: Node, target_id: String) -> void:
+	var destination: Dictionary = simulation.quest_destination(player,target_id)
+	var row := HBoxContainer.new()
+	parent.add_child(row)
+	var preview = preload("res://Production/UI/quest_hex.gd").new()
+	preview.biome = destination.biome
+	row.add_child(preview)
+	Parts.label(row,destination.arrow+" "+str(destination.cell)+" · "+destination.biome,18)
+	_wrap(parent,destination.scope+" · POI entrance on Local: "+str(destination.local_cell),360)
+
+func _inventory_time_label() -> String:
+	return preload("res://Production/World/world_clock.gd").label(simulation.world_hours) if simulation != null else ""

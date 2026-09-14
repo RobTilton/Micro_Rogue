@@ -8,6 +8,7 @@ var drag_context: RefCounted
 func _ready() -> void:
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	if not item.is_empty():
+		tooltip_text = preload("res://Production/Actors/item_inspection.gd").tooltip(item)
 		icon = Art.texture_for(item)
 		expand_icon = true
 		add_theme_constant_override("icon_max_width",30)

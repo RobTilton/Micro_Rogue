@@ -33,7 +33,7 @@ static func stat_bonus(actor: Dictionary, weapon: Dictionary) -> int:
 		"staffs": return stats.INT
 		"maces": return floori(stats.STR*1.5) if two else stats.STR
 		_: return stats.STR+stats.DEX if two else floori((stats.STR+stats.DEX)*0.5)
-static func resolve(item: Dictionary, base: Dictionary) -> Dictionary:
+static func resolve(item: Dictionary, base: Dictionary, weapon_scale: int = 2) -> Dictionary:
 	item = item.duplicate(true)
 	item.rules_version = 1
 	item.rarity = ["trash","common","exceptional","masterwork","mythic","touched_by_the_gods"].find(item.quality.id)
@@ -45,7 +45,8 @@ static func resolve(item: Dictionary, base: Dictionary) -> Dictionary:
 	if item.kind == "weapon":
 		if item.category == "swords": item.kind = "sword"
 		item.die = int(base.damage_die)
-		item.bonus = int(base.damage_flat)+item.material_tier-1+quality
+		item.rules_version = weapon_scale
+		item.bonus = int(base.damage_flat)+weapon_scale*(item.material_tier-1+quality)
 		item.hands = base.hands
 		item.damage_type = base.damage_type
 		item.range = int(base.range)
@@ -61,3 +62,10 @@ static func resolve(item: Dictionary, base: Dictionary) -> Dictionary:
 		item.physical_defense = roundi(item.physical_defense*contribution)
 		item.magical_defense = roundi(item.magical_defense*contribution)
 	return item
+
+static func damage_bonus(item: Dictionary) -> int:
+	var bonus: int = int(item.get("bonus",0))
+	# Existing v1 gear receives current balance without rewriting saved identities/properties.
+	if is_weapon(item) and item.get("rules_version",0) == 1:
+		bonus += int(item.material_tier)-1+int(item.quality.modifier)
+	return bonus

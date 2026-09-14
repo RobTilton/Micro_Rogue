@@ -6,7 +6,7 @@ static func score(item: Dictionary) -> float:
 	if item.is_empty(): return -1000.0
 	if item.kind == "belt": return float(item.capacity)
 	if item.kind in ["armor","shield"]: return Rules.defense_item(item,"physical")+Rules.defense_item(item,"magical")
-	return (float(item.get("die",0))+1.0)*0.5+float(item.get("bonus",0))
+	return (float(item.get("die",0))+1.0)*0.5+float(preload("res://Production/Actors/equipment_rules.gd").damage_bonus(item))
 
 static func upgrade_slot(actor: Dictionary, item: Dictionary) -> String:
 	var slots: Array[String] = []
@@ -62,6 +62,13 @@ func approach(world, actor: Dictionary, goal: Vector2i, adjacent: bool = false) 
 	return best != actor.pos and world.move(actor,best).ok
 
 func take_turn(world, actor: Dictionary) -> void:
+	if actor.faction == "town" and world.hostiles(actor).is_empty(): return
+	if not actor.get("can_use_skills",true):
+		while actor.points > 0:
+			var weakest: String = "CON"
+			for stat: String in world.Actors.STATS:
+				if actor.stats[stat] < actor.stats[weakest]: weakest = stat
+			world.spend_stat(actor,weakest)
 	for skill: String in ["Lunge","Riposte","Show-Off"]:
 		if skill not in actor.skills and actor.points > 0: world.learn(actor,skill)
 	if actor.retreat:
@@ -109,6 +116,13 @@ func take_turn(world, actor: Dictionary) -> void:
 					var pickup: Dictionary = world.interact(actor,{"kind":"pickup","item_id":item.item_id})
 					if pickup.ok: world.events.append(actor.name + " collects " + item.name + ".")
 			break
+	if target.is_empty() and Combat.available(actor.actions,"activation") > 0:
+		for cell: Vector2i in map.props:
+			var prop: Dictionary = map.props[cell]
+			if prop.opened or prop.kind in ["rug","rubble"] or not world.can_see(actor,cell): continue
+			if map.distance(actor.pos,cell) > 1: approach(world,actor,cell,true)
+			world.interact(actor,{"kind":"search","cell":cell})
+			break
 	if not target.is_empty():
 		if map.distance(actor.pos,target.pos) > 1 and world.skill_available(actor,"Lunge"):
 			for cell: Vector2i in world.paths(actor,actor.stats.DEX):
@@ -128,7 +142,7 @@ func take_turn(world, actor: Dictionary) -> void:
 		if exit_memory.map_id == actor.map_id:
 			if actor.pos != exit_memory.pos: approach(world,actor,exit_memory.pos)
 			if actor.pos == exit_memory.pos:
-				var travel_result: Dictionary = world.interact(actor,{"kind":"entrance"})
+				var travel_result: Dictionary = world.cross_border(actor,exit_memory.border) if exit_memory.has("border") else world.interact(actor,{"kind":"entrance"})
 				if travel_result.ok:
 					actor.trail.pop_front()
 					actor.last_seen = {"map_id":actor.map_id,"pos":exit_memory.arrival}

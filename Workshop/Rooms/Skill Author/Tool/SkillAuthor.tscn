@@ -1,0 +1,11 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://Workshop/Rooms/Skill Author/Tool/skill_author.gd" id="1"]
+[ext_resource type="Script" path="res://Workshop/Rooms/Skill Author/Tool/skill_draft.gd" id="2"]
+
+[sub_resource type="Resource" id="Draft"]
+script = ExtResource("2")
+
+[node name="SkillAuthor" type="Node2D"]
+script = ExtResource("1")
+draft = SubResource("Draft")
