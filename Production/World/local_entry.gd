@@ -6,7 +6,7 @@ static func dry(map, cell: Vector2i) -> bool:
 
 static func candidates(map, side: int) -> Array[Vector2i]:
 	var edge: Array[Vector2i] = Contracts.boundary_cells(map,side,true)
-	var center: Vector2i = edge[edge.size()/2]
+	var center: Vector2i = edge[int(edge.size()/2.0)]
 	edge.sort_custom(func(a: Vector2i,b: Vector2i):
 		var distance_a: int = map.distance(a,center)
 		var distance_b: int = map.distance(b,center)

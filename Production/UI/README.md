@@ -11,3 +11,5 @@ The composition remains base_game → game_ui → actor_game → world_game. Cha
 The HUD includes Free actions and momentum/speed. Paid controls accept flexible actions. Actor UI skips empty player ticks through the shared scheduler; travel preserves unspent budgets.
 
 Equipment Integration adds Chest, Head, Arms and Legs targets alongside hands/belt, a versatile-grip action, exact Physical/Magical defense inspection and character totals, weapon stat/range details and six quality colors. Inventory equipment targets use a three-column layout.
+
+Item Presentation (2026-09-14): paper-doll inventory, equipped pouches and stat column; opaque item tooltips across inventory/loot/ground with inspection-distance rules preserved. Jewelry remains placeholders. See `Workshop/Rooms/Item Presentation/CURRENT_STATE.md`.

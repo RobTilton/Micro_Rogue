@@ -47,15 +47,15 @@ static func boundary_cells(map, side: int, include_corners: bool = false) -> Arr
 		0:
 			for y: int in range(map.dimensions.y): result.append(Vector2i(map.dimensions.x-1,y))
 		1:
-			for x: int in range(map.dimensions.x/2,map.dimensions.x-1): result.append(Vector2i(x,0))
+			for x: int in range(int(map.dimensions.x/2.0),map.dimensions.x-1): result.append(Vector2i(x,0))
 		2:
-			for x: int in range(1,map.dimensions.x/2): result.append(Vector2i(x,0))
+			for x: int in range(1,int(map.dimensions.x/2.0)): result.append(Vector2i(x,0))
 		3:
 			for y: int in range(map.dimensions.y): result.append(Vector2i(0,y))
 		4:
-			for x: int in range(1,map.dimensions.x/2): result.append(Vector2i(x,map.dimensions.y-1))
+			for x: int in range(1,int(map.dimensions.x/2.0)): result.append(Vector2i(x,map.dimensions.y-1))
 		5:
-			for x: int in range(map.dimensions.x/2,map.dimensions.x-1): result.append(Vector2i(x,map.dimensions.y-1))
+			for x: int in range(int(map.dimensions.x/2.0),map.dimensions.x-1): result.append(Vector2i(x,map.dimensions.y-1))
 	return result
 
 static func apply_surface(map, contracts: Array) -> void:
@@ -85,7 +85,7 @@ static func route_constraints(map, contracts: Array) -> void:
 				if not graph.has(pair[0]): graph[pair[0]] = []
 				graph[pair[0]].append({"next":pair[1],"cell":cell,"direction":direction})
 			if not anchors.has(cell): anchors[cell] = a
-	var hub_cell := Vector2i(map.dimensions.x/2,map.dimensions.y/2)
+	var hub_cell := Vector2i(int(map.dimensions.x/2.0),int(map.dimensions.y/2.0))
 	if not anchors.has(hub_cell): return
 	var hub: Vector2i = anchors[hub_cell]
 	var previous: Dictionary = {hub:{}}
@@ -101,7 +101,7 @@ static func route_constraints(map, contracts: Array) -> void:
 	for contract: Dictionary in contracts:
 		if not contract.river: continue
 		var boundary: Array[Vector2i] = boundary_cells(map,contract.direction)
-		var cell: Vector2i = boundary[boundary.size()/2]
+		var cell: Vector2i = boundary[int(boundary.size()/2.0)]
 		var port: Vector2i = anchors[cell]
 		var current: Vector2i = port
 		var vertices: Array[Vector2i] = [port]

@@ -96,6 +96,9 @@ func _refresh() -> void:
 	hud.state.text += "\n"+preload("res://Production/World/world_clock.gd").label(simulation.world_hours)
 	hud.buttons["End Turn"].disabled = player.hp <= 0
 	hud.buttons["End Turn"].text = "End Turn" if battle and Combat.remaining(player.actions) > 0 else "Wait"
+	if player.hp <= 0:
+		hud.buttons["End Turn"].disabled = false
+		hud.buttons["End Turn"].text = "New adventurer"
 	hud.state.tooltip_text = "World threshold %d. DEX + effects = %.2f speed. Momentum carries over; each extra grant adds one free action." % [simulation.turn_threshold,simulation.Momentum.speed(player)]
 	if battle:
 		hud.state.text += "\nMomentum %.2f / %d · Speed %.2f" % [player.get("momentum",0.0),simulation.turn_threshold,simulation.Momentum.speed(player)]
@@ -269,8 +272,10 @@ func _activate_panel(parent: Node) -> void:
 		if prop.kind in ["rug","rubble"] or active_map.distance(player.pos,cell) > 1 or not simulation.can_see(player,cell): continue
 		if prop.opened: Parts.label(parent,prop.name+" · searched")
 		else: Parts.button(parent,"Search "+prop.name,_search_prop.bind(cell))
-	Parts.label(parent,"Equipped belt",20)
-	for potion: Dictionary in player.belt.get("contents",[]):
+	Parts.button(parent,"Camp · 1 ration · 1 block",_camp,player.hp > 0 and not simulation.engaged(player) and player.map_id != "global")
+	Parts.label(parent,"Carried health potions",20)
+	for potion: Dictionary in player.belt.get("contents",[])+player.bag:
+		if potion.get("kind") != "potion": continue
 		var use: Button = Parts.button(parent,"Use Lesser Health",_drink_potion.bind(potion.item_id),_inventory_allowed())
 		use.tooltip_text = preload("res://Production/Actors/item_inspection.gd").tooltip(potion)
 	Parts.button(parent,"Backpack",func(): _toggle_panel("Inventory",200))
@@ -325,6 +330,9 @@ func _shop_panel(parent: Node) -> void:
 
 func _search_prop(cell: Vector2i) -> void:
 	_finish(simulation.interact(player,{"kind":"search","cell":cell}),false)
+
+func _camp() -> void:
+	_finish(simulation.camp(player),false)
 
 func _rest_inn() -> void:
 	_finish(simulation.rest_at_inn(player,selected_shop_cell),false)
@@ -404,12 +412,10 @@ func _arena_ui() -> void:
 	host.z_index = 20
 	minimap = preload("res://Production/UI/mini_map.gd").new()
 	minimap.z_index = 10
-	board.add_child(minimap)
-	minimap.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	minimap.offset_left = -202
-	minimap.offset_right = -12
-	minimap.offset_top = 12
-	minimap.offset_bottom = 162
+	rail.add_child(minimap)
+	rail.move_child(minimap,0)
+	minimap.custom_minimum_size = Vector2(166,110)
+	rail.map_button.custom_minimum_size.y = 62
 	minimap.cell_selected.connect(board.focus_cell)
 	_refresh()
 
@@ -425,6 +431,7 @@ func _show_context(cell: Vector2i) -> void:
 	context_popup.clear()
 	context_actions.clear()
 	_context_action("Focus on player",board.focus_player)
+	if cell == player.pos and player.hp > 0 and not simulation.engaged(player) and player.map_id != "global": _context_action("Camp · 1 ration · 1 block",_camp)
 	for crossing: Dictionary in simulation.border_options(player):
 		_context_action("Cross "+["east","northeast","northwest","west","southwest","southeast"][crossing.side]+" · 6 hours",_cross_border.bind(crossing.side))
 	if cell == player.pos:

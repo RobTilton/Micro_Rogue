@@ -34,6 +34,7 @@ var current_grid: Control
 var frame_ready: bool = false
 
 func _clear() -> void:
+	_restore_panel_parent()
 	frame_ready = false
 	inspected_cell = Vector2i(-1,-1)
 	preview_path = []
@@ -77,10 +78,11 @@ func _arena_ui() -> void:
 	stage.add_child(board)
 	board.hex_intent.connect(_board_intent)
 	host = Host.new()
+	host.theme = theme
 	host.placements = panel_placements
 	host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	stage.add_child(host)
-	host.closed.connect(func(): inspected_belt = -1; _refresh())
+	host.closed.connect(func(): _restore_panel_parent(); inspected_belt = -1; _refresh())
 	preview_row = HBoxContainer.new()
 	root.add_child(preview_row)
 	preview_label = Parts.label(preview_row,"",16)
@@ -127,7 +129,17 @@ func _notification(what: int) -> void:
 		drag.finish()
 		_refresh.call_deferred()
 
+func _restore_panel_parent() -> void:
+	if is_instance_valid(host) and is_instance_valid(board) and host.get_parent() == self:
+		host.reparent(board.get_parent())
+		host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
 func _toggle_panel(name: String, anchor_y: float = 140) -> void:
+	if name == "Inventory" and host.panel_name != "Inventory":
+		host.reparent(self)
+		host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		if not host.placements.has("Inventory"): host.placements.Inventory = {"position":Vector2(240,24),"dock_x":0,"dock_y":0}
+	elif name != "Inventory": _restore_panel_parent()
 	host.toggle(name,anchor_y)
 	if name != "Inventory": inspected_belt = -1
 	_refresh()
@@ -247,13 +259,39 @@ func _inventory_panel(parent: Node) -> void:
 		target.position = locations[slot].position
 		target.size = locations[slot].size
 		target.add_theme_font_size_override("font_size",13)
+		target.text = ""
+		target.icon = null
+		var caption := Label.new()
+		caption.text = names[slot]
+		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		caption.position = Vector2(0,3)
+		caption.size.x = target.size.x
+		caption.add_theme_font_size_override("font_size",13)
+		caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		target.add_child(caption)
+		if not item.is_empty():
+			var icon = preload("res://Production/UI/item_icon.gd").new()
+			icon.item = item
+			var side: float = minf(44,target.size.y-24)
+			icon.position = Vector2((target.size.x-side)*0.5,22)
+			icon.size = Vector2(side,side)
+			target.add_child(icon)
+		else:
+			var empty := Label.new()
+			empty.text = "Empty"
+			empty.position = Vector2(0,25)
+			empty.size.x = target.size.x
+			empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			empty.add_theme_font_size_override("font_size",12)
+			empty.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			target.add_child(empty)
 		target.pressed.connect(func():
 			selected_item = item.get("item_id",-1)
 			if slot == "belt": inspected_belt = selected_item
 			_refresh.call_deferred())
 	for index: int in range(8):
 		var ring: Button = Parts.button(doll,"○",func(): pass,false)
-		ring.position = Vector2(299+(index%4)*27,215+(index/4)*28)
+		ring.position = Vector2(299+(index%4)*27,215+(int(index/4.0))*28)
 		ring.size = Vector2(25,26)
 		ring.tooltip_text = "Ring %d · future equipment slot" % (index+1)
 	for index: int in range(2):
@@ -262,7 +300,8 @@ func _inventory_panel(parent: Node) -> void:
 		necklace.size = Vector2(34,30)
 		necklace.tooltip_text = "Necklace %d · future equipment slot" % (index+1)
 	Parts.label(left,"Equipped belt pouches",16)
-	var pouches := HBoxContainer.new()
+	var pouches := GridContainer.new()
+	pouches.columns = 7
 	left.add_child(pouches)
 	if player.belt.is_empty(): Parts.label(pouches,"No belt equipped",15)
 	else:
@@ -303,6 +342,8 @@ func _inventory_panel(parent: Node) -> void:
 	if not selection.is_empty():
 		var item: Dictionary = Grid.source_item(player,loot,selection)
 		_add_item_card(details,item,true,false,200)
+		if item.kind == "potion": Parts.button(details,"Drink",_drink_potion.bind(item.item_id),_inventory_allowed())
+		if item.kind == "ration" and has_method("_camp"): Parts.button(details,"Camp · 1 ration",Callable(self,"_camp"))
 		if item.kind == "belt": Parts.button(details,"Inspect / load belt",func(): inspected_belt = item.item_id; _refresh())
 		if selection.zone == "bag": Parts.button(details,"Rotate",func(): _transfer(selection,{"zone":"bag","cell":item.grid_pos,"rotated":not item.get("rotated",false)}))
 		Parts.button(details,"Drop at feet",func(): _transfer(selection,{"zone":"ground"}))

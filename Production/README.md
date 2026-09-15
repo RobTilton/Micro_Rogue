@@ -66,3 +66,15 @@ Free Exploration (2026-09-14): action budgets now apply during combat; safe shop
 Shop Sales (2026-09-14): backpack gear sells for half retail rounded down into the receiving merchant stock. Buy/sell confirmations support Ctrl bypass. New characters start with 50 gold; existing balances preserved. See `Workshop/Rooms/Shop Sales/CURRENT_STATE.md`.
 
 Weapon Bonus Balance (2026-09-14): weapon material/quality damage modifiers doubled, including existing generated gear through compatible runtime resolution. Armor/HP/base dice/stat scaling unchanged. See `Workshop/Rooms/Weapon Bonus Balance/CURRENT_STATE.md`.
+
+Item Presentation (2026-09-14): paper-doll inventory, equipped pouches and stat column; opaque item tooltips across inventory/loot/ground with inspection-distance rules preserved. Jewelry remains placeholders. See `Workshop/Rooms/Item Presentation/CURRENT_STATE.md`.
+
+Adventure Loop (2026-09-14): shop potions/rations, six-hour ration Camp, half chest gold, varied caves and partitioned dungeon/tower rooms, replacement characters in the same world after death, and one minimap above the sidebar. Existing generated geometry is retained. [Current scope and evidence](<../Workshop/Rooms/Adventure Loop/CURRENT_STATE.md>).
+
+Warning cleanup (2026-09-14): explicit integer truncation preserves runtime values while removing integer-division diagnostics. Strict compilation and 51 gameplay checks passed. [Evidence](<../Workshop/Rooms/Warning Cleanup/CURRENT_STATE.md>).
+
+Belt progression (2026-09-14): tier and quality determine 1–14 potion pouches; existing generated belts upgrade on load with contents preserved. [Contract and evidence](<../Workshop/Rooms/Belt Progression/CURRENT_STATE.md>).
+
+Well interiors (2026-09-14): newly generated underground areas have a seeded 50/50 cave/compact-ruin choice. Compact ruins reuse the looped dungeon layout with 6–9 rooms. Saved layouts stay intact. [Evidence](<../Workshop/Rooms/Well Interiors/CURRENT_STATE.md>).
+
+Sprite integration (2026-09-15): existing props, wells/stairs/ladders, goblins, raiders and town residents use matching prepared Chad-Casso artwork. Saved worlds receive presentation changes without regeneration. [Mappings and validation](<../Workshop/Rooms/Sprite Integration/CURRENT_STATE.md>).

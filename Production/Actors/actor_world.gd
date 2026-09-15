@@ -202,14 +202,15 @@ func transfer(actor: Dictionary, source: Dictionary, target: Dictionary, preview
 
 func drink(actor: Dictionary, item_id: int) -> Dictionary:
 	if not ready(actor) or Combat.available(actor.actions,"activation") <= 0: return result(false,"No activation action available.")
-	for index: int in range(actor.belt.get("contents",[]).size()):
-		if actor.belt.contents[index].item_id == item_id:
-			actor.belt.contents.remove_at(index)
-			Combat.spend(actor.actions,"activation")
-			var healed: int = Combat.heal(actor)
-			events.append("%s drinks a potion, restoring %d HP." % [actor.name,healed])
-			return result(true,"Potion used.")
-	return result(false,"Potion must be in an equipped belt pouch.")
+	for storage: Array in [actor.belt.get("contents",[]),actor.bag]:
+		for index: int in range(storage.size()):
+			if storage[index].get("kind") == "potion" and storage[index].item_id == item_id:
+				storage.remove_at(index)
+				Combat.spend(actor.actions,"activation")
+				var healed: int = Combat.heal(actor)
+				events.append("%s drinks a potion, restoring %d HP." % [actor.name,healed])
+				return result(true,"Potion used.")
+	return result(false,"Production/Actors/actor_world.gd: potion is not carried.")
 
 func learn(actor: Dictionary, skill: String) -> Dictionary:
 	var sequence: Array[String] = ["Lunge","Riposte","Show-Off"]

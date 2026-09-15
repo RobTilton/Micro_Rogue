@@ -45,29 +45,23 @@ func _draw_actor(_cell: Vector2i, _color: Color) -> void:
 	pass
 
 var visible_props: Array = []
+var scenery: Node2D
 func _draw_overlays() -> void:
 	super._draw_overlays()
-	if map_data == null: return
-	for cell: Vector2i in visible_props:
-		var prop: Dictionary = map_data.props[cell]
-		var point: Vector2 = center(cell)
-		var color := Color("837b6d") if prop.opened else Color("dfb868")
-		match prop.kind:
-			"chest", "crate":
-				draw_rect(Rect2(point-Vector2(13,9),Vector2(26,18)),color,false,2)
-				draw_line(point+Vector2(-13,-3),point+Vector2(13,-3),color,2)
-				if prop.kind == "crate": draw_line(point-Vector2(12,8),point+Vector2(12,8),color,2)
-				elif not prop.opened: draw_rect(Rect2(point-Vector2(2,3),Vector2(4,6)),color)
-			"barrel":
-				draw_circle(point,11,color,false,2)
-				draw_line(point+Vector2(-9,-4),point+Vector2(9,-4),color,2)
-			"corpse", "bones":
-				draw_line(point-Vector2(10,7),point+Vector2(10,7),color,3)
-				draw_line(point-Vector2(10,-7),point+Vector2(10,-7),color,3)
-				draw_circle(point+Vector2(0,-9),4,color)
-			"rug": draw_rect(Rect2(point-Vector2(14,9),Vector2(28,18)),Color("74543c"))
-			"rubble":
-				for offset: Vector2 in [Vector2(-7,3),Vector2(0,-4),Vector2(8,4)]: draw_circle(point+offset,4,Color("89877d"))
+	if not is_instance_valid(scenery):
+		scenery = preload("res://Production/UI/scenery_layer.gd").new()
+		add_child(scenery)
+		move_child(scenery,0)
+	scenery.entries.clear()
+	if map_data != null:
+		for cell: Vector2i in visible_props:
+			var prop: Dictionary = map_data.props[cell]
+			scenery.entries.append({"point":center(cell),"kind":prop.kind,"opened":prop.opened,"zoom":zoom})
+		for cell: Vector2i in map_data.links:
+			var kind: String = map_data.links[cell].kind
+			if kind in ["Well","Ladder","Underground","DungeonFloor","TowerFloor"]:
+				scenery.entries.append({"point":center(cell),"kind":kind,"opened":false,"zoom":zoom})
+	scenery.queue_redraw()
 
 func _interaction_cell_at(point: Vector2):
 	for sprite: Node2D in actor_sprites.values():

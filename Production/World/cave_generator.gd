@@ -4,26 +4,34 @@ const Map = preload("res://Production/World/hex_map.gd")
 const Contracts = preload("res://Production/World/geographic_contracts.gd")
 const CENTERS = [Vector2i(14,24),Vector2i(22,10),Vector2i(40,10),Vector2i(48,24),Vector2i(40,38),Vector2i(22,38)]
 static func generate(id: String, title: String, seed_value: int):
-	var map = Map.new(id,title,"POI",Vector2i(64,52))
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value
+	var count: int = rng.randi_range(8,14)
+	var extent := Vector2i(rng.randi_range(78,100),rng.randi_range(66,84))
+	var map = Map.new(id,title,"POI",extent)
 	var rooms: Array = []
 	var edges: Array = []
 	var floor_cells: Dictionary = {}
-	for index: int in range(6):
-		var center: Vector2i = CENTERS[index]+Vector2i(rng.randi_range(-1,1),rng.randi_range(-1,1))
-		rooms.append(_room(index,center,rng.randi_range(3,5),true,seed_value,floor_cells))
-	for index: int in range(6): edges.append(_passage(rooms[index],rooms[(index+1)%6],rng,floor_cells))
-	if rng.randf() < 0.5: edges.append(_passage(rooms[0],rooms[3],rng,floor_cells))
-	for branch: int in range(rng.randi_range(0,2)):
-		var parent: int = 0 if branch == 0 else 3
-		var center: Vector2i = Vector2i(5,13) if branch == 0 else Vector2i(57,39)
-		center += Vector2i(rng.randi_range(-1,1),rng.randi_range(-1,1))
+	var origin := Vector2(extent)*0.5
+	var rotation: float = rng.randf_range(0,TAU)
+	for index: int in range(count):
+		var angle: float = rotation+TAU*index/count
+		var radial: float = rng.randf_range(0.88,1.08)
+		var center := Vector2i(origin+Vector2(cos(angle)*extent.x*0.29,sin(angle)*extent.y*0.29)*radial)
+		rooms.append(_room(index,center,rng.randi_range(3,6),true,seed_value,floor_cells))
+	for index: int in range(count): edges.append(_passage(rooms[index],rooms[(index+1)%count],rng,floor_cells))
+	if rng.randf() < 0.65: edges.append(_passage(rooms[0],rooms[int(count/2.0)],rng,floor_cells))
+	for branch: int in range(rng.randi_range(0,3)):
+		var parent: int = int(branch*count/3.0)
+		var outward: Vector2 = (Vector2(rooms[parent].center)-origin).normalized()
+		var center := Vector2i(Vector2(rooms[parent].center)+outward*10)
+		center.x = clampi(center.x,5,extent.x-6)
+		center.y = clampi(center.y,5,extent.y-6)
 		var leaf: Dictionary = _room(rooms.size(),center,rng.randi_range(2,3),false,seed_value,floor_cells)
 		rooms.append(leaf)
 		edges.append(_passage(rooms[parent],leaf,rng,floor_cells))
 	map.spawn_cell = rooms[0].center
-	map.cave_layout = {"version":1,"rooms":rooms,"passages":edges,"main_route":[0,1,2,3,4,5],"entry_room":0}
+	map.cave_layout = {"version":2,"rooms":rooms,"passages":edges,"main_route":range(count),"entry_room":0}
 	for cell: Vector2i in map.cells():
 		if not floor_cells.has(cell): map.walls.append(cell)
 	return map
@@ -67,15 +75,16 @@ static func _distance(a: Vector2i, b: Vector2i) -> int:
 static func valid(data, dimensions: Vector2i, walls: Array) -> bool:
 	if not data is Dictionary: return false
 	if data.is_empty(): return true
-	if data.get("version") != 1 or not data.get("rooms") is Array or not data.get("passages") is Array or data.get("main_route") != [0,1,2,3,4,5] or data.get("entry_room") != 0: return false
-	if data.rooms.size() < 6 or data.rooms.size() > 8: return false
+	if data.get("version") not in [1,2] or not data.get("rooms") is Array or not data.get("passages") is Array or not data.get("main_route") is Array or data.get("entry_room") != 0: return false
+	var count: int = data.main_route.size()
+	if count < 6 or count > 14 or data.main_route != range(count) or data.rooms.size() < count or data.rooms.size() > count+3: return false
 	var blocked: Dictionary = {}
 	for cell in walls: blocked[cell] = true
 	var rooms: Dictionary = {}
 	var adjacency: Dictionary = {}
 	for room in data.rooms:
-		if not room is Dictionary or not room.get("id") is int or rooms.has(room.id) or not room.get("center") is Vector2i or not room.get("seed") is int or not room.get("radius") is int or room.radius not in range(2,6) or not room.get("main") is bool or not room.get("cells") is Array: return false
-		if room.id < 0 or room.id >= data.rooms.size() or room.main != (room.id < 6) or room.center not in room.cells: return false
+		if not room is Dictionary or not room.get("id") is int or rooms.has(room.id) or not room.get("center") is Vector2i or not room.get("seed") is int or not room.get("radius") is int or room.radius not in range(2,7) or not room.get("main") is bool or not room.get("cells") is Array: return false
+		if room.id < 0 or room.id >= data.rooms.size() or room.main != (room.id < count) or room.center not in room.cells: return false
 		for cell in room.cells:
 			if not _floor(cell,dimensions,blocked): return false
 		rooms[room.id] = room
@@ -93,9 +102,9 @@ static func valid(data, dimensions: Vector2i, walls: Array) -> bool:
 		adjacency[passage.from].append(passage.to)
 		adjacency[passage.to].append(passage.from)
 	for id: int in rooms:
-		if id < 6:
-			if (id+1)%6 not in adjacency[id]: return false
-		elif adjacency[id].size() != 1 or adjacency[id][0] >= 6: return false
+		if id < count:
+			if (id+1)%count not in adjacency[id]: return false
+		elif adjacency[id].size() != 1 or adjacency[id][0] >= count: return false
 	return true
 static func _floor(cell, dimensions: Vector2i, blocked: Dictionary) -> bool:
 	return cell is Vector2i and cell.x > 0 and cell.y > 0 and cell.x < dimensions.x-1 and cell.y < dimensions.y-1 and not blocked.has(cell)

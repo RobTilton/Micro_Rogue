@@ -10,5 +10,5 @@ func _draw() -> void:
 	if texture != null:
 		Art.draw_icon(self,texture,Rect2(Vector2.ZERO,size),rotated)
 	else:
-		var text: String = {"potion":"HP","sword":"SW","weapon":"WP","shield":"SH","armor":"AR","belt":"BL"}.get(item.get("kind"),"?")
+		var text: String = {"ration":"RN","potion":"HP","sword":"SW","weapon":"WP","shield":"SH","armor":"AR","belt":"BL"}.get(item.get("kind"),"?")
 		draw_string(ThemeDB.fallback_font,Vector2(size.x*0.5-12,size.y*0.5+6),text,HORIZONTAL_ALIGNMENT_LEFT,-1,20,Color("c9c4ac"))

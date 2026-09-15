@@ -157,6 +157,7 @@ func _draw() -> void:
 	if map_data != null:
 		for cell: Vector2i in map_data.links:
 			if map_data.layer == "Global": continue
+			if map_data.links[cell].kind in ["Well","Ladder","Underground","DungeonFloor","TowerFloor"] and has_method("show_actors"): continue
 			if map_data.layer == "Local" and PoiArt.supports(map_data.links[cell].kind): continue
 			draw_arc(center(cell), 20, 0, TAU, 6, Color("d99245"), 2)
 			var label: String = "IS" if map_data.links[cell].kind == "Island" else map_data.links[cell].kind.left(1)
@@ -205,7 +206,7 @@ func _draw_floor(cell: Vector2i, _points: PackedVector2Array) -> void:
 func _draw_biome(cell: Vector2i) -> void:
 	var display_biome: String = {"Swamp":"Forest","Salt Marsh":"Sea"}.get(map_data.biomes[cell],map_data.biomes[cell])
 	var index: int = Biomes.NAMES.find(display_biome)
-	var source_center: Vector2 = Vector2(198+(index%4)*379,343+(index/4)*398)
+	var source_center: Vector2 = Vector2(198+(index%4)*379,343+(int(index/4.0))*398)
 	var offsets: Array[Vector2] = [Vector2(149,-76),Vector2(149,76),Vector2(0,155),Vector2(-149,76),Vector2(-149,-76),Vector2(0,-155)]
 	var points: PackedVector2Array = []
 	var uvs: PackedVector2Array = []

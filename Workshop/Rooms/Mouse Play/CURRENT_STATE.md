@@ -1,5 +1,5 @@
 # Mouse Play
-Updated: 2026-09-13
+Updated: 2026-09-14
 Checkpoint: [Mouse Play]+[Validation]+[Closeout]
 
 Production F5 now supports right-click contextual actions, self double-click transitions, wheel zoom, actor movement slides, a Quests rail entry and a clickable minimap. Existing keyboard controls remain available. Existing worlds need no regeneration for these UI features.
@@ -17,3 +17,5 @@ Files: world_view camera/input; actor_view interpolation; actor_game context/min
 Validation: final rendered mouse test passed 27 checks without script errors: context entries/inventory action, empty selection, Quests rail, wheel limits/anchor/picking, minimap focus and 37-cell projection, player half/full slide, moving sprite picking, enemy slide, legacy camera migration, exact save/load and single-vs-double-click transition. Town Life regression passed 36 checks. Final screenshot inspected at tests/mouse_gameplay.png. Scoped diff whitespace check passed. Tests use isolated save directories; no player-save reset or Git commit.
 
 Human playtest pending. Remaining polish: final scenery/NPC art, richer minimap styling, and animation pacing based on user feedback. Current map topology is visible on minimap just as the main board has no terrain fog.
+
+[Adventure Loop](<../Adventure Loop/CURRENT_STATE.md>) supersedes this document for new cave counts, dungeon/tower geometry and minimap placement. Existing saved geometry remains intact.

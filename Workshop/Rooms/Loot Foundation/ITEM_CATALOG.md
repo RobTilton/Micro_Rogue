@@ -87,7 +87,7 @@ Weights total 100. The same unmodified distribution applies to all actors and lo
 
 ## Belts
 
-Retain the existing belt concept. Use the Leather material progression above. Base capacity is 2 slots; Trash yields 1 slot. Other qualities remain at 2 until capacity bonuses are defined. No additional named belt base types were supplied.
+Retain the existing belt concept. Use the Leather material progression above. Capacity is 2 + (material tier - 1) + quality bonus, clamped to 1–14. Bonuses: -1/0/+1/+2/+3/+5 from Trash through Touched by the Gods. No additional named belt base types were supplied.
 
 ## Generation boundaries
 

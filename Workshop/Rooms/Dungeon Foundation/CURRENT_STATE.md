@@ -1,5 +1,5 @@
 # Dungeon and Tower Generation
-Updated: 2026-09-13
+Updated: 2026-09-14
 Checkpoint: [Dungeon Foundation]+[Integration]+[Validation]
 
 Production uses `Production/World/dense_room_generator.gd` for newly generated Dungeon, DungeonFloor, Tower and TowerFloor maps. Existing saved geometry remains unchanged. Cave and Underground geometry keep their own generators.
@@ -13,3 +13,5 @@ MapState persists optional room_layout metadata, validates room membership and c
 Validation: 334 checks passed across 80 generation seeds and live Production scene integration: density, physical connectivity, deterministic layout, alternate doorway routes, stairs, hidden ladder reveal, climbing back, exact autosave/load. Isolated saves retained under tests/saves. Human visual playtest remains pending.
 
 Runtime source references and prior baseline retained in Reference; no Git commit or player-save reset performed. New interiors can be reached through new POIs or fresh world generation; Map discovery can add a new dungeon to an existing Local.
+
+[Adventure Loop](<../Adventure Loop/CURRENT_STATE.md>) supersedes this document for new cave counts, dungeon/tower geometry and minimap placement. Existing saved geometry remains intact.

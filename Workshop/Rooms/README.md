@@ -53,3 +53,5 @@ Shop Sales (2026-09-14): backpack gear sells for half retail rounded down into t
 Weapon Bonus Balance (2026-09-14): weapon material/quality damage modifiers doubled, including existing generated gear through compatible runtime resolution. Armor/HP/base dice/stat scaling unchanged. See `Workshop/Rooms/Weapon Bonus Balance/CURRENT_STATE.md`.
 
 Skill Author (2026-09-14): Workshop-only Godot inspector scene for skill ideas, polyhex shapes, buckets, unlock/chain/adjacency requirements and effect prose. Revision-safe .tres/JSON Library. Start: `Workshop/Rooms/Skill Author/README.md`. Production is unchanged.
+
+Item Presentation (2026-09-14): paper-doll inventory, equipped pouches and stat column; opaque item tooltips across inventory/loot/ground with inspection-distance rules preserved. Jewelry remains placeholders. See `Workshop/Rooms/Item Presentation/CURRENT_STATE.md`.

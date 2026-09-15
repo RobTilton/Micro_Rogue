@@ -119,7 +119,9 @@ func generate(rng: RandomNumberGenerator, request: Dictionary) -> Dictionary:
 		"name":quality.name+" "+material.name+" "+base.name,
 		"contents":[],"capacity":0
 	}
-	if category.kind == "belt": item.capacity = maxi(1,int(base.base_capacity)-(1 if quality.id == "trash" else 0))
+	if category.kind == "belt":
+		item.capacity = belt_capacity(item)
+		item.belt_capacity_version = 2
 	return {"ok":true,"item":item}
 
 func quality_at(roll: int) -> Dictionary:
@@ -131,3 +133,7 @@ func quality_at(roll: int) -> Dictionary:
 
 static func _refuse(reason: String) -> Dictionary:
 	return {"ok":false,"error":ORIGIN+": "+reason}
+
+static func belt_capacity(item: Dictionary) -> int:
+	var bonus: int = {"trash":-1,"common":0,"exceptional":1,"masterwork":2,"mythic":3,"touched_by_the_gods":5}.get(item.quality.id,0)
+	return clampi(2+int(item.material_tier)-1+bonus,1,14)

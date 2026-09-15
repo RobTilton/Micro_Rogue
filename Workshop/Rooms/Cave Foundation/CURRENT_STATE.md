@@ -1,5 +1,5 @@
 # Cave Foundation — Current State
-Updated: 2026-09-13
+Updated: 2026-09-14
 Checkpoint: [Cave Foundation]+[Validation]+[Delivery]
 
 Production now generates Cave POIs using a room graph, then carves caverns and passageways. Rob’s navigation invariant: no dead-end branch beyond a single room off the main route. Dungeon and Tower generators remain unchanged.
@@ -29,3 +29,5 @@ Caves use the existing provisional hostility strength 1 and Global regional upda
 - [cave_gameplay.png](tests/cave_gameplay.png) shows actual gameplay and was inspected. [carved_overview.png](tests/carved_overview.png) is an axial-coordinate debugging overview: green main rooms, ochre side rooms, pale passages, dark rock. Its square pixels index axial cells; it is not a pixel-accurate hex-renderer screenshot or new art asset.
 
 Source originals and prior manifest are retained in Reference. Production remains self-contained. Test saves are isolated in tests/saves. No player save reset, art replacement or Git commit. Human playtest acceptance pending. Next families are Dungeon and Tower; their room shapes/content can later reuse the graph-first concept, but no shared universal POI framework is claimed in this pass.
+
+[Adventure Loop](<../Adventure Loop/CURRENT_STATE.md>) supersedes this document for new cave counts, dungeon/tower geometry and minimap placement. Existing saved geometry remains intact.

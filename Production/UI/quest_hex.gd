@@ -9,7 +9,7 @@ func _ready() -> void:
 func _draw() -> void:
 	var display: String = {"Swamp":"Forest","Salt Marsh":"Sea","Marsh":"Forest"}.get(biome,biome)
 	var index: int = maxi(0,Biomes.NAMES.find(display))
-	var source := Vector2(198+(index%4)*379,343+(index/4)*398)
+	var source := Vector2(198+(index%4)*379,343+(int(index/4.0))*398)
 	var offsets: Array[Vector2] = [Vector2(149,-76),Vector2(149,76),Vector2(0,155),Vector2(-149,76),Vector2(-149,-76),Vector2(0,-155)]
 	var vertices := PackedVector2Array()
 	var uvs := PackedVector2Array()

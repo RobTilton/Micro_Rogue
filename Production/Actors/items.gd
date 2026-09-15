@@ -79,5 +79,22 @@ static func valid_generated(item: Dictionary) -> bool:
 	elif item.kind in ["armor","shield"]:
 		for field: String in ["physical_defense","magical_defense"]:
 			if not item.get(field) is int or item[field] != expected[field]: return false
-	if item.kind == "belt" and item.capacity != (1 if item.quality.id == "trash" else 2): return false
+	if item.kind == "belt":
+		var version = item.get("belt_capacity_version",1)
+		if not version is int or version not in [1,2]: return false
+		var expected_capacity: int = Generator.belt_capacity(item) if version == 2 else (1 if item.quality.id == "trash" else 2)
+		if item.capacity != expected_capacity: return false
 	return true
+
+static func ration() -> Dictionary:
+	return {"item_id":identity(),"kind":"ration","name":"Travel Ration","appearance":"Wrapped travel food"}
+
+static func upgrade_belts(value: Variant) -> void:
+	# Called only after save validation; visit actors, shops, ground and archived containers.
+	if value is Dictionary:
+		if value.get("kind","") == "belt" and value.has("material_tier"):
+			value.capacity = Generator.belt_capacity(value)
+			value.belt_capacity_version = 2
+		for child: Variant in value.values(): upgrade_belts(child)
+	elif value is Array:
+		for child: Variant in value: upgrade_belts(child)

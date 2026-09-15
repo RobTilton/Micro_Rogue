@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://cv481w0xnhvfy"]
+[gd_scene load_steps=2 format=3]
 
 [ext_resource type="Script" uid="uid://25nh8ccwchyb" path="res://Production/UI/world_game.gd" id="1"]
 

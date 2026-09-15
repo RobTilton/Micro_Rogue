@@ -56,7 +56,7 @@ func _draw() -> void:
 		if texture != null:
 			Art.draw_icon(self,texture,rect.grow(-4),item.get("rotated",false))
 		else:
-			var abbreviation: String = {"potion":"HP","sword":"SW","weapon":"WP","shield":"SH","armor":"AR","belt":"BL"}[item.kind]
+			var abbreviation: String = {"ration":"RN","potion":"HP","sword":"SW","weapon":"WP","shield":"SH","armor":"AR","belt":"BL"}[item.kind]
 			draw_string(font,rect.position+Vector2(8,23),abbreviation,HORIZONTAL_ALIGNMENT_LEFT,-1,17)
 
 	if hover_cell.x >= 0 and not drag_context.payload.is_empty():

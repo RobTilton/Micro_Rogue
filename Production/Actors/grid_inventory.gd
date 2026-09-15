@@ -4,7 +4,7 @@ const Combat = preload("res://Production/Actors/combat.gd")
 const Rules = preload("res://Production/Actors/equipment_rules.gd")
 const COLUMNS: int = 8
 const ROWS: int = 5
-const SHAPES: Dictionary = {"potion": Vector2i(1,1), "belt": Vector2i(2,1), "armor": Vector2i(2,2), "shield": Vector2i(2,2), "sword": Vector2i(1,2), "weapon": Vector2i(1,3)}
+const SHAPES: Dictionary = {"ration": Vector2i(1,1), "potion": Vector2i(1,1), "belt": Vector2i(2,1), "armor": Vector2i(2,2), "shield": Vector2i(2,2), "sword": Vector2i(1,2), "weapon": Vector2i(1,3)}
 const EQUIPMENT: Array[String] = ["main", "off", "armor", "head", "arms", "legs", "belt"]
 
 static func footprint(item: Dictionary, rotated: bool = false) -> Vector2i:

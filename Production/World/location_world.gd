@@ -133,6 +133,12 @@ func _generate_interior(record: Dictionary):
 		town.links[well_cell] = entrance(child_id,"Town Well","Well")
 		preload("res://Production/World/village_shops.gd").populate(town,record.seed)
 		return town
+	if record.template in ["Ruin","Underground"]:
+		var is_cave: bool = record.template == "Underground" and underground_is_cave(record.seed)
+		var title: String = "Underground Cave" if is_cave else record.label
+		var interior = preload("res://Production/World/cave_generator.gd").generate(record.id,title,record.seed) if is_cave else preload("res://Production/World/dense_room_generator.gd").generate(record.id,title,record.seed,false,true)
+		interior.links[interior.spawn_cell] = entrance(record.parent,"Return to "+records[record.parent].label,"Return",record.constraints.return_cell)
+		return interior
 	if record.template in ["Dungeon","DungeonFloor","Tower","TowerFloor"]:
 		var dense = preload("res://Production/World/dense_room_generator.gd").generate(record.id,record.label,record.seed,record.template.begins_with("Tower"))
 		dense.links[dense.spawn_cell] = entrance(record.parent,"Return to "+records[record.parent].label,"Return",record.constraints.return_cell)
@@ -171,7 +177,8 @@ func _generate_interior(record: Dictionary):
 		var cell := Vector2i(extent.x-3,extent.y-3)
 		var id: String = record.id+"/"+child.slot
 		declare(id,record.id,child.template,child.label,{"return_cell":cell,"biome":record.constraints.get("biome","")})
-		map.links[cell] = entrance(id,child.label,child.template)
+		var child_label: String = "Underground Cave" if child.template == "Underground" and underground_is_cave(records[id].seed) else child.label
+		map.links[cell] = entrance(id,child_label,child.template)
 	# Guarantee an accessible spawn and child link; never generate descendants here.
 	for goal: Vector2i in map.links.keys()+[Vector2i(6,3)]:
 		var cell := Vector2i(1,3)
@@ -360,6 +367,11 @@ func _plan_starter_route() -> void:
 	ensure_location(first_town)
 	ensure_location(last_town)
 	records.global.constraints.route_towns = [first_town,last_town]
-	var middle: String = global_map.links[route[route.size()/2]].id
+	var middle: String = global_map.links[route[int(route.size()/2.0)]].id
 	records.global.constraints.route_poi = middle+"/poi_dungeon_1"
 	set_poi_hostility(records.global.constraints.route_poi,3)
+
+static func underground_is_cave(seed_value: int) -> bool:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = Contracts.seed_for(seed_value,"well-interior-kind")
+	return rng.randi_range(0,1) == 0

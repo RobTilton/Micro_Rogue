@@ -1,4 +1,5 @@
 extends SceneTree
+const Target = preload("res://Production/UI/item_target.gd")
 const Inspection = preload("res://Production/Actors/item_inspection.gd")
 var checks: int = 0
 var failures: int = 0
@@ -65,5 +66,5 @@ func run() -> void:
 	print("Item Presentation: %d checks, %d failures" % [checks,failures])
 	quit(1 if failures else 0)
 func collect(node: Node, targets: Array) -> void:
-	if node is preload("res://Production/UI/item_target.gd"): targets.append(node)
+	if node is Target: targets.append(node)
 	for child in node.get_children(): collect(child,targets)

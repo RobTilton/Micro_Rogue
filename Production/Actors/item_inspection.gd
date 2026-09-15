@@ -17,6 +17,7 @@ static func describe(item: Dictionary, within_reach: bool) -> Dictionary:
 			lines.append("Slot: "+("Chest" if item.get("slot","armor") == "armor" else item.get("slot","off").capitalize()))
 			lines.append("Physical Defense: %d\nMagical Defense: %d" % [Rules.defense_item(item,"physical"),Rules.defense_item(item,"magical")])
 		elif item.kind == "belt": lines.append("Capacity: %d pouches · %d potions inside" % [item.capacity,item.contents.size()])
+		elif item.kind == "ration": lines.append("Camp: consumes one ration, passes one six-hour block and restores 2 × CON HP. Requires safety.")
 		elif item.kind == "potion": lines.append("Restores CON health, up to maximum HP.")
 	return {"title":title,"details":"\n".join(lines)}
 

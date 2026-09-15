@@ -21,6 +21,8 @@ func ensure_map(link: Dictionary):
 	var map = maps.ensure_location(link.id)
 	if map == null: return null
 	if initialized.has(map.id):
+		if maps.records[map.id].template == "Town" and preload("res://Production/World/village_shops.gd").ensure_supplies(map): maps.revision += 1
+		_balance_chest_gold(map)
 		_scale_monsters()
 		return map
 	var record: Dictionary = maps.records[map.id]
@@ -41,9 +43,9 @@ func ensure_map(link: Dictionary):
 		_seed_prop_gold(map)
 		initialized[map.id] = true
 		return map
-	if record.template == "Cave":
+	if not map.cave_layout.is_empty():
 		_populate_cave(map)
-		preload("res://Production/World/interior_props.gd").populate(map,map.cave_layout,record.template)
+		preload("res://Production/World/interior_props.gd").populate(map,map.cave_layout,"Cave")
 		maps.revision += 1
 		_seed_prop_gold(map)
 		initialized[map.id] = true
@@ -306,7 +308,7 @@ static func _item_structure(item) -> bool:
 	if item.has("rotated") and not item.rotated is bool: return false
 	if item.has("pouch") and not item.pouch is int: return false
 	if item.has("rules_version") and not Items.valid_generated(item): return false
-	if item.kind != "potion":
+	if item.kind not in ["potion","ration"]:
 		for key: String in ["rarity","bonus","die","capacity"]:
 			if not item.get(key) is int: return false
 		if not item.get("contents") is Array or item.capacity < 0: return false
@@ -374,6 +376,7 @@ func load_game(path: String) -> Dictionary:
 	if not decoded is Dictionary: return result(false,"Invalid save data.")
 	var reason: String = validate_snapshot(decoded)
 	if not reason.is_empty(): return result(false,"Load refused: "+reason)
+	Items.upgrade_belts(decoded)
 	# Stage all restored objects before changing this simulation.
 	var restored = Locations.new(decoded.world_seed,false)
 	restored.world_id = decoded.world_id
@@ -405,6 +408,10 @@ func load_game(path: String) -> Dictionary:
 	difficulty = decoded.difficulty
 	tick = decoded.tick
 	turn_threshold = decoded.get("turn_threshold",Momentum.DEFAULT_THRESHOLD)
+	for loaded_map in maps.maps.values():
+		if not initialized.has(loaded_map.id): continue
+		if maps.records[loaded_map.id].template == "Town" and preload("res://Production/World/village_shops.gd").ensure_supplies(loaded_map): maps.revision += 1
+		_balance_chest_gold(loaded_map)
 	events.clear()
 	last_save = path
 	return result(true,"Recovered the last complete automatic checkpoint." if recovered else "World loaded.")
@@ -518,7 +525,7 @@ func start_in_town() -> void:
 		if link.kind != "Town": continue
 		var town = ensure_map(link)
 		player.map_id = town.id
-		player.pos = town.spawn_cell
+		player.pos = arrival_cell(town,town.spawn_cell)
 		return
 
 func _populate_town(map) -> void:
@@ -601,7 +608,9 @@ func _seed_prop_gold(map) -> void:
 	for prop: Dictionary in map.props.values():
 		if prop.has("gold"): continue
 		var amount: int = 0
-		if prop.kind == "chest": amount = rng.randi_range(1,3)*3*_hostility(map)
+		if prop.kind == "chest":
+			amount = int((rng.randi_range(1,3)*3*_hostility(map))/2.0)
+			prop.gold_balance_version = 2
 		elif prop.kind not in ["rug","rubble"]:
 			for die: int in range(_hostility(map)): amount += rng.randi_range(1,3)
 		prop.gold = amount
@@ -711,30 +720,30 @@ func advance_hours(hours: int) -> void:
 			actor.age_fifths = 0
 	var remaining: int = hours
 	while remaining > 0:
-		var previous_week: int = world_hours/168
-		var previous_day: int = world_hours/24
-		var previous_month: int = world_hours/720
+		var previous_week: int = int(world_hours/168.0)
+		var previous_day: int = int(world_hours/24.0)
+		var previous_month: int = int(world_hours/720.0)
 		var step: int = mini(6-posmod(world_hours,6),remaining)
 		world_hours += step
 		remaining -= step
 		_age_monsters()
-		if world_hours/24 > previous_day: _offscreen_day(world_hours/24)
-		if world_hours/168 > previous_week:
-			_restock_week(world_hours/168)
-			_repopulate_week(world_hours/168)
-		if world_hours/720 > previous_month: _settle_month(world_hours/720)
+		if int(world_hours/24.0) > previous_day: _offscreen_day(int(world_hours/24.0))
+		if int(world_hours/168.0) > previous_week:
+			_restock_week(int(world_hours/168.0))
+			_repopulate_week(int(world_hours/168.0))
+		if int(world_hours/720.0) > previous_month: _settle_month(int(world_hours/720.0))
 
 func _age_monsters() -> void:
 	for actor: Dictionary in actors.values():
 		if actor.hp <= 0 or actor.faction != "enemy": continue
 		if not actor.has("spawn_hour"): actor.spawn_hour = world_hours; actor.age_days = 0; actor.age_fifths = 0
-		var days: int = (world_hours-actor.spawn_hour)/24
+		var days: int = int((world_hours-actor.spawn_hour)/24.0)
 		var gained: int = days-actor.get("age_days",0)
 		if gained <= 0: continue
 		actor.age_days = days
 		var fifths: int = actor.get("age_fifths",0)+gained
-		actor.level += fifths/5
-		actor.points += fifths/5
+		actor.level += int(fifths/5.0)
+		actor.points += int(fifths/5.0)
 		actor.age_fifths = fifths%5
 	_scale_monsters()
 	for actor: Dictionary in actors.values(): _spend_creature_points(actor)
@@ -986,3 +995,22 @@ func sell(actor: Dictionary, cell: Vector2i, item_id: int) -> Dictionary:
 	var outcome: Dictionary = super.sell(actor,cell,item_id)
 	if outcome.ok: maps.revision += 1
 	return outcome
+
+func _balance_chest_gold(map) -> void:
+	for prop: Dictionary in map.props.values():
+		if prop.get("kind") == "chest" and prop.has("gold") and prop.get("gold_balance_version",1) < 2:
+			prop.gold = int(int(prop.gold)/2.0)
+			prop.gold_balance_version = 2
+			maps.revision += 1
+
+func camp(actor: Dictionary) -> Dictionary:
+	if not ready(actor) or engaged(actor) or actor.map_id == "global": return result(false,"Production/Persistence/persistent_actor_world.gd: camp in a safe location outside combat.")
+	for index: int in range(actor.bag.size()):
+		if actor.bag[index].get("kind") != "ration": continue
+		actor.bag.remove_at(index)
+		var healed: int = mini(actor.max_hp-actor.hp,2*actor.stats.CON)
+		actor.hp += healed
+		advance_hours(6)
+		maps.revision += 1
+		return result(true,"Camped one six-hour block. Used 1 ration and recovered "+str(healed)+" HP.")
+	return result(false,"Production/Persistence/persistent_actor_world.gd: camping requires a ration in your backpack.")

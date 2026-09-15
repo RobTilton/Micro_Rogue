@@ -26,8 +26,16 @@ func _notification(what: int) -> void:
 		return
 	super._notification(what)
 
-func _new_character() -> void:
+func _new_character(force_new_world: bool = false) -> void:
 	if starting_world: return
+	if not force_new_world and pending_regeneration.is_empty() and simulation != null and simulation.actors.has(simulation.player_id) and simulation.actors[simulation.player_id].hp <= 0:
+		var fallen: Dictionary = simulation.actors[simulation.player_id]
+		simulation.resolve_death(fallen,fallen)
+		prepared_world = simulation
+		difficulty = simulation.difficulty
+		super._new_character()
+		_save_creation()
+		return
 	starting_world = true
 	_clear()
 	Parts.label(root,"Generating world…",28)
@@ -61,7 +69,7 @@ func _swap_dice(source: int, target: int) -> void:
 	_save_creation()
 
 func _save_creation() -> void:
-	if simulation == null or simulation.player_id != 0: return
+	if simulation == null or (simulation.player_id != 0 and simulation.actors[simulation.player_id].hp > 0): return
 	simulation.creation = {"dice_slots":dice_slots.duplicate()}
 	simulation.difficulty = difficulty
 	_automatic_checkpoint()
@@ -91,6 +99,9 @@ func _finish(outcome: Dictionary, advance_outside: bool = true) -> void:
 	if outcome.ok: _automatic_checkpoint()
 
 func _end_turn() -> void:
+	if simulation != null and player.hp <= 0:
+		_new_character()
+		return
 	super._end_turn()
 	_automatic_checkpoint()
 
@@ -102,6 +113,7 @@ func _command(command: String) -> void:
 func _make_simulation(seed_value: int) -> RefCounted:
 	if prepared_world != null:
 		var world: RefCounted = prepared_world
+		world.ensure_map({"id":"global"})
 		prepared_world = null
 		return world
 	journal = Journal.new()
@@ -127,7 +139,7 @@ func _current_world() -> Dictionary:
 
 func _start_action(action: String) -> void:
 	match action:
-		"new_world": _new_character()
+		"new_world": _new_character(true)
 		"continue": _load_latest()
 		"regenerate": _regenerate_world()
 		"options": _start_options()
@@ -206,7 +218,7 @@ func _load_path(path: String) -> bool:
 	simulation = candidate
 	journal = Journal.new()
 	map_world = simulation.maps
-	if simulation.player_id == 0:
+	if simulation.player_id == 0 or simulation.actors[simulation.player_id].hp <= 0:
 		prepared_world = simulation
 		difficulty = simulation.difficulty
 		if simulation.creation.has("dice_slots"):
