@@ -1,4 +1,5 @@
 extends Control
+const Rings = preload("res://Production/Actors/rings.gd")
 const Cooldowns = preload("res://Production/Actors/cooldowns.gd")
 const SKILL_COOLDOWNS: Dictionary = {"Lunge": 4, "Riposte": 2}
 const Actors = preload("res://Production/Actors/actors.gd")
@@ -218,11 +219,11 @@ func _refresh() -> void:
 	riposte_button.disabled = not _skill_available("Riposte")
 	board.highlights = []
 	if player.hp > 0:
-		if mode == "move" and (not battle or actions.move > 0): board.highlights = _reachable(3 + player.stats.DEX).keys()
-		elif mode == "retreat": board.highlights = _reachable(ceili(player.stats.DEX * 0.5)).keys()
+		if mode == "move" and (not battle or actions.move > 0): board.highlights = _reachable(Rings.movement(player)).keys()
+		elif mode == "retreat": board.highlights = _reachable(ceili(Rings.stat(player,"DEX") * 0.5)).keys()
 		elif mode == "lunge" and _skill_available("Lunge"):
 			for direction: Vector2i in Combat.DIRECTIONS:
-				for step: int in range(1, ceili(player.stats.DEX * 0.5 + 1) + 1):
+				for step: int in range(1, ceili(Rings.stat(player,"DEX") * 0.5 + 1) + 1):
 					var cell: Vector2i = player.pos + direction * step
 					if not Board.inside(cell) or (enemy.hp > 0 and cell == enemy.pos): break
 					board.highlights.append(cell)
@@ -241,7 +242,7 @@ func _refresh() -> void:
 			player.skills.append(skill)
 			player.points -= 1
 			_refresh(), player.hp > 0 and player.points > 0 and skill not in player.skills and (previous == "" or previous in player.skills))
-	_label(side, "Lunge: straight travel up to %d; optional attack +1.5 STR.\nRiposte: +DEX Defense; next attack triggers counter.\nShow-Off: two swords grant main/offhand attacks.\nStance Mastery — TBD" % ceili(player.stats.DEX * 0.5 + 1), 14)
+	_label(side, "Lunge: straight travel up to %d; optional attack +1.5 STR.\nRiposte: +DEX Defense; next attack triggers counter.\nShow-Off: two swords grant main/offhand attacks.\nStance Mastery — TBD" % ceili(Rings.stat(player,"DEX") * 0.5 + 1), 14)
 	var inventory_enabled: bool = _inventory_allowed()
 	for slot: String in ["main", "off", "armor", "belt"]:
 		var equipped: Dictionary = player[slot]
@@ -297,12 +298,12 @@ func _cell_selected(cell: Vector2i) -> void:
 		_refresh()
 		return
 	if mode == "retreat":
-		if cell in _reachable(ceili(player.stats.DEX * 0.5)):
+		if cell in _reachable(ceili(Rings.stat(player,"DEX") * 0.5)):
 			player.pos = cell
 			retreat_available = false
 			mode = "move"
 	elif mode == "move" and (not battle or actions.move > 0):
-		if cell in _reachable(3 + player.stats.DEX):
+		if cell in _reachable(Rings.movement(player)):
 			player.pos = cell
 			if battle: actions.move -= 1
 	elif mode == "attack" and battle and actions.attack > 0 and not _next_weapon().is_empty():
@@ -351,7 +352,7 @@ func _end_turn() -> void:
 		enemy.belt.contents.pop_back()
 		_note("Enemy drinks Lesser Health: +%d HP." % Combat.heal(enemy))
 	var route: Array = _enemy_route()
-	for step: int in range(mini(3 + enemy.stats.DEX,route.size())):
+	for step: int in range(mini(Rings.movement(enemy),route.size())):
 		if Combat.distance(enemy.pos,player.pos) <= 1: break
 		enemy.pos = route[step]
 	if Combat.distance(enemy.pos,player.pos) <= 1:
@@ -448,7 +449,7 @@ func _remove_potion(belt_index: int) -> void:
 func _enemy_route() -> Array:
 	var route: Array = []
 	var current: Vector2i = enemy.pos
-	for step: int in range(3 + enemy.stats.DEX):
+	for step: int in range(Rings.movement(enemy)):
 		if Combat.distance(current,player.pos) <= 1: break
 		var best: Vector2i = current
 		for direction: Vector2i in Combat.DIRECTIONS:

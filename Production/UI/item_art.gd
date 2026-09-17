@@ -33,3 +33,9 @@ static func draw_icon(canvas: CanvasItem, texture: Texture2D, area: Rect2, rotat
 	canvas.draw_set_transform((area.position+area.size*0.5).floor(),PI*0.5 if rotated else 0.0)
 	canvas.draw_texture_rect(texture,Rect2((-draw_size*0.5).floor(),draw_size),false)
 	canvas.draw_set_transform(Vector2.ZERO)
+
+static func draw_ring(canvas: CanvasItem, rect: Rect2, greater: bool) -> void:
+	var center: Vector2 = rect.get_center()
+	var radius: float = minf(rect.size.x,rect.size.y)*0.29
+	canvas.draw_arc(center,radius,0,TAU,32,Color("d9bb62"),3.0,true)
+	canvas.draw_circle(center-Vector2(0,radius),maxf(2.0,radius*0.3),Color("b67be8") if greater else Color("7cce9b"))

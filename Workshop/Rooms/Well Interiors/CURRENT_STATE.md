@@ -1,5 +1,5 @@
 # Well Interiors
-Updated: 2026-09-14
+Updated: 2026-09-15
 Checkpoint: [Well Interiors]+[Validation]+[Layouts]
 
 Production Underground interiors below town wells now choose caves or compact dungeon ruins with an equal-probability seeded roll. The well chamber stays as the entrance layer. Choice uses a dedicated seed stream and does not reroll on visits. Existing generated maps remain unchanged. Newly generated well entrances name their Underground Cave outcome; existing saved link labels remain as saved.
@@ -11,3 +11,5 @@ Cave outcomes use the established cave generator, including 8–14 main caverns 
 Files: Production/World/location_templates.gd, location_world.gd, dense_room_generator.gd and Production/Persistence/persistent_actor_world.gd. Originals retained under Reference/.
 
 Validation: well_test.gd validated 32 deterministic wells (18 cave, 14 ruin), 32 compact ruins, graph validity, return links, scenery and repeatable geometry. well_integration.gd passed 54 checks, including actual town/well/underground initialization, snapshot validation, persistent character replacement and exact save/load. Adventure Loop regression passed 51 checks. Scoped whitespace passed. Human F5 acceptance pending. No save reset or commit; test artifacts retained.
+
+[Inventory Shortcuts and Wells](<../Inventory Shortcuts and Wells/CURRENT_STATE.md>) updates new well chambers to irregular shapes and 40% deeper-entrance probability. The 50/50 cave/ruin rule applies only when that entrance exists. Saved wells remain intact.

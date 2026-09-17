@@ -1,5 +1,5 @@
 # Rooms
-Updated: 2026-09-14
+Updated: 2026-09-17
 
 The accepted game now runs with **F5 from Production/main.tscn**. [Regional Release](Regional%20Release/CURRENT_STATE.md) records the verified transfer. The Rooms below remain development/reference surfaces.
 
@@ -55,3 +55,11 @@ Weapon Bonus Balance (2026-09-14): weapon material/quality damage modifiers doub
 Skill Author (2026-09-14): Workshop-only Godot inspector scene for skill ideas, polyhex shapes, buckets, unlock/chain/adjacency requirements and effect prose. Revision-safe .tres/JSON Library. Start: `Workshop/Rooms/Skill Author/README.md`. Production is unchanged.
 
 Item Presentation (2026-09-14): paper-doll inventory, equipped pouches and stat column; opaque item tooltips across inventory/loot/ground with inspection-distance rules preserved. Jewelry remains placeholders. See `Workshop/Rooms/Item Presentation/CURRENT_STATE.md`.
+
+Skill Board (2026-09-16): runtime Skills sidebar board, permanent family origins, wildcard center, inactive-tag support, hex adjacency and distinct-skill chains; shared-evaluator Workshop sandbox. See `Workshop/Rooms/Skill Board/CURRENT_STATE.md`. Supersedes Skill Author’s former Production-unchanged limitation.
+
+Movement Flow (2026-09-17): incremental player travel, replaceable paths, combat announcement/pause, approach actions and safe crier task completion. See `Workshop/Rooms/Movement Flow/CURRENT_STATE.md`.
+
+Chest Rarity (2026-09-17): reviewed rings/amulets design; persistent 75% normal / 25% rare chest categories, named in game, without rerolling contents. See `Workshop/Rooms/Chest Rarity/CURRENT_STATE.md`.
+
+- [Rings](Rings/CURRENT_STATE.md): Production ring equipment, all variants, derived effects, loot and persistence; eight paperdoll slots. Agent-verified, human playtest pending.

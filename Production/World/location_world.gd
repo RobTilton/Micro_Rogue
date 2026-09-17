@@ -122,6 +122,7 @@ func _generate_interior(record: Dictionary):
 		var arena = preload("res://Production/World/outdoor_arena.gd").generate(record.id,record.label,record.constraints.get("biome","Plains"))
 		arena.links[arena.spawn_cell] = entrance(record.parent,"Return to Local","Return",record.constraints.return_cell)
 		return arena
+	if record.template == "Well": return _generate_well(record)
 	if record.template == "Town":
 		var town = Map.new(record.id,record.label,"POI",Vector2i(7,7))
 		town.hex_radius = 3
@@ -375,3 +376,34 @@ static func underground_is_cave(seed_value: int) -> bool:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = Contracts.seed_for(seed_value,"well-interior-kind")
 	return rng.randi_range(0,1) == 0
+
+func _generate_well(record: Dictionary):
+	var map = Map.new(record.id,record.label,"POI",Vector2i(17,15))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = Contracts.seed_for(record.seed,"well-chamber")
+	var floors: Array[Vector2i] = []
+	var centers: Array[Vector2i] = [Vector2i(6,7),Vector2i(9,6),Vector2i(8,9)]
+	for cell: Vector2i in map.cells():
+		var inside: bool = false
+		for origin: Vector2i in centers:
+			var offset := Vector2(cell-origin)
+			var distance: float = Vector2(offset.x+offset.y*0.5,offset.y*0.866).length()
+			if distance < 2.8 or (distance < 3.5 and rng.randf() < 0.6): inside = true
+		if inside: floors.append(cell)
+		else: map.walls.append(cell)
+	map.spawn_cell = centers[0]
+	map.links[map.spawn_cell] = entrance(record.parent,"Return to "+records[record.parent].label,"Return",record.constraints.return_cell)
+	if well_has_underground(record.seed):
+		var cell: Vector2i = floors[0]
+		for candidate: Vector2i in floors:
+			if map.distance(candidate,map.spawn_cell) > map.distance(cell,map.spawn_cell): cell = candidate
+		var id: String = record.id+"/underground"
+		declare(id,record.id,"Underground","Underground Ruin",{"return_cell":cell})
+		var label: String = "Underground Cave" if underground_is_cave(records[id].seed) else "Underground Ruin"
+		map.links[cell] = entrance(id,label,"Underground")
+	return map
+
+static func well_has_underground(seed_value: int) -> bool:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = Contracts.seed_for(seed_value,"well-depth")
+	return rng.randi_range(1,100) <= 40

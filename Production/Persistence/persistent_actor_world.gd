@@ -1,4 +1,6 @@
 extends "res://Production/Actors/actor_world.gd"
+const ChestRarity = preload("res://Production/World/chest_rarity.gd")
+const Roster = preload("res://Production/Actors/enemy_roster.gd")
 const Locations = preload("res://Production/World/location_world.gd")
 const Templates = preload("res://Production/World/location_templates.gd")
 const Contracts = preload("res://Production/World/geographic_contracts.gd")
@@ -57,7 +59,7 @@ func ensure_map(link: Dictionary):
 		var cell: Vector2i = arrival_cell(map,Vector2i(6,3))
 		if cell != Vector2i(-1,-1): add_actor(actor,map.id,cell,"enemy")
 	if definition.get("population",0) > 0:
-		var drop: Dictionary = Items.generate({"max_material_tier":3},rng)
+		var drop: Dictionary = Items.loot({"max_material_tier":3},rng)
 		var loot_cell: Vector2i = arrival_cell(map,map.spawn_cell)
 		if drop.ok and loot_cell != Vector2i(-1,-1): ground[map.id].append({"item":drop.item,"pos":loot_cell})
 	_seed_prop_gold(map)
@@ -117,7 +119,7 @@ func snapshot(previous: Dictionary = {}) -> Dictionary:
 			if states[id].get("view_zoom",1.0) != map.view_zoom or states[id].view_offset != map.view_offset or states[id].view_initialized != map.view_initialized or states[id].regional_revision != map.regional_revision:
 				states = states.duplicate()
 				states[id] = MapState.capture(map)
-	return {"world_hours":world_hours,"turn_threshold":turn_threshold,"regeneration":regeneration.duplicate(true),"creation":creation.duplicate(true),"schema":SAVE_SCHEMA,"generator":Locations.GENERATOR_VERSION,"world_id":maps.world_id,"world_seed":maps.world_seed,"location_revision":maps.revision,"records":previous.records if unchanged_geography else _snapshot_records(),"regional_revision":maps.regional_revision,"regional_hexes":_snapshot_regions(previous),"regional_sources":maps.records.global.regional.sources.duplicate(true),"states":states,"next_instance":maps.next_instance,"actors":saved_actors,"ground":ground.duplicate(true),"initialized":initialized.duplicate(),"player_id":player_id,"next_id":next_id,"next_item_id":Items.next_item_id,"difficulty":difficulty,"tick":tick}
+	return {"discovered_maps":discovered_maps.duplicate(true),"world_hours":world_hours,"turn_threshold":turn_threshold,"regeneration":regeneration.duplicate(true),"creation":creation.duplicate(true),"schema":SAVE_SCHEMA,"generator":Locations.GENERATOR_VERSION,"world_id":maps.world_id,"world_seed":maps.world_seed,"location_revision":maps.revision,"records":previous.records if unchanged_geography else _snapshot_records(),"regional_revision":maps.regional_revision,"regional_hexes":_snapshot_regions(previous),"regional_sources":maps.records.global.regional.sources.duplicate(true),"states":states,"next_instance":maps.next_instance,"actors":saved_actors,"ground":ground.duplicate(true),"initialized":initialized.duplicate(),"player_id":player_id,"next_id":next_id,"next_item_id":Items.next_item_id,"difficulty":difficulty,"tick":tick}
 
 func _snapshot_records() -> Dictionary:
 	var result: Dictionary = {}
@@ -157,6 +159,8 @@ func save_game(directory: String = SAVE_DIR) -> Dictionary:
 	return {"ok":true,"reason":"World saved.","path":path}
 
 static func validate_snapshot(data: Dictionary) -> String:
+	if not data.get("states",{}) is Dictionary: return "invalid states"
+	if not preload("res://Production/Actors/map_knowledge.gd").valid(data.get("discovered_maps",{}),data.get("states",{})): return "invalid discovered-map memory"
 	if not data.get("world_hours",0) is int or data.get("world_hours",0) < 0: return "invalid calendar"
 	for key: String in ["schema","generator","world_id","world_seed","records","states","next_instance","actors","ground","initialized","player_id","next_id","next_item_id","difficulty","tick","regional_hexes","regional_sources","regional_revision"]:
 		if not data.has(key): return "missing "+key
@@ -263,6 +267,8 @@ static func validate_snapshot(data: Dictionary) -> String:
 			if not actor.has(field): return "incomplete actor"
 		if actor.has("global_approach") and (not actor.global_approach is int or actor.global_approach not in range(6)): return "invalid Global approach"
 		if actor.get("spawn_hour",0) > data.get("world_hours",0): return "monster spawned in future"
+		if not Sight.valid(actor): return "invalid actor sight/effects"
+		if not Roster.valid_actor(actor): return "invalid enemy anatomy/variant"
 		if not Momentum.valid(actor): return "invalid actor momentum/effects"
 		if not actor.get("gold",0) is int or actor.get("gold",0) < 0: return "invalid gold"
 		var structure: String = _actor_structure(actor)
@@ -307,6 +313,7 @@ static func _item_structure(item) -> bool:
 	if item.has("grid_pos") and not item.grid_pos is Vector2i: return false
 	if item.has("rotated") and not item.rotated is bool: return false
 	if item.has("pouch") and not item.pouch is int: return false
+	if item.kind == "ring": return Rings.valid(item)
 	if item.has("rules_version") and not Items.valid_generated(item): return false
 	if item.kind not in ["potion","ration"]:
 		for key: String in ["rarity","bonus","die","capacity"]:
@@ -317,6 +324,7 @@ static func _item_structure(item) -> bool:
 	return true
 
 static func _actor_structure(actor: Dictionary) -> String:
+	if actor.has("faction_id") and (not actor.faction_id is String or actor.faction_id.is_empty()): return "invalid faction identity"
 	if not actor.get("can_use_skills",true) is bool or not actor.get("family","goblins") is String: return "invalid actor family"
 	if not actor.get("stat_training",{}) is Dictionary: return "invalid stat training"
 	for stat in actor.get("stat_training",{}):
@@ -334,6 +342,13 @@ static func _actor_structure(actor: Dictionary) -> String:
 		if not (actor[field] is int or actor[field] is float) or not is_finite(float(actor[field])): return "invalid actor health"
 	for field: String in ["map_id","faction","sprite","name"]:
 		if not actor[field] is String: return "invalid actor label"
+	if not actor.get("explored_cells",{}) is Dictionary: return "invalid exploration memory"
+	for map_id in actor.get("explored_cells",{}):
+		if not map_id is String or not actor.explored_cells[map_id] is Dictionary: return "invalid exploration map"
+		for cell in actor.explored_cells[map_id]:
+			if not cell is Vector2i or actor.explored_cells[map_id][cell] != true: return "invalid exploration cell"
+	for field: String in ["idle_rounds","exploration_tick","pursuit_target"]:
+		if not actor.get(field,0) is int: return "invalid exploration counter"
 	for field: String in ["stats","actions","clock_state","pending","last_seen","known_items"]:
 		if not actor[field] is Dictionary: return "invalid actor dictionary"
 	for field: String in ["skills","bag","trail"]:
@@ -346,6 +361,7 @@ static func _actor_structure(actor: Dictionary) -> String:
 		if not actor.actions.get(action) is int or actor.actions[action] < 0: return "invalid actions"
 	for skill in actor.skills:
 		if not skill is String: return "invalid skill"
+	if not preload("res://Production/Actors/skill_board.gd").valid(actor): return "invalid skill board"
 	for field: String in ["remaining","elapsed"]:
 		if not actor.clock_state.get(field) is Dictionary: return "invalid clock"
 		for ability in actor.clock_state[field]:
@@ -354,6 +370,7 @@ static func _actor_structure(actor: Dictionary) -> String:
 	if actor.get("grip","one") not in ["one","two"]: return "invalid weapon grip"
 	for slot: String in Grid.EQUIPMENT:
 		if not actor.get(slot,{}) is Dictionary or (not actor.get(slot,{}).is_empty() and not _item_structure(actor[slot])): return "invalid equipment"
+	if not actor.get("ring_hp_bonus",0) is int or actor.get("ring_hp_bonus",0) != 3*Rings.bonus(actor,"WIL"): return "invalid ring health bonus"
 	for item in actor.bag:
 		if not _item_structure(item): return "invalid backpack item"
 	if not actor.pending.is_empty() and not _item_structure(actor.pending): return "invalid pending weapon"
@@ -396,8 +413,10 @@ func load_game(path: String) -> Dictionary:
 		actor.clock.elapsed = actor.clock_state.elapsed
 		actor.erase("clock_state")
 	maps = restored
+	discovered_maps = decoded.get("discovered_maps",{})
 	actors = restored_actors
 	ground = decoded.ground
+	_upgrade_enemy_anatomy()
 	initialized = decoded.initialized
 	player_id = decoded.player_id
 	next_id = decoded.next_id
@@ -429,6 +448,20 @@ func move(actor: Dictionary, destination: Vector2i, expected: Array = []) -> Dic
 	return outcome
 
 
+func walk_step(actor: Dictionary, destination: Vector2i) -> Dictionary:
+	var previous: Vector2i = actor.pos
+	if actor.map_id == "global" and not _global_step_allowed(previous,destination): return result(false,"Global travel requires an adjacent trade-route or event step.")
+	var outcome: Dictionary = super.walk_step(actor,destination)
+	if outcome.ok and actor.id == player_id and actor.map_id == "global":
+		maps.resolve_regions(actor.pos)
+		if maps.records.global.constraints.get("event_steps",{}).erase(str(previous)+">"+str(actor.pos)): maps.revision += 1
+		advance_hours(6)
+	return outcome
+
+func complete_walk_step(actor: Dictionary) -> void:
+	if actor.id == player_id and actor.hp > 0: _maybe_encounter()
+
+
 func travel_arrival(actor: Dictionary, origin, destination, link: Dictionary) -> Vector2i:
 	if maps.records[destination.id].template == "Town" and destination.hex_radius == 3 and maps.records[origin.id].parent != destination.id: return arrival_cell(destination,destination.spawn_cell)
 	if not destination.room_layout.is_empty() and link.kind != "Ladder" and maps.records[origin.id].parent != destination.id: return arrival_cell(destination,destination.spawn_cell)
@@ -449,6 +482,8 @@ func _populate_cave(map) -> void:
 	_populate_rooms(map,map.cave_layout,"cave_room_id")
 
 func _populate_rooms(map, layout: Dictionary, owner_key: String) -> void:
+	var residents: Dictionary = room_families(maps.records[map.id].seed,_hostility(map),actors[player_id].level if actors.has(player_id) else 1)
+	maps.records[map.id].constraints.population_families = residents
 	var boss_created: bool = false
 	for room: Dictionary in layout.rooms:
 		if room.id == layout.entry_room or map.links.has(room.center): continue
@@ -458,15 +493,17 @@ func _populate_rooms(map, layout: Dictionary, owner_key: String) -> void:
 		if boss or rng.randf() < 0.6:
 			var values: Array = []
 			for stat: int in range(6): values.append(rng.randi_range(1,6))
-			var actor: Dictionary = _monster(values,rng,map,boss)
+			var family_rng := RandomNumberGenerator.new()
+			family_rng.seed = Contracts.seed_for(room.seed,"resident-family")
+			var family: String = residents.primary if boss or residents.rival.is_empty() or family_rng.randf() < 0.75 else residents.rival
+			var actor: Dictionary = _monster(values,rng,map,boss,family)
 			actor[owner_key] = room.id
 			var actor_id: int = add_actor(actor,map.id,room.center,"enemy")
-			actor.name = actor.family.capitalize()+ (" Boss" if boss else "")
 			if boss:
 				maps.records[map.id].constraints.boss_id = actor_id
 				boss_created = true
-		if rng.randf() < 0.65:
-			var drop: Dictionary = Items.generate({"max_material_tier":3},rng)
+		if boss or rng.randf() < 0.10:
+			var drop: Dictionary = Items.loot({"max_material_tier":3},rng)
 			if drop.ok:
 				var cell: Vector2i = room.cells[rng.randi_range(0,room.cells.size()-1)]
 				var entry: Dictionary = {"item":drop.item,"pos":cell}
@@ -483,6 +520,9 @@ func resolve_death(actor: Dictionary, killer: Dictionary) -> void:
 	var first_drop: int = ground[actor.map_id].size()
 	super.resolve_death(actor,killer)
 	if was_dropped or not actor.dropped or actor.faction == "player": return
+	if actor.get("gold_balance_version",2) < 3:
+		actor.gold = int(actor.get("gold",0)/2.0)
+		actor.gold_balance_version = 3
 	if actor.has("settled_poi"):
 		var surviving: bool = false
 		for other: Dictionary in actors.values():
@@ -506,7 +546,7 @@ func resolve_death(actor: Dictionary, killer: Dictionary) -> void:
 	var contents: Array = []
 	while ground[actor.map_id].size() > first_drop:
 		contents.push_front(ground[actor.map_id].pop_back().item)
-	map.props[actor.pos] = {"kind":"corpse","name":actor.name+" corpse","opened":false,"contents":contents,"room_id":-1,"gold":actor.get("gold",0)}
+	map.props[actor.pos] = {"kind":"corpse","name":actor.name+" corpse","opened":false,"contents":contents,"room_id":-1,"gold":actor.get("gold",0),"mob_death":true}
 	actor.gold = 0
 	_scale_monsters()
 	maps.revision += 1
@@ -603,25 +643,27 @@ func _hostility(map) -> int:
 	return maxi(0,int(map.regional_values.get("hostility",0)))
 
 func _seed_prop_gold(map) -> void:
+	_ensure_chest_rarity(map)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = Contracts.seed_for(maps.records[map.id].seed,"container-gold")
 	for prop: Dictionary in map.props.values():
 		if prop.has("gold"): continue
 		var amount: int = 0
 		if prop.kind == "chest":
-			amount = int((rng.randi_range(1,3)*3*_hostility(map))/2.0)
-			prop.gold_balance_version = 2
-		elif prop.kind not in ["rug","rubble"]:
-			for die: int in range(_hostility(map)): amount += rng.randi_range(1,3)
+			amount = int((rng.randi_range(1,3)*3*_hostility(map))/4.0)
+			prop.gold_balance_version = 3
 		prop.gold = amount
 	maps.revision += 1
 
-func _monster(values: Array, rng: RandomNumberGenerator, map, boss: bool) -> Dictionary:
+func _monster(values: Array, rng: RandomNumberGenerator, map, boss: bool, family_override: String = "") -> Dictionary:
 	var offset: int = rng.randi_range(-2,2)
 	var level: int = maxi(1,(actors[player_id].level if actors.has(player_id) else 1)+offset)
 	var scaled: Array = []
 	for value: int in values: scaled.append(roundi((value+level-1)*(1.25 if boss else 1.0)))
-	var actor: Dictionary = Actors.create(scaled,true,rng)
+	var player_level: int = actors[player_id].level if actors.has(player_id) else 1
+	var family: String = family_override if not family_override.is_empty() else Roster.choose_family(rng,_hostility(map),player_level)
+	var entry: Dictionary = Roster.choose_variant(family,rng,_hostility(map),player_level,boss)
+	var actor: Dictionary = Actors.create(scaled,true,rng,entry.humanoid)
 	actor.home_poi = map.id
 	actor.base_roll = values.duplicate()
 	actor.level_offset = offset
@@ -631,12 +673,13 @@ func _monster(values: Array, rng: RandomNumberGenerator, map, boss: bool) -> Dic
 	actor.spawn_hour = world_hours
 	actor.age_days = 0
 	actor.age_fifths = 0
-	actor.family = ["goblins","wolves","raiders"][rng.randi_range(0,2)]
-	actor.can_use_skills = actor.family != "wolves"
+	Roster.apply(actor,family,entry)
 	actor.points = level-1
 	actor.required_xp = 5*level
 	actor.gold = 1
 	for die: int in range(_hostility(map)): actor.gold += rng.randi_range(1,3)
+	actor.gold = int(actor.gold/2.0)
+	actor.gold_balance_version = 3
 	return actor
 
 func _scale_monsters() -> void:
@@ -652,7 +695,7 @@ func _scale_monsters() -> void:
 			for index: int in range(Actors.STATS.size()):
 				var stat: String = Actors.STATS[index]
 				actor.stats[stat] = roundi((actor.base_roll[index]+actor.level-1)*(1.25 if actor.boss else 1.0))+actor.get("stat_training",{}).get(stat,0)
-			actor.max_hp = actor.stats.WIL*3
+			actor.max_hp = Rings.stat(actor,"WIL")*3
 			actor.hp = maxi(1,actor.max_hp-missing_hp)
 		actor.scaled_level = actor.level
 
@@ -704,6 +747,7 @@ func cross_border(actor: Dictionary, side: int) -> Dictionary:
 	for observer: Dictionary in on_map(origin_id):
 		if hostile(actor,observer) and can_see(observer,origin_cell):
 			observer.last_seen = {"map_id":origin_id,"pos":origin_cell}
+			observer.pursuit_target = actor.id
 			observer.trail = [{"map_id":origin_id,"pos":origin_cell,"destination":destination.id,"arrival":arrival,"border":side}]
 	Combat.spend(actor.actions,"move")
 	actor.map_id = destination.id
@@ -780,14 +824,15 @@ func _offscreen_day(day: int) -> void:
 		loser.hp = 0
 		resolve_death(loser,winner)
 		_spend_creature_points(winner)
-		events.append("Offscreen: "+winner.name+" defeated "+loser.name+" in "+maps.records[map_id].label+".")
+		# Off-map simulation results are not player-observed information.
 
 func _strength(actor: Dictionary) -> float:
 	var total: float = 0
-	for value in actor.stats.values(): total += float(value)
+	for value in Rings.stats(actor).values(): total += float(value)
 	for slot: String in Grid.EQUIPMENT:
 		var item: Dictionary = actor.get(slot,{})
 		if not item.is_empty(): total += maxf(0,preload("res://Production/Actors/enemy_brain.gd").score(item))
+	if not actor.get("humanoid",true) and not actor.get("natural_attack",{}).is_empty(): total += maxf(0,preload("res://Production/Actors/enemy_brain.gd").score(actor.natural_attack))
 	return maxf(1,total)
 
 func _populate_local(map) -> void:
@@ -804,7 +849,7 @@ func _populate_local(map) -> void:
 		var selected: int = rng.randi_range(0,cells.size()-1)
 		var cell: Vector2i = cells[selected]
 		cells.remove_at(selected)
-		var drop: Dictionary = Items.generate({"max_material_tier":3},rng)
+		var drop: Dictionary = Items.loot({"max_material_tier":3},rng)
 		map.props[cell] = {"kind":"chest","name":"Wild Chest","opened":false,"contents":[drop.item] if drop.ok else [],"room_id":-1}
 	for index: int in range(mini(3,cells.size())):
 		var selected: int = rng.randi_range(0,cells.size()-1)
@@ -814,14 +859,16 @@ func _populate_local(map) -> void:
 		for stat: int in range(6): values.append(rng.randi_range(1,6))
 		var actor: Dictionary = _monster(values,rng,map,false)
 		add_actor(actor,map.id,cell,"enemy")
-		actor.name = actor.family.capitalize()+" scout"
+		actor.name += " scout"
 	maps.revision += 1
 
 func _maybe_encounter() -> void:
 	if not actors.has(player_id): return
 	var player: Dictionary = actors[player_id]
-	if player.hp <= 0 or maps.records[player.map_id].template != "Local": return
-	var foes: Array[Dictionary] = hostiles(player)
+	if player.hp <= 0 or maps.records[player.map_id].template != "Local" or not engaged(player): return
+	var foes: Array[Dictionary] = []
+	for enemy: Dictionary in on_map(player.map_id):
+		if hostile(player,enemy) and (can_see(enemy,player.pos) or can_see(player,enemy.pos)): foes.append(enemy)
 	if foes.is_empty(): return
 	var parent = maps.maps[player.map_id]
 	var id: String = parent.id+"/encounter_"+str(foes[0].id)
@@ -888,7 +935,7 @@ func rest_at_inn(actor: Dictionary, cell: Vector2i) -> Dictionary:
 	if actor.get("gold",0) < 1: return result(false,"Production/Persistence/persistent_actor_world.gd: inn recovery costs 1 gold.")
 	actor.gold -= 1
 	Combat.spend(actor.actions,"activation")
-	var healed: int = mini(actor.max_hp-actor.hp,2*actor.stats.CON)
+	var healed: int = mini(actor.max_hp-actor.hp,Rings.healing(actor,2))
 	actor.hp += healed
 	advance_hours(6)
 	maps.revision += 1
@@ -926,7 +973,7 @@ func _repopulate_week(week: int) -> void:
 			for stat: int in range(6): values.append(rng.randi_range(1,6))
 			var actor: Dictionary = _monster(values,rng,map,false)
 			add_actor(actor,local_id,cell,"enemy")
-			actor.name = actor.family.capitalize()+" scout"
+			actor.name += " scout"
 	maps.revision += 1
 
 func _settle_month(month: int) -> void:
@@ -956,7 +1003,7 @@ func _settle_month(month: int) -> void:
 			maps.set_poi_hostility(poi_id,maps.default_hostility(poi.template))
 			settler.trail = []
 			settler.last_seen = {}
-			events.append(settler.name+" occupied "+poi.label+".")
+			report_observed(settler,settler.name+" occupied "+poi.label+".")
 	maps.revision += 1
 
 func quest_destination(actor: Dictionary, target_id: String) -> Dictionary:
@@ -996,11 +1043,19 @@ func sell(actor: Dictionary, cell: Vector2i, item_id: int) -> Dictionary:
 	if outcome.ok: maps.revision += 1
 	return outcome
 
+func _ensure_chest_rarity(map) -> void:
+	if ChestRarity.ensure(map,maps.records[map.id].seed): maps.revision += 1
+
 func _balance_chest_gold(map) -> void:
+	_ensure_chest_rarity(map)
 	for prop: Dictionary in map.props.values():
-		if prop.get("kind") == "chest" and prop.has("gold") and prop.get("gold_balance_version",1) < 2:
-			prop.gold = int(int(prop.gold)/2.0)
-			prop.gold_balance_version = 2
+		if prop.get("kind") == "chest" and prop.has("gold") and prop.get("gold_balance_version",1) < 3:
+			var divisor: float = 4.0 if prop.get("gold_balance_version",1) < 2 else 2.0
+			prop.gold = int(int(prop.gold)/divisor)
+			prop.gold_balance_version = 3
+			maps.revision += 1
+		elif prop.get("gold",0) > 0 and prop.get("kind") != "chest" and not prop.get("mob_death",false) and not prop.get("name","").ends_with(" corpse"):
+			prop.gold = 0
 			maps.revision += 1
 
 func camp(actor: Dictionary) -> Dictionary:
@@ -1008,9 +1063,43 @@ func camp(actor: Dictionary) -> Dictionary:
 	for index: int in range(actor.bag.size()):
 		if actor.bag[index].get("kind") != "ration": continue
 		actor.bag.remove_at(index)
-		var healed: int = mini(actor.max_hp-actor.hp,2*actor.stats.CON)
+		var healed: int = mini(actor.max_hp-actor.hp,Rings.healing(actor,2))
 		actor.hp += healed
 		advance_hours(6)
 		maps.revision += 1
 		return result(true,"Camped one six-hour block. Used 1 ration and recovered "+str(healed)+" HP.")
 	return result(false,"Production/Persistence/persistent_actor_world.gd: camping requires a ration in your backpack.")
+
+static func room_families(seed_value: int, hostility: int = 0, player_level: int = 1) -> Dictionary:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = Contracts.seed_for(seed_value,"resident-families")
+	var primary: String = Roster.choose_family(rng,hostility,player_level)
+	return {"primary":primary,"rival":Roster.choose_family(rng,hostility,player_level,primary) if rng.randf() < 0.5 else ""}
+
+func _upgrade_enemy_anatomy() -> void:
+	for actor: Dictionary in actors.values():
+		if actor.faction != "enemy":
+			if not actor.has("humanoid"): actor.humanoid = true
+			continue
+		if actor.has("enemy_variant"): continue
+		var family: String = actor.get("family","goblins")
+		if not Roster.catalog.families.has(family):
+			actor.humanoid = actor.get("humanoid",true)
+			continue
+		var variants: Array = Roster.catalog.families[family].variants
+		var entry: Dictionary = variants[mini(1,variants.size()-1) if actor.get("boss",false) else 0]
+		var old_name: String = actor.name
+		var old_faction: String = actor.get("faction_id",family)
+		Roster.apply(actor,family,entry)
+		actor.name = old_name
+		actor.faction_id = old_faction
+		if actor.humanoid: continue
+		# Preserve former creature equipment as actual loot at its position.
+		for slot: String in Grid.EQUIPMENT:
+			if not actor.get(slot,{}).is_empty(): ground[actor.map_id].append({"pos":actor.pos,"item":actor[slot]})
+			actor[slot] = {}
+		for item: Dictionary in actor.bag: ground[actor.map_id].append({"pos":actor.pos,"item":item})
+		actor.bag = []
+		actor.pending = {}
+		actor.riposte = false
+		actor.counter_weapon = {}

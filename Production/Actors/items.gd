@@ -1,5 +1,6 @@
 extends RefCounted
 const Generator = preload("res://Production/Actors/loot_generator.gd")
+const Rings = preload("res://Production/Actors/rings.gd")
 const Rules = preload("res://Production/Actors/equipment_rules.gd")
 static var generator = Generator.new()
 static var next_item_id: int = 1
@@ -10,7 +11,7 @@ static func identity() -> int:
 	next_item_id += 1
 	return result
 static func quality(_enemy: bool = false, rng: RandomNumberGenerator = null) -> int:
-	var roll_value: int = randi_range(1,100) if rng == null else rng.randi_range(1,100)
+	var roll_value: int = randi_range(1,1000) if rng == null else rng.randi_range(1,1000)
 	return ["trash","common","exceptional","masterwork","mythic","touched_by_the_gods"].find(generator.quality_at(roll_value).id)
 static func generate(request: Dictionary, rng: RandomNumberGenerator = null) -> Dictionary:
 	if rng == null:
@@ -66,7 +67,7 @@ static func valid_generated(item: Dictionary) -> bool:
 	if not matching: return false
 	matching = false
 	for candidate: Dictionary in generator.catalog.qualities:
-		if item.quality == candidate: matching = true
+		if item.quality.get("id") == candidate.id and item.quality.get("name") == candidate.name and item.quality.get("color") == candidate.color and item.quality.get("modifier") == candidate.modifier: matching = true
 	if not matching or not item.get("affixes") is Dictionary: return false
 	for layer: String in generator.catalog.affix_layers:
 		if not item.affixes.get(layer) is Array or not item.affixes[layer].is_empty(): return false
@@ -98,3 +99,9 @@ static func upgrade_belts(value: Variant) -> void:
 		for child: Variant in value.values(): upgrade_belts(child)
 	elif value is Array:
 		for child: Variant in value: upgrade_belts(child)
+
+# Independent non-equipment layer; equipment-only callers retain generate().
+static func loot(request: Dictionary, rng: RandomNumberGenerator, supplies: bool = false) -> Dictionary:
+	if not supplies and rng.randf() < 0.05: return {"ok":true,"item":Rings.generate(identity(),rng)}
+	if supplies or rng.randf() < 0.20: return {"ok":true,"item":potion()}
+	return generate(request,rng)

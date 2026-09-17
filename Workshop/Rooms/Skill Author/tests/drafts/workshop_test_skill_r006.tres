@@ -1,0 +1,49 @@
+[gd_resource type="Resource" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://Workshop/Rooms/Skill Author/Tool/adjacency_rule.gd" id="1_nim3n"]
+[ext_resource type="Script" path="res://Workshop/Rooms/Skill Author/Tool/skill_draft.gd" id="2_obbub"]
+
+[sub_resource type="Resource" id="Resource_udojk"]
+script = ExtResource("1_nim3n")
+requirement = "Optional bonus"
+minimum = 3
+count_by = "Distinct neighboring cells"
+skill_bucket = "Martial"
+required_tags = PackedStringArray()
+adjacent_skill_tags = PackedStringArray()
+specific_skill_ids = PackedStringArray()
+bonus_or_notes = "Bonus effect idea."
+
+[resource]
+script = ExtResource("2_obbub")
+skill_id = "workshop_test_skill"
+display_name = "Workshop Test Skill"
+skill_bucket = "Mental Mastery"
+custom_bucket = ""
+tags = PackedStringArray("support", "cooldown")
+is_origin = false
+skill_kind = "Undecided"
+shape = "Four hex hook"
+rotation_steps = 2
+allow_rotation = true
+allow_mirror = false
+custom_cells = Array[Vector2i]([Vector2i(0, 0), Vector2i(0, 0)])
+skill_point_cost = 1
+prerequisite_skill_ids = PackedStringArray("mental_origin")
+prerequisite_mode = "All listed"
+minimum_points_in_bucket = 0
+prerequisite_notes = ""
+requires_origin = true
+origin_skill_id = ""
+chain_bucket = "Same as skill"
+chain_measure = "Minimum qualifying cells"
+chain_amount = 5
+chain_tags = PackedStringArray()
+required_chain_length = 0
+chain_notes = ""
+adjacency_rules = Array[ExtResource("1_nim3n")]([SubResource("Resource_udojk")])
+adjacency_notes = ""
+effect_description = "Adjacent Martial skills receive -1 cooldown. WIP: decide minimum cooldown later."
+optional_bonus_description = ""
+balance_notes = ""
+open_questions = "Should repeated cell contacts stack?"

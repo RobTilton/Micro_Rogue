@@ -1,21 +1,26 @@
 # Skill Author — Quick Start
-Updated: 2026-09-14
+Updated: 2026-09-16
+Checkpoint: [Skill Board]+[Interface]+[Authoring]
 
-1. Open `Tool/SkillAuthor.tscn` in Godot. Select its **SkillAuthor** root node and switch to the **2D** view.
-2. In the Inspector, expand **Draft**. Enter a display name and lowercase ID such as `martial_show_off` (blank ID derives from the name).
-3. Pick a **Skill Bucket**, skill kind and tags. Choose **Custom** for a bucket not yet listed.
-4. Under **Footprint**, pick a preset and rotation. The 2D preview updates. For a custom shape, set the author's **Cell To Edit** coordinates, then click **Add Hex** or **Remove Hex**. The preview labels q,r coordinates. First edit converts a preset into a custom shape.
-5. Fill **Unlock Prerequisites**, **Origin and Chain**, and the effect text. Refer to other skills by their IDs, even if you have not authored them yet. Use notes or **Undecided** when a rule is not settled.
-6. Click the author's **Add Adjacency Rule** button for each rule you want. Expand **Draft → Adjacency → Adjacency Rules**, then expand its new resource to set count, matching bucket/tags/specific IDs, mandatory/optional status and bonus notes.
-7. Write what the skill does under **Effect Idea → Effect Description**. Add optional bonuses, balancing notes and open questions as needed.
-8. Click **Save New Revision**. The Status field reports the saved paths. Choose **New Blank Skill** when ready for the next idea. Save your current work first.
+Open `res://Workshop/Rooms/Skill Author/Tool/SkillAuthor.tscn`, select **SkillAuthor**, switch to **2D**, expand **Draft** in the Inspector. No plugin required. F5 runs Production; F6 runs this tool.
 
-Drafts go into `Library/` as two matching files:
-- `skill_id_r001.tres`: editable Godot resource.
-- `skill_id_r001.json`: complete readable review data for later implementation.
+1. Enter **Display Name**, lowercase **Skill ID**, **Skill Bucket** (the skill family), and **Skill Kind**. Use Custom plus Custom Bucket for other families.
+2. Under **Footprint**, choose a preset or custom connected cells. Most skills use Single hex. Rotation Steps previews six orientations. Root **Cell To Edit** and **Add/Remove Hex at q,r** edit custom shapes. The reference grid is now radius four. Footprint means board occupancy, not attack coverage.
+3. Enter unlock prerequisites and point cost. Unresolved design can still go in notes.
+4. Under **Origin and Chain**, set **Required Chain Length**. Zero adds no chain-length requirement. Origin counts one; the skill itself is excluded; each other distinct skill counts once regardless of footprint. The wildcard center adds one. A valid path must reach the same-family origin without reusing any hex.
+5. Click root **Add Adjacency Rule**, expand Draft → Adjacency → Adjacency Rules → its resource. Set **Minimum** and **Adjacent Skill Tags** (family names). Each matching neighbor hex counts once; a large neighboring skill may supply several. Any listed family matches that rule. Separate mandatory rules must all pass. Empty family list defaults to the draft's own family. Optional-bonus rules remain authored ideas, not activation gates.
+6. Write **Effect Description** and optional notes. Click root **Save New Revision**. Status reports the paths.
 
-Each save creates the next revision and preserves earlier files. To revise an idea, select its `.tres` under **Load Path**, then click **Load Copy for Editing**. Saving the scene alone is not the same as saving a skill into the Library.
+Files go into `Library/`: matching `skill_id_r001.tres` (editable resource) and `.json` (readable review/export). Each save increments revision and preserves previous files. Saving the scene alone does not export a Library skill. To revise, choose its .tres in **Load Path**, then **Load Copy for Editing**. Save before using New Blank Skill.
 
-Optional: **F6** runs the shape preview with click-to-toggle hex painting and a Save button. Author the named draft in the Inspector first. Runtime painting changes are kept only when you click Save; load that saved `.tres` back in the editor to continue editing it. **F5 still runs Production.** No plugin enablement is required.
+## Test several skills on the board
+After naming and saving your draft, enable root **Board Test → Test On Skill Board**. Add other saved .tres resources to **Companion Drafts**. Save the scene to pass Inspector changes into the F6 run, then press **F6**.
 
-These files capture skill ideas; they do not execute the written effects or add active skills to Production. Once you have a batch, point Cody at `Library/`. Use the highest revision of each skill ID for review; earlier revisions remain history.
+Select a family origin button and click a free hex. Select a skill button and click its position. Rotate changes the footprint; Remove Selected returns it to the test pool. Green means active; red means unmet requirements. The status lists every test skill and its reason. All placed skills contribute their family even when inactive. Center is free for every family. There are at most three permanent origins; **Reset Sandbox** intentionally starts an entirely fresh test board.
+
+Sandbox arrangements are disposable and do not save into the character or Library. Edit/save skill definitions in the Inspector, then restart F6 to test changes. Invalid drafts are excluded; missing name/effect and disconnected shapes must be fixed first. Duplicate IDs represent the same skill (the current Draft overrides a companion with the same ID).
+
+Disable Test On Skill Board for the original F6 click-to-paint footprint preview. Click **Save New Revision** inside that preview to retain runtime painting, then load that .tres into the Inspector.
+
+## What this does not do
+Effects are still prose for implementation, not executable skills. Attack coverage/animations/projectile settings are separate future fields. The author exports deterministic spatial data for promotion; Production does not automatically import Workshop drafts. Old experimental tag/chain/count selectors are retained in resource legacy notes, not used instead of the settled family/hex/chain rules.

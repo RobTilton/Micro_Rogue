@@ -156,6 +156,7 @@ func _regenerate_world() -> void:
 func _start_options() -> void:
 	_clear()
 	Parts.label(root,"OPTIONS",32)
+	Parts.button(root,"Controls",_start_controls)
 	# Reuse the movement preference without requiring an active adventurer.
 	var toggle := CheckButton.new()
 	toggle.text = "Confirm ordinary movement"
@@ -215,6 +216,10 @@ func _load_path(path: String) -> bool:
 		if frame_ready: _note(outcome.reason); _refresh()
 		else: Parts.label(root,outcome.reason)
 		return false
+	_stop_travel()
+	travel_inflight = false
+	combat_pause = 0.0
+	combat_known = false
 	simulation = candidate
 	journal = Journal.new()
 	map_world = simulation.maps
@@ -289,7 +294,8 @@ func _input(event: InputEvent) -> void:
 	super._input(event)
 
 func _enter_map() -> void:
-	if travel_transition_active or simulation == null: return
+	if travel_transition_active or simulation == null or _movement_busy(): return
+	_stop_travel()
 	# Refused travel should respond immediately without flashing the screen.
 	if not simulation.ready(player) or Combat.available(player.actions,"activation") <= 0 or not active_map.links.has(player.pos):
 		super._enter_map()
@@ -334,3 +340,18 @@ func _discover_cave() -> void:
 	_note(outcome.reason)
 	_refresh()
 	if outcome.ok: _automatic_checkpoint()
+
+func _start_controls() -> void:
+	_clear()
+	Parts.label(root,"CONTROLS",32)
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.custom_minimum_size.y = 400
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	root.add_child(scroll)
+	var content := VBoxContainer.new()
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.add_theme_constant_override("separation",12)
+	scroll.add_child(content)
+	preload("res://Production/UI/controls_help.gd").build(content)
+	Parts.button(root,"Back to Options",_start_options)

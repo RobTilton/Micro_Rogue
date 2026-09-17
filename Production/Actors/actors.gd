@@ -5,10 +5,10 @@ static func dice() -> Array:
 	var result: Array = []
 	for index: int in range(6): result.append(randi_range(1, 6))
 	return result
-static func create(values: Array, enemy: bool = false, rng: RandomNumberGenerator = null) -> Dictionary:
+static func create(values: Array, enemy: bool = false, rng: RandomNumberGenerator = null, humanoid: bool = true) -> Dictionary:
 	var stats: Dictionary = {}
 	for index: int in range(6): stats[STATS[index]] = values[index]
-	return {"stats": stats, "hp": stats.WIL * 3, "max_hp": stats.WIL * 3, "level": 1, "xp": 0, "required_xp": 5, "points": 0 if enemy else 1, "skills": [], "main": Items.make("sword", enemy, rng), "off": Items.make("shield", enemy, rng), "armor": Items.make("armor", enemy, rng), "belt": Items.make("belt", enemy, rng), "head": {}, "arms": {}, "legs": {}, "grip": "one", "bag": [], "effects_defense": 0.0, "riposte": false, "pos": Vector2i(1, 3)}
+	return {"skill_board":preload("res://Production/Actors/skill_board.gd").blank(),"humanoid":humanoid,"can_use_skills":humanoid,"sight_base":7,"sight_effects":{},"stats": stats, "hp": stats.WIL * 3, "max_hp": stats.WIL * 3, "level": 1, "xp": 0, "required_xp": 5, "points": 0 if enemy else 1, "skills": [], "main": Items.make("sword", enemy, rng) if humanoid else {}, "off": Items.make("shield", enemy, rng) if humanoid else {}, "armor": Items.make("armor", enemy, rng) if humanoid else {}, "belt": Items.make("belt", enemy, rng) if humanoid else {}, "head": {}, "arms": {}, "legs": {}, "grip": "one", "bag": [], "effects_defense": 0.0, "riposte": false, "pos": Vector2i(1, 3)}
 static func award_xp(actor: Dictionary, amount: int) -> void:
 	actor.xp += amount
 	while actor.xp >= actor.required_xp:

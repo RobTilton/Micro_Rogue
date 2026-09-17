@@ -1,0 +1,732 @@
+{
+	"families": {
+		"bears": {
+			"minimum_pressure": 2.0,
+			"name": "Bear",
+			"preferred_pressure": 6.0,
+			"variants": [
+				{
+					"humanoid": false,
+					"id": "bears_1",
+					"name": "Bear 1",
+					"natural_die": 8.0,
+					"natural_name": "Claw",
+					"region": [
+						114,
+						31,
+						298,
+						433
+					],
+					"sprite": "res://Production/Assets/Enemies/Animals/Bears/T1_Bear.png",
+					"tier": 1.0
+				},
+				{
+					"humanoid": false,
+					"id": "bears_2",
+					"name": "Bear 2",
+					"natural_die": 8.0,
+					"natural_name": "Claw",
+					"region": [
+						67,
+						11,
+						350,
+						463
+					],
+					"sprite": "res://Production/Assets/Enemies/Animals/Bears/T2_Bear.png",
+					"tier": 2.0
+				},
+				{
+					"humanoid": false,
+					"id": "bears_3",
+					"name": "Bear 3",
+					"natural_die": 8.0,
+					"natural_name": "Claw",
+					"region": [
+						104,
+						2,
+						346,
+						494
+					],
+					"sprite": "res://Production/Assets/Enemies/Animals/Bears/T3_Bear.png",
+					"tier": 3.0
+				},
+				{
+					"humanoid": false,
+					"id": "bears_4",
+					"name": "Bear 4",
+					"natural_die": 8.0,
+					"natural_name": "Claw",
+					"region": [
+						96,
+						9,
+						343,
+						484
+					],
+					"sprite": "res://Production/Assets/Enemies/Animals/Bears/T4_Bear.png",
+					"tier": 4.0
+				}
+			],
+			"weight": 14.0
+		},
+		"boars": {
+			"minimum_pressure": 0.0,
+			"name": "Boar",
+			"preferred_pressure": 3.0,
+			"variants": [
+				{
+					"humanoid": false,
+					"id": "boars_1",
+					"name": "Boar 1",
+					"natural_die": 6.0,
+					"natural_name": "Gore",
+					"region": [
+						89,
+						117,
+						235,
+						365
+					],
+					"sprite": "res://Production/Assets/Enemies/Animals/Boar/T1_Boar.png",
+					"tier": 1.0
+				},
+				{
+					"humanoid": false,
+					"id": "boars_2",
+					"name": "Boar 2",
+					"natural_die": 6.0,
+					"natural_name": "Gore",
+					"region": [
+						70,
+						92,
+						236,
+						415
+					],
+					"sprite": "res://Production/Assets/Enemies/Animals/Boar/T2_Boar.png",
+					"tier": 2.0
+				},
+				{
+					"humanoid": false,
+					"id": "boars_3",
+					"name": "Boar 3",
+					"natural_die": 6.0,
+					"natural_name": "Gore",
+					"region": [
+						47,
+						45,
+						303,
+						435
+					],
+					"sprite": "res://Production/Assets/Enemies/Animals/Boar/T3_Boar.png",
+					"tier": 3.0
+				},
+				{
+					"humanoid": false,
+					"id": "boars_4",
+					"name": "Boar 4",
+					"natural_die": 6.0,
+					"natural_name": "Gore",
+					"region": [
+						42,
+						45,
+						317,
+						439
+					],
+					"sprite": "res://Production/Assets/Enemies/Animals/Boar/T4_Boar.png",
+					"tier": 4.0
+				}
+			],
+			"weight": 18.0
+		},
+		"dragons": {
+			"minimum_pressure": 14.0,
+			"name": "Dragon",
+			"preferred_pressure": 22.0,
+			"variants": [
+				{
+					"humanoid": false,
+					"id": "dragons_1",
+					"name": "Red Dragon",
+					"natural_die": 12.0,
+					"natural_name": "Bite",
+					"region": [
+						18,
+						4,
+						435,
+						472
+					],
+					"sprite": "res://Production/Assets/Enemies/Dragons/T1_Red_Dragon.png",
+					"tier": 1.0
+				},
+				{
+					"humanoid": false,
+					"id": "dragons_2",
+					"name": "Yellow Dragon",
+					"natural_die": 12.0,
+					"natural_name": "Bite",
+					"region": [
+						13,
+						4,
+						461,
+						479
+					],
+					"sprite": "res://Production/Assets/Enemies/Dragons/T2_Yellow_Dragon.png",
+					"tier": 2.0
+				},
+				{
+					"humanoid": false,
+					"id": "dragons_3",
+					"name": "Green Dragon",
+					"natural_die": 12.0,
+					"natural_name": "Bite",
+					"region": [
+						9,
+						5,
+						456,
+						471
+					],
+					"sprite": "res://Production/Assets/Enemies/Dragons/T3_Green_Dragon.png",
+					"tier": 3.0
+				},
+				{
+					"humanoid": false,
+					"id": "dragons_4",
+					"name": "Blue Dragon",
+					"natural_die": 12.0,
+					"natural_name": "Bite",
+					"region": [
+						9,
+						6,
+						462,
+						478
+					],
+					"sprite": "res://Production/Assets/Enemies/Dragons/T4_Blue_Dragon.png",
+					"tier": 4.0
+				},
+				{
+					"humanoid": false,
+					"id": "dragons_5",
+					"name": "Opal Dragon",
+					"natural_die": 12.0,
+					"natural_name": "Bite",
+					"region": [
+						4,
+						4,
+						466,
+						477
+					],
+					"sprite": "res://Production/Assets/Enemies/Dragons/T5_Opal_Dragon.png",
+					"tier": 5.0
+				},
+				{
+					"humanoid": false,
+					"id": "dragons_6",
+					"name": "Gold Dragon",
+					"natural_die": 12.0,
+					"natural_name": "Bite",
+					"region": [
+						0,
+						1,
+						482,
+						478
+					],
+					"sprite": "res://Production/Assets/Enemies/Dragons/T6_Gold_Dragon.png",
+					"tier": 6.0
+				}
+			],
+			"weight": 8.0
+		},
+		"drakes": {
+			"minimum_pressure": 8.0,
+			"name": "Drake",
+			"preferred_pressure": 14.0,
+			"variants": [
+				{
+					"humanoid": false,
+					"id": "drakes_1",
+					"name": "Red Drake",
+					"natural_die": 10.0,
+					"natural_name": "Bite",
+					"region": [
+						51,
+						9,
+						368,
+						457
+					],
+					"sprite": "res://Production/Assets/Enemies/Drakes/T1_Red_Drakes.png",
+					"tier": 1.0
+				},
+				{
+					"humanoid": false,
+					"id": "drakes_2",
+					"name": "Green Drake",
+					"natural_die": 10.0,
+					"natural_name": "Bite",
+					"region": [
+						25,
+						6,
+						360,
+						463
+					],
+					"sprite": "res://Production/Assets/Enemies/Drakes/T2_Green_Drake.png",
+					"tier": 2.0
+				},
+				{
+					"humanoid": false,
+					"id": "drakes_3",
+					"name": "Violet Drake",
+					"natural_die": 10.0,
+					"natural_name": "Bite",
+					"region": [
+						54,
+						9,
+						404,
+						474
+					],
+					"sprite": "res://Production/Assets/Enemies/Drakes/T3_Violet_Drake.png",
+					"tier": 3.0
+				},
+				{
+					"humanoid": false,
+					"id": "drakes_4",
+					"name": "Undead Drake",
+					"natural_die": 10.0,
+					"natural_name": "Bite",
+					"region": [
+						29,
+						2,
+						401,
+						464
+					],
+					"sprite": "res://Production/Assets/Enemies/Drakes/T4_Undead_Drake.png",
+					"tier": 4.0
+				}
+			],
+			"weight": 12.0
+		},
+		"goblins": {
+			"minimum_pressure": 0.0,
+			"name": "Goblin",
+			"preferred_pressure": 2.0,
+			"variants": [
+				{
+					"humanoid": true,
+					"id": "goblins_1",
+					"name": "Goblin 1",
+					"natural_die": 6.0,
+					"natural_name": "Strike",
+					"region": [
+						151,
+						17,
+						344,
+						478
+					],
+					"sprite": "res://Production/Assets/Enemies/Goblins/T1_Goblin.png",
+					"tier": 1.0
+				},
+				{
+					"humanoid": true,
+					"id": "goblins_2",
+					"name": "Goblin 2",
+					"natural_die": 6.0,
+					"natural_name": "Strike",
+					"region": [
+						105,
+						9,
+						407,
+						493
+					],
+					"sprite": "res://Production/Assets/Enemies/Goblins/T2_Goblin.png",
+					"tier": 2.0
+				},
+				{
+					"humanoid": true,
+					"id": "goblins_3",
+					"name": "Goblin 3",
+					"natural_die": 6.0,
+					"natural_name": "Strike",
+					"region": [
+						154,
+						39,
+						344,
+						445
+					],
+					"sprite": "res://Production/Assets/Enemies/Goblins/T3_Goblin.png",
+					"tier": 3.0
+				},
+				{
+					"humanoid": true,
+					"id": "goblins_4",
+					"name": "Goblin 4",
+					"natural_die": 6.0,
+					"natural_name": "Strike",
+					"region": [
+						72,
+						35,
+						440,
+						436
+					],
+					"sprite": "res://Production/Assets/Enemies/Goblins/T4_Goblin.png",
+					"tier": 4.0
+				}
+			],
+			"weight": 30.0
+		},
+		"mounds": {
+			"minimum_pressure": 4.0,
+			"name": "Mound",
+			"preferred_pressure": 9.0,
+			"variants": [
+				{
+					"humanoid": false,
+					"id": "mounds_1",
+					"name": "Mound 1",
+					"natural_die": 8.0,
+					"natural_name": "Slam",
+					"region": [
+						19,
+						66,
+						237,
+						264
+					],
+					"sprite": "res://Production/Assets/Enemies/Aberrations/T1_T2_T3_Mounds.png",
+					"tier": 1.0
+				},
+				{
+					"humanoid": false,
+					"id": "mounds_2",
+					"name": "Mound 2",
+					"natural_die": 8.0,
+					"natural_name": "Slam",
+					"region": [
+						14,
+						367,
+						242,
+						271
+					],
+					"sprite": "res://Production/Assets/Enemies/Aberrations/T1_T2_T3_Mounds.png",
+					"tier": 2.0
+				},
+				{
+					"humanoid": false,
+					"id": "mounds_3",
+					"name": "Mound 3",
+					"natural_die": 8.0,
+					"natural_name": "Slam",
+					"region": [
+						14,
+						727,
+						242,
+						227
+					],
+					"sprite": "res://Production/Assets/Enemies/Aberrations/T1_T2_T3_Mounds.png",
+					"tier": 3.0
+				}
+			],
+			"weight": 12.0
+		},
+		"orcs": {
+			"minimum_pressure": 3.0,
+			"name": "Orc",
+			"preferred_pressure": 8.0,
+			"variants": [
+				{
+					"humanoid": true,
+					"id": "orcs_1",
+					"name": "Orc",
+					"natural_die": 6.0,
+					"natural_name": "Strike",
+					"region": [
+						77,
+						21,
+						428,
+						486
+					],
+					"sprite": "res://Production/Assets/Enemies/Orcs/T1_Orc_PaperDoll.png",
+					"tier": 1.0
+				}
+			],
+			"weight": 20.0
+		},
+		"raiders": {
+			"minimum_pressure": 0.0,
+			"name": "Raider",
+			"preferred_pressure": 3.0,
+			"variants": [
+				{
+					"humanoid": true,
+					"id": "raiders_1",
+					"name": "Raider",
+					"natural_die": 6.0,
+					"natural_name": "Strike",
+					"region": [
+						246,
+						39,
+						255,
+						362
+					],
+					"sprite": "res://Production/Assets/Enemies/Humans/PaperDollModelHairless_6Directions.png",
+					"tier": 1.0
+				}
+			],
+			"weight": 25.0
+		},
+		"slimes": {
+			"minimum_pressure": 0.0,
+			"name": "Slime",
+			"preferred_pressure": 2.0,
+			"variants": [
+				{
+					"humanoid": false,
+					"id": "slimes_1",
+					"name": "Green Slime",
+					"natural_die": 4.0,
+					"natural_name": "Engulf",
+					"region": [
+						30,
+						149,
+						466,
+						302
+					],
+					"sprite": "res://Production/Assets/Enemies/Aberrations/Slimes/T1_Green_Slime.png",
+					"tier": 1.0
+				},
+				{
+					"humanoid": false,
+					"id": "slimes_2",
+					"name": "Orange Slime",
+					"natural_die": 4.0,
+					"natural_name": "Engulf",
+					"region": [
+						38,
+						144,
+						435,
+						297
+					],
+					"sprite": "res://Production/Assets/Enemies/Aberrations/Slimes/T2_Orange_Slime.png",
+					"tier": 2.0
+				},
+				{
+					"humanoid": false,
+					"id": "slimes_3",
+					"name": "Black Slime",
+					"natural_die": 4.0,
+					"natural_name": "Engulf",
+					"region": [
+						33,
+						173,
+						454,
+						270
+					],
+					"sprite": "res://Production/Assets/Enemies/Aberrations/Slimes/T3_Black_Slime.png",
+					"tier": 3.0
+				},
+				{
+					"humanoid": false,
+					"id": "slimes_4",
+					"name": "Cube",
+					"natural_die": 4.0,
+					"natural_name": "Engulf",
+					"region": [
+						57,
+						92,
+						389,
+						360
+					],
+					"sprite": "res://Production/Assets/Enemies/Aberrations/Slimes/T4_Cube.png",
+					"tier": 4.0
+				}
+			],
+			"weight": 20.0
+		},
+		"undead": {
+			"minimum_pressure": 0.0,
+			"name": "Undead",
+			"preferred_pressure": 6.0,
+			"variants": [
+				{
+					"humanoid": true,
+					"id": "undead_1",
+					"name": "Zombie",
+					"natural_die": 6.0,
+					"natural_name": "Strike",
+					"region": [
+						108,
+						12,
+						393,
+						499
+					],
+					"sprite": "res://Production/Assets/Enemies/Undead/T1_Undead_Zombie.png",
+					"tier": 1.0
+				},
+				{
+					"humanoid": true,
+					"id": "undead_2",
+					"name": "Skeleton",
+					"natural_die": 6.0,
+					"natural_name": "Strike",
+					"region": [
+						92,
+						8,
+						384,
+						498
+					],
+					"sprite": "res://Production/Assets/Enemies/Undead/T2_Undead_Skeleton.png",
+					"tier": 2.0
+				},
+				{
+					"humanoid": false,
+					"id": "undead_3",
+					"name": "Flesh Golem",
+					"natural_die": 10.0,
+					"natural_name": "Slam",
+					"region": [
+						52,
+						7,
+						460,
+						502
+					],
+					"sprite": "res://Production/Assets/Enemies/Undead/T3_Undead_FleshGolem.png",
+					"tier": 3.0
+				},
+				{
+					"humanoid": true,
+					"id": "undead_4",
+					"name": "Lich",
+					"natural_die": 6.0,
+					"natural_name": "Strike",
+					"region": [
+						90,
+						1,
+						408,
+						499
+					],
+					"sprite": "res://Production/Assets/Enemies/Undead/T4_Undead_Lich.png",
+					"tier": 4.0
+				}
+			],
+			"weight": 22.0
+		},
+		"werebeasts": {
+			"minimum_pressure": 6.0,
+			"name": "Werebeast",
+			"preferred_pressure": 11.0,
+			"variants": [
+				{
+					"humanoid": true,
+					"id": "werebeasts_1",
+					"name": "Werewolf",
+					"natural_die": 6.0,
+					"natural_name": "Strike",
+					"region": [
+						83,
+						9,
+						364,
+						497
+					],
+					"sprite": "res://Production/Assets/Enemies/Animals/WereBeasts/T1_WereBeasts_Wolf.png",
+					"tier": 1.0
+				},
+				{
+					"humanoid": true,
+					"id": "werebeasts_2",
+					"name": "Wereboar",
+					"natural_die": 6.0,
+					"natural_name": "Strike",
+					"region": [
+						53,
+						7,
+						403,
+						499
+					],
+					"sprite": "res://Production/Assets/Enemies/Animals/WereBeasts/T2_WereBeasts_Boar.png",
+					"tier": 2.0
+				},
+				{
+					"humanoid": true,
+					"id": "werebeasts_3",
+					"name": "Werebear",
+					"natural_die": 6.0,
+					"natural_name": "Strike",
+					"region": [
+						31,
+						4,
+						465,
+						494
+					],
+					"sprite": "res://Production/Assets/Enemies/Animals/WereBeasts/T3_WereBeasts_Bear.png",
+					"tier": 3.0
+				}
+			],
+			"weight": 15.0
+		},
+		"wolves": {
+			"minimum_pressure": 0.0,
+			"name": "Wolf",
+			"preferred_pressure": 1.0,
+			"variants": [
+				{
+					"humanoid": false,
+					"id": "wolves_1",
+					"name": "Wolf 1",
+					"natural_die": 6.0,
+					"natural_name": "Bite",
+					"region": [
+						131,
+						112,
+						239,
+						357
+					],
+					"sprite": "res://Production/Assets/Enemies/Animals/Wolves/T1_Wolf.png",
+					"tier": 1.0
+				},
+				{
+					"humanoid": false,
+					"id": "wolves_2",
+					"name": "Wolf 2",
+					"natural_die": 6.0,
+					"natural_name": "Bite",
+					"region": [
+						91,
+						113,
+						233,
+						368
+					],
+					"sprite": "res://Production/Assets/Enemies/Animals/Wolves/T2_Wolf.png",
+					"tier": 2.0
+				},
+				{
+					"humanoid": false,
+					"id": "wolves_3",
+					"name": "Wolf 3",
+					"natural_die": 6.0,
+					"natural_name": "Bite",
+					"region": [
+						61,
+						72,
+						270,
+						432
+					],
+					"sprite": "res://Production/Assets/Enemies/Animals/Wolves/T3_Wolf.png",
+					"tier": 3.0
+				},
+				{
+					"humanoid": false,
+					"id": "wolves_4",
+					"name": "Wolf 4",
+					"natural_die": 6.0,
+					"natural_name": "Bite",
+					"region": [
+						75,
+						23,
+						241,
+						443
+					],
+					"sprite": "res://Production/Assets/Enemies/Animals/Wolves/T4_Wolf.png",
+					"tier": 4.0
+				}
+			],
+			"weight": 25.0
+		}
+	},
+	"levels_per_pressure": 3.0,
+	"pressure_per_tier": 5.0
+}

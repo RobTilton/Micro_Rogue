@@ -1,5 +1,7 @@
 @tool
 extends Node2D
+const Board = preload("res://Production/Actors/skill_board.gd")
+const BoardView = preload("res://Production/UI/skill_board_view.gd")
 const Draft = preload("res://Workshop/Rooms/Skill Author/Tool/skill_draft.gd")
 const ROOM: String = "res://Workshop/Rooms/Skill Author/"
 const LIBRARY: String = ROOM+"Library/"
@@ -9,6 +11,18 @@ const LIBRARY: String = ROOM+"Library/"
 @export_tool_button("Save New Revision", "Save") var save_button: Callable = save_draft
 @export_tool_button("New Blank Skill", "New") var new_button: Callable = new_draft
 @export_tool_button("Add Adjacency Rule", "Add") var adjacency_button: Callable = add_adjacency_rule
+@export_category("Board Test")
+## F6 opens a radius-four board sandbox instead of the footprint painter.
+@export var test_on_skill_board: bool = false
+## Add saved draft resources to test multiple skills together with the current Draft.
+@export var companion_drafts: Array[Draft] = []
+var test_actor: Dictionary = {"skills":[],"skill_board":Board.blank()}
+var test_definitions: Dictionary = {}
+var test_selected: String = ""
+var test_origin: String = ""
+var test_rotation: int = 0
+var test_view: Control
+var test_status: Label
 @export_category("Load Existing Draft")
 @export_file("*.tres") var load_path: String = ""
 @export_tool_button("Load Copy for Editing", "Load") var load_button: Callable = load_draft
@@ -24,6 +38,9 @@ var preview_origin := Vector2(520,350)
 const RADIUS: float = 32.0
 func _ready() -> void:
 	set_process(true)
+	if not Engine.is_editor_hint() and test_on_skill_board:
+		_make_board_test()
+		return
 	if not Engine.is_editor_hint():
 		var buttons := HBoxContainer.new()
 		buttons.position = Vector2(24,690)
@@ -105,6 +122,7 @@ func save_revision(directory: String) -> Dictionary:
 func center(cell: Vector2i) -> Vector2:
 	return preview_origin+Vector2(sqrt(3.0)*(cell.x+cell.y*0.5),1.5*cell.y)*RADIUS
 func _draw() -> void:
+	if not Engine.is_editor_hint() and test_on_skill_board: return
 	var font: Font = ThemeDB.fallback_font
 	draw_rect(Rect2(0,0,1080,760),Color("101820"))
 	draw_string(font,Vector2(24,40),"WORKSHOP · SKILL AUTHOR",HORIZONTAL_ALIGNMENT_LEFT,-1,26,Color("eac56d"))
@@ -114,8 +132,7 @@ func _draw() -> void:
 	draw_string(font,Vector2(24,130),draft.bucket()+" · "+draft.skill_kind+" · "+str(draft.footprint().size())+" hexes",HORIZONTAL_ALIGNMENT_LEFT,-1,17)
 	var cells: Array[Vector2i] = draft.footprint()
 	var visible: Dictionary = {}
-	for q: int in range(-5,6):
-		for r: int in range(-3,4): visible[Vector2i(q,r)] = true
+	for cell: Vector2i in Board.cells(): visible[cell] = true
 	for cell: Vector2i in cells: visible[cell] = true
 	for cell: Vector2i in visible:
 		var points := PackedVector2Array()
@@ -131,15 +148,59 @@ func _draw() -> void:
 	draw_multiline_string(font,Vector2(24,615),status,HORIZONTAL_ALIGNMENT_LEFT,1020,14)
 	draw_string(font,Vector2(24,744),"Presets and rotation: Inspector. Custom: Add/Remove q,r above. Optional F6: click hexes to paint, then Save.",HORIZONTAL_ALIGNMENT_LEFT,-1,14)
 func _unhandled_input(event: InputEvent) -> void:
-	if Engine.is_editor_hint() or not event is InputEventMouseButton or not event.pressed or event.button_index != MOUSE_BUTTON_LEFT: return
+	if test_on_skill_board or Engine.is_editor_hint() or not event is InputEventMouseButton or not event.pressed or event.button_index != MOUSE_BUTTON_LEFT: return
 	var best := Vector2i.ZERO
 	var distance: float = INF
-	for q: int in range(-5,6):
-		for r: int in range(-3,4):
-			var cell := Vector2i(q,r)
-			var candidate: float = center(cell).distance_to(event.position)
-			if candidate < distance: distance = candidate; best = cell
+	for cell: Vector2i in Board.cells():
+		var candidate: float = center(cell).distance_to(event.position)
+		if candidate < distance: distance = candidate; best = cell
 	if distance > RADIUS: return
 	cell_to_edit = best
 	if draft != null and draft.footprint().has(best): remove_cell()
 	else: add_cell()
+
+func _test_button(parent: Node, text: String, action: Callable) -> void:
+	var button := Button.new()
+	button.text = text
+	button.pressed.connect(action)
+	parent.add_child(button)
+
+func _make_board_test() -> void:
+	var panel := HBoxContainer.new()
+	panel.position = Vector2(20,20)
+	add_child(panel)
+	test_view = BoardView.new()
+	panel.add_child(test_view)
+	var controls := VBoxContainer.new()
+	panel.add_child(controls)
+	var entries: Array = companion_drafts.duplicate()
+	entries.append(draft)
+	for entry in entries:
+		if entry == null or not entry.problems().is_empty(): continue
+		var id: String = entry.identifier()
+		test_definitions[id] = entry.board_definition()
+		if id not in test_actor.skills: test_actor.skills.append(id)
+	test_view.actor = test_actor
+	test_view.definitions = test_definitions
+	for family: String in Board.families(test_actor,test_definitions):
+		_test_button(controls,"Origin: "+family,func(): test_origin = family; test_selected = ""; _test_refresh())
+	for id: String in test_definitions:
+		_test_button(controls,id,func(): test_selected = id; test_origin = ""; _test_refresh())
+	_test_button(controls,"Rotate footprint",func(): test_rotation = (test_rotation+1)%6; _test_refresh())
+	_test_button(controls,"Remove selected",func(): test_actor.skill_board.placements.erase(test_selected); _test_refresh())
+	_test_button(controls,"Reset sandbox",func(): test_actor.skill_board = Board.blank(); _test_refresh())
+	test_status = Label.new()
+	controls.add_child(test_status)
+	test_view.hex_clicked.connect(func(cell: Vector2i):
+		var reason: String = Board.place_origin(test_actor,test_origin,cell,test_definitions) if not test_origin.is_empty() else Board.place(test_actor,test_selected,cell,test_rotation,false,test_definitions)
+		_test_refresh()
+		if not reason.is_empty(): test_status.text += "\n"+reason)
+	_test_refresh()
+
+func _test_refresh() -> void:
+	test_view.selected = test_selected
+	test_view.footprint_rotation = test_rotation
+	test_view.queue_redraw()
+	test_status.text = "Sandbox only; no gameplay effects.\nSelecting: "+(test_origin+" origin" if not test_origin.is_empty() else test_selected)
+	for id: String in Board.evaluate(test_actor,test_definitions):
+		test_status.text += "\n"+id+": "+Board.evaluate(test_actor,test_definitions)[id].reason

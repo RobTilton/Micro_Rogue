@@ -1,0 +1,39 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://dibcwgd74jmag"]
+
+[ext_resource type="Script" uid="uid://3vdixx5ro7ic" path="res://Workshop/Rooms/Skill Author/Tool/adjacency_rule.gd" id="1_7222h"]
+[ext_resource type="Script" uid="uid://bptthtqiucvn" path="res://Workshop/Rooms/Skill Author/Tool/skill_draft.gd" id="2_wrqid"]
+
+[resource]
+script = ExtResource("2_wrqid")
+skill_id = "axe_cleave"
+display_name = "Cleaving_Strike"
+skill_bucket = "Custom"
+custom_bucket = "Axe_Manship"
+tags = PackedStringArray()
+is_origin = false
+skill_kind = "Active ability"
+shape = "Custom"
+rotation_steps = 0
+allow_rotation = true
+allow_mirror = false
+custom_cells = Array[Vector2i]([Vector2i(1, -1), Vector2i(1, 0), Vector2i(0, 1)])
+skill_point_cost = 1
+prerequisite_skill_ids = PackedStringArray()
+prerequisite_mode = "All listed"
+minimum_points_in_bucket = 0
+prerequisite_notes = "
+"
+requires_origin = true
+origin_skill_id = ""
+chain_bucket = "Same as skill"
+chain_measure = "Undecided"
+chain_amount = 0
+chain_tags = PackedStringArray()
+required_chain_length = 1
+chain_notes = ""
+adjacency_rules = Array[ExtResource("1_7222h")]([])
+adjacency_notes = ""
+effect_description = "A sweeping strike aimed to fell anything in front of you."
+optional_bonus_description = ""
+balance_notes = "This skill is a basic attack. with cleaving +2. hex(1,0) is the origin of the attack, hex(0,1) is cleaving 1, hex(1,-1) is cleaving 2. IF the player gaines cleaving 3, hex(-1,1) would be the next to be targeted, followed by (0,-1), (-1,0)."
+open_questions = ""

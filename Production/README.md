@@ -1,5 +1,5 @@
 # Production Runtime
-Updated: 2026-09-14
+Updated: 2026-09-17
 Checkpoint: [Regional Release]+[Delivery]+[Promotion]
 
 Press **F5** in the root project. `Production/main.tscn` is the active game. Regional Foundation generation, dry edge entry and the hex start menu are now adopted. Runtime scripts and artwork resolve entirely within Production.
@@ -78,3 +78,37 @@ Belt progression (2026-09-14): tier and quality determine 1–14 potion pouches;
 Well interiors (2026-09-14): newly generated underground areas have a seeded 50/50 cave/compact-ruin choice. Compact ruins reuse the looped dungeon layout with 6–9 rooms. Saved layouts stay intact. [Evidence](<../Workshop/Rooms/Well Interiors/CURRENT_STATE.md>).
 
 Sprite integration (2026-09-15): existing props, wells/stairs/ladders, goblins, raiders and town residents use matching prepared Chad-Casso artwork. Saved worlds receive presentation changes without regeneration. [Mappings and validation](<../Workshop/Rooms/Sprite Integration/CURRENT_STATE.md>).
+
+Interior presentation (2026-09-15): existing art now distinguishes cave, dungeon, ruin, well and tower floors. Decorative rugs/rubble no longer advertise search. Saved geometry is unchanged. [Evidence](<../Workshop/Rooms/Interior Presentation/CURRENT_STATE.md>).
+
+Inventory/wells (2026-09-15): Shift-click equips/unequips gear; right-click carried belts offers atomic Empty belt. New wells are small irregular chambers, with a 40% deeper entrance chance. Existing wells persist. [Controls and evidence](<../Workshop/Rooms/Inventory Shortcuts and Wells/CURRENT_STATE.md>).
+
+Combat awareness (2026-09-15): unseen same-map fighting uses grouped sound/silence messages; observed/player fights retain details. New room populations use resident/rival families with persistent faction identities. Existing enemies retain their families. [Contract and evidence](<../Workshop/Rooms/Combat Awareness/CURRENT_STATE.md>).
+
+Controls help (2026-09-15): choose Options → Controls from either the start menu or the game. Global-map access is explained first. [Evidence](<../Workshop/Rooms/Controls Help/CURRENT_STATE.md>).
+
+Playtest refinement (2026-09-15): shared WIS/effect sight, persistent fog memory, detection-triggered combat, STR physical scaling, reduced/concentrated loot, potion drops, baseline tooltip prices and accepted-only quests. [Contract and checks](<../Workshop/Rooms/Playtest Refinement/CURRENT_STATE.md>).
+
+Attack effects (2026-09-15): visible attacks/counters now use weapon-specific slashes, projectiles and impact flashes from the imported placeholder sheet, with a drawn arrow fallback. [Mapping and evidence](<../Workshop/Rooms/Attack Effects/CURRENT_STATE.md>).
+
+Enemy roster (2026-09-16): 12 families/42 sprite variants, hostility/player-level spawn weights, humanoid equipment/skill guards and creature natural attacks. Legacy creatures retain former possessions as ground loot. [Contract and validation](<../Workshop/Rooms/Enemy Roster/CURRENT_STATE.md>).
+
+## Skill board (2026-09-16)
+
+F5 → Skills now opens the radius-four placement board. Learned skills require valid placement to be active; inactive pieces still provide family tags. Up to three permanently placed family origins and a wildcard center support hex adjacency and distinct-skill chains. Town rearrangement preserves origins. Existing learned skills survive saves but need player-chosen placement. Full rules, authoring workflow and validation: `Workshop/Rooms/Skill Board/CURRENT_STATE.md`.
+
+## Movement flow (2026-09-17)
+
+Player travel advances one animated hex at a time. New destinations replace the remaining route; combat interrupts with a brief visible pause. Contextual shop, search, pickup, attack, crier and entrance actions approach before executing. Existing action/time costs remain; Local arenas require detection rather than merely spotting an enemy. See `Workshop/Rooms/Movement Flow/CURRENT_STATE.md` for contracts and validation.
+
+## Chest rarity (2026-09-17)
+
+Chests now roll 75% Normal / 25% Rare once, retaining that classification in saves and display names. Existing contents and gold stay intact. This creates the Rare Chest source defined by the jewelry design; jewelry drops/effects are not implemented by this change. See `Workshop/Rooms/Chest Rarity/CURRENT_STATE.md`.
+
+## Rings — 2026-09-17
+
+F5 includes eight usable ring slots and all 31 variants from the jewelry design. Rings can appear in newly generated random loot (5%), stack their bonuses, and support shift-click, drag/drop, tooltips, selling, NPC equipment and persistent saves. Movement rings add normal travel distance; momentum rings add gain per tick. Base stats remain unchanged by gear. Amulets are deferred. [Rings current state](../Workshop/Rooms/Rings/CURRENT_STATE.md) records drop policy, provisional prices and 317 passing checks.
+
+Ring economy correction: Lesser buy/sell 50/5 gold; paired Greater 250/25; Greater-only action rings untradeable with no displayed gold value. Current ring quotes also apply to saved shop offers. Prosperity/hostility price modifiers are not implemented. Validated with 18 focused checks.
+
+Equipment quality weights: Trash 15%, Common 51%, Exceptional 25%, Masterwork 8%, Mythic 0.9%, Touched by the Gods 0.1%. Applied to new generation; ring grades use their separate policy.

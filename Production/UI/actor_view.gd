@@ -2,11 +2,15 @@ extends "res://Production/UI/world_view.gd"
 const Sprite = preload("res://Production/UI/actor_sprite.gd")
 var actor_sprites: Dictionary = {}
 var motions: Dictionary = {}
+var motion_paused: bool = false
+func motion_busy() -> bool: return not motions.is_empty()
 func show_actors(actors: Array[Dictionary], selected_id: int) -> void:
 	for sprite: Node2D in actor_sprites.values(): sprite.visible = false
 	for actor: Dictionary in actors:
 		if not actor_sprites.has(actor.id):
 			var sprite := Sprite.new()
+			sprite.position = center(actor.pos)
+			sprite.scale = Vector2.ONE*zoom
 			add_child(sprite)
 			actor_sprites[actor.id] = sprite
 		var sprite: Node2D = actor_sprites[actor.id]
@@ -25,6 +29,7 @@ func _process(delta: float) -> void:
 			sprite.position = center(sprite.actor.pos)
 			continue
 		var motion: Dictionary = motions[id]
+		if motion_paused: continue
 		motion.elapsed += delta
 		while motion.elapsed >= 0.25 and not motion.route.is_empty():
 			motion.from = motion.route.pop_front()
@@ -39,7 +44,9 @@ func animate_motion(event: Dictionary) -> void:
 	var id: int = event.actor_id
 	if not actor_sprites.has(id) or event.route.is_empty(): return
 	if motions.has(id): motions[id].route.append_array(event.route)
-	else: motions[id] = {"from":event.from,"route":event.route.duplicate(),"elapsed":0.0}
+	else:
+		motions[id] = {"from":event.from,"route":event.route.duplicate(),"elapsed":0.0}
+		actor_sprites[id].position = center(event.from)
 
 func _draw_actor(_cell: Vector2i, _color: Color) -> void:
 	pass
@@ -72,3 +79,11 @@ var item_tooltips: Dictionary = {}
 func _get_tooltip(at_position: Vector2) -> String:
 	var cell = _interaction_cell_at(at_position)
 	return item_tooltips.get(cell,"") if cell != null else ""
+
+var attack_effects: Node2D
+func animate_attack(event: Dictionary) -> void:
+	if not is_instance_valid(attack_effects):
+		attack_effects = preload("res://Production/UI/attack_effects.gd").new()
+		attack_effects.board = self
+		add_child(attack_effects)
+	attack_effects.play(event)

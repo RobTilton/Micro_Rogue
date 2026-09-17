@@ -1,4 +1,6 @@
 extends RefCounted
+const Rings = preload("res://Production/Actors/rings.gd")
+const SkillBoard = preload("res://Production/Actors/skill_board.gd")
 const Maps = preload("res://Production/World/map_world.gd")
 const Actors = preload("res://Production/Actors/actors.gd")
 const Combat = preload("res://Production/Actors/combat.gd")
@@ -7,6 +9,7 @@ const Grid = preload("res://Production/Actors/grid_inventory.gd")
 const Paths = preload("res://Production/World/movement_preview.gd")
 const Clock = preload("res://Production/Actors/cooldowns.gd")
 const Sight = preload("res://Production/Actors/perception.gd")
+var discovered_maps: Dictionary = {}
 var maps: RefCounted
 var actors: Dictionary = {}
 var ground: Dictionary = {}
@@ -15,11 +18,16 @@ var player_id: int = 0
 var next_id: int = 1
 var difficulty: int = 0
 var events: Array[String] = []
+var distant_pairs: Dictionary = {}
+var hearing_map: String = ""
+var hearing_fighting: bool = false
 const Equipment = preload("res://Production/Actors/equipment_rules.gd")
 const Momentum = preload("res://Production/Actors/momentum.gd")
 var turn_threshold: int = Momentum.DEFAULT_THRESHOLD
 var tick: int = 0
 var motion_events: Array = []
+var walks: Dictionary = {}
+var attack_events: Array = []
 
 func _init(seed_value: int = 1729) -> void:
 	maps = _make_maps(seed_value)
@@ -33,7 +41,7 @@ func add_actor(actor: Dictionary, map_id: String, cell: Vector2i, faction: Strin
 	assert(maps.maps.has(map_id) and maps.maps[map_id].walkable(cell) and actor_at(map_id,cell).is_empty(), "Production/Actors/actor_world.gd: invalid or occupied actor spawn")
 	var id: int = next_id
 	next_id += 1
-	actor.merge({"id":id,"map_id":map_id,"faction":faction,"sprite":sprite,"pos":cell,"actions":Combat.allowance(actor),"clock":Clock.new(),"pending":{},"retreat":false,"last_seen":{},"trail":[],"known_items":{},"dropped":false,"name":"Adventurer" if faction == "player" else "Goblin"},true)
+	actor.merge({"id":id,"map_id":map_id,"faction":faction,"sprite":sprite,"pos":cell,"actions":Combat.allowance(actor),"clock":Clock.new(),"pending":{},"retreat":false,"last_seen":{},"trail":[],"known_items":{},"dropped":false,"name":actor.get("name","Adventurer" if faction == "player" else "Goblin")},true)
 	Equipment.initialize(actor)
 	Momentum.initialize(actor)
 	actor.actions = {"move":0,"attack":0,"activation":0,"free":0,"used_attacks":0}
@@ -61,10 +69,10 @@ func blocked(actor: Dictionary) -> Array:
 	return result
 
 func paths(actor: Dictionary, limit: int = -1) -> Dictionary:
-	return Paths.paths(actor.pos,3+actor.stats.DEX if limit < 0 else limit,blocked(actor),maps.maps[actor.map_id])
+	return Paths.paths(actor.pos,Rings.movement(actor) if limit < 0 else limit,blocked(actor),maps.maps[actor.map_id])
 
 func can_see(actor: Dictionary, cell: Vector2i) -> bool:
-	return Sight.visible(maps.maps[actor.map_id],actor.pos,cell)
+	return Sight.visible(maps.maps[actor.map_id],actor.pos,cell,Sight.radius(actor))
 
 func hostiles(actor: Dictionary) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
@@ -73,9 +81,11 @@ func hostiles(actor: Dictionary) -> Array[Dictionary]:
 	return result
 
 func engaged(actor: Dictionary) -> bool:
-	if not hostiles(actor).is_empty(): return true
-	for other: Dictionary in actors.values():
-		if other.hp > 0 and hostile(actor,other) and (not other.trail.is_empty() or not other.last_seen.is_empty()): return true
+	for other: Dictionary in on_map(actor.map_id):
+		if not hostile(actor,other): continue
+		if can_see(other,actor.pos): return true
+		if actor.faction != "player" and can_see(actor,other.pos): return true
+		if other.get("pursuit_target",-1) == actor.id and (not other.trail.is_empty() or not other.last_seen.is_empty()): return true
 	return false
 
 func result(ok: bool, reason: String) -> Dictionary:
@@ -96,11 +106,61 @@ func move(actor: Dictionary, destination: Vector2i, expected: Array = []) -> Dic
 	if not ready(actor) or Combat.available(actor.actions,"move") <= 0: return result(false,"No movement action available.")
 	var available: Dictionary = paths(actor)
 	if not available.has(destination) or (not expected.is_empty() and available[destination] != expected): return result(false,"That path is no longer available.")
-	_record_motion(actor,available[destination])
-	record_global_approach(actor,available[destination])
-	actor.pos = destination
+	var route: Array = detection_route(actor,available[destination])
+	_record_motion(actor,route)
+	record_global_approach(actor,route)
+	actor.pos = route.back()
+	refresh_action_mode(actor)
 	Combat.spend(actor.actions,"move")
 	return result(true,"Moved.")
+
+func stop_walk(actor: Dictionary) -> void:
+	walks.erase(actor.id)
+
+func walk_units(actor: Dictionary) -> int:
+	return walks.get(actor.id,{}).get("remaining",(Rings.movement(actor))*2)
+
+func walk_step(actor: Dictionary, destination: Vector2i) -> Dictionary:
+	if not ready(actor): return result(false,"Finish the pending action before moving.")
+	var map = maps.maps[actor.map_id]
+	if map.distance(actor.pos,destination) != 1 or not map.walkable(destination) or not actor_at(actor.map_id,destination,actor.id).is_empty(): return result(false,"The next hex is blocked.")
+	var combat_before: bool = engaged(actor)
+	var state: Dictionary = walks.get(actor.id,{"map_id":actor.map_id,"remaining":(Rings.movement(actor))*2,"charged":false})
+	var cost: int = preload("res://Production/World/travel_cost.gd").units(map,destination)
+	if state.map_id != actor.map_id: return result(false,"The movement belongs to another map.")
+	if combat_before and (state.remaining < cost or (not state.charged and Combat.available(actor.actions,"move") <= 0)): return result(false,"No movement remains for this route.")
+	_record_motion(actor,[destination])
+	record_global_approach(actor,[destination])
+	actor.pos = destination
+	refresh_action_mode(actor)
+	var combat_after: bool = engaged(actor)
+	if combat_after and not state.charged:
+		Combat.spend(actor.actions,"move")
+		state.charged = true
+	state.remaining -= cost
+	walks[actor.id] = state
+	var outcome: Dictionary = result(true,"Moved.")
+	outcome.combat_started = not combat_before and combat_after
+	if outcome.combat_started: stop_walk(actor)
+	return outcome
+
+func complete_walk_step(_actor: Dictionary) -> void:
+	pass
+
+func detection_route(actor: Dictionary, requested: Array) -> Array:
+	var route: Array = requested.duplicate()
+	if not actors.has(player_id): return route
+	var player: Dictionary = actors[player_id]
+	if actor.map_id != player.map_id or engaged(player): return route
+	if actor.id != player_id and not hostile(actor,player): return route
+	var origin: Vector2i = actor.pos
+	for index: int in range(route.size()):
+		actor.pos = route[index]
+		if engaged(player):
+			route.resize(index+1)
+			break
+	actor.pos = origin
+	return route
 
 func record_global_approach(actor: Dictionary, route: Array) -> void:
 	if actor.map_id != "global" or route.is_empty(): return
@@ -114,7 +174,8 @@ func record_global_approach(actor: Dictionary, route: Array) -> void:
 
 func next_weapon(actor: Dictionary) -> Dictionary:
 	if Combat.available(actor.actions,"attack") <= 0: return {}
-	if actor.actions.attack > 0 and actor.actions.used_attacks == 1 and "Show-Off" in actor.skills and actor.off.get("kind") == "sword": return actor.off
+	if not actor.get("humanoid",true): return actor.get("natural_attack",{})
+	if actor.actions.attack > 0 and actor.actions.used_attacks == 1 and SkillBoard.active(actor,"Show-Off") and actor.off.get("kind") == "sword": return actor.off
 	return actor.main
 
 func spend_attack(actor: Dictionary) -> Dictionary:
@@ -123,16 +184,18 @@ func spend_attack(actor: Dictionary) -> Dictionary:
 	return weapon
 
 func skill_available(actor: Dictionary, skill: String) -> bool:
-	return ready(actor) and skill in actor.skills and actor.clock.ready(skill) and next_weapon(actor).get("kind") == "sword"
+	return actor.get("humanoid",true) and ready(actor) and SkillBoard.active(actor,skill) and actor.clock.ready(skill) and next_weapon(actor).get("kind") == "sword"
 
 func lunge(actor: Dictionary, destination: Vector2i) -> Dictionary:
 	if not skill_available(actor,"Lunge"): return result(false,"Lunge is unavailable.")
-	if not paths(actor,actor.stats.DEX).has(destination): return result(false,"No legal Lunge path.")
-	_record_motion(actor,paths(actor,actor.stats.DEX)[destination])
-	record_global_approach(actor,paths(actor,actor.stats.DEX)[destination])
+	if not paths(actor,Rings.stat(actor,"DEX")).has(destination): return result(false,"No legal Lunge path.")
+	var route: Array = detection_route(actor,paths(actor,Rings.stat(actor,"DEX"))[destination])
+	_record_motion(actor,route)
+	record_global_approach(actor,route)
+	actor.pos = route.back()
+	refresh_action_mode(actor)
 	actor.pending = spend_attack(actor)
 	actor.clock.start("Lunge",4)
-	actor.pos = destination
 	return result(true,"Lunge: choose a target or cancel the optional attack.")
 
 func riposte(actor: Dictionary) -> Dictionary:
@@ -147,8 +210,8 @@ func cancel(actor: Dictionary) -> void:
 	actor.retreat = false
 
 func retreat(actor: Dictionary, destination: Vector2i) -> Dictionary:
-	if not actor.retreat or actor.hp <= 0 or not paths(actor,ceili(actor.stats.DEX*0.5)).has(destination): return result(false,"No legal retreat.")
-	_record_motion(actor,paths(actor,ceili(actor.stats.DEX*0.5))[destination])
+	if not actor.retreat or actor.hp <= 0 or not paths(actor,ceili(Rings.stat(actor,"DEX")*0.5)).has(destination): return result(false,"No legal retreat.")
+	_record_motion(actor,paths(actor,ceili(Rings.stat(actor,"DEX")*0.5))[destination])
 	actor.pos = destination
 	actor.retreat = false
 	return result(true,"Retreated.")
@@ -162,17 +225,23 @@ func attack(actor: Dictionary, target_id: int) -> Dictionary:
 	var lunging: bool = not actor.pending.is_empty()
 	var weapon: Dictionary = actor.pending if lunging else next_weapon(actor)
 	if weapon.is_empty(): return result(false,"No attack action or weapon available.")
-	if not Equipment.compatible(actor,weapon,"main") and weapon != actor.off: return result(false,"Production/Actors/actor_world.gd: weapon requires a free second hand.")
+	if weapon.get("kind") != "natural" and not Equipment.compatible(actor,weapon,"main") and weapon != actor.off: return result(false,"Production/Actors/actor_world.gd: weapon requires a free second hand.")
+	target.pursuit_target = actor.id
+	target.last_seen = {"map_id":actor.map_id,"pos":actor.pos}
+	refresh_action_mode(actor)
+	refresh_action_mode(target)
 	if lunging: actor.pending = {}
 	else: spend_attack(actor)
-	var counter: bool = target.riposte
+	var counter: bool = target.get("humanoid",true) and target.riposte and SkillBoard.active(target,"Riposte")
 	var damage: int = Combat.attack(actor,target,weapon,lunging,actor.faction == "player",difficulty)
 	target.riposte = false
-	events.append("%s hits %s for %d." % [actor.name,target.name,damage])
+	record_attack_effect(actor,target,weapon,damage,lunging)
+	report_combat(actor,target,"%s hits %s for %d." % [actor.name,target.name,damage])
 	if counter and target.hp > 0 and not target.get("counter_weapon",{}).is_empty() and map.distance(actor.pos,target.pos) <= Combat.attack_range(target):
 		var retaliation: int = Combat.attack(target,actor,target.counter_weapon,false,target.faction == "player",difficulty)
+		record_attack_effect(target,actor,target.counter_weapon,retaliation,false)
 		if retaliation > 0: target.retreat = true
-		events.append("%s counters for %d." % [target.name,retaliation])
+		report_combat(target,actor,"%s counters for %d." % [target.name,retaliation])
 	resolve_death(target,actor)
 	resolve_death(actor,target)
 	return result(true,"Attack resolved.")
@@ -188,8 +257,9 @@ func resolve_death(actor: Dictionary, killer: Dictionary) -> void:
 		for item: Dictionary in Inventory.possessions(actor): ground[actor.map_id].append({"item":item,"pos":actor.pos})
 		for slot: String in Grid.EQUIPMENT: actor[slot] = {}
 		actor.bag = []
+		Rings.sync_health(actor)
 		if killer.hp > 0: Actors.award_xp(killer,actor.level)
-		events.append("%s falls and drops its possessions." % actor.name)
+		report_observed(actor,"%s falls and drops its possessions." % actor.name)
 
 func transfer(actor: Dictionary, source: Dictionary, target: Dictionary, preview: bool = false) -> Dictionary:
 	if not ready(actor): return result(false,"Finish the pending skill first.")
@@ -198,9 +268,14 @@ func transfer(actor: Dictionary, source: Dictionary, target: Dictionary, preview
 		for entry: Dictionary in ground[actor.map_id]:
 			if entry.item.item_id == source.get("id") and can_see(actor,entry.pos): visible = true
 		if not visible: return result(false,"That item is not visible.")
-	return Grid.transfer(actor,ground[actor.map_id],actor.actions,not actor.actions.get("exploration",false),source,target,preview,maps.maps[actor.map_id])
+	var before: int = Rings.movement(actor)
+	var outcome: Dictionary = Grid.transfer(actor,ground[actor.map_id],actor.actions,not actor.actions.get("exploration",false),source,target,preview,maps.maps[actor.map_id])
+	if outcome.ok and not preview and walks.has(actor.id):
+		walks[actor.id].remaining = maxi(0,walks[actor.id].remaining-2*maxi(0,before-Rings.movement(actor)))
+	return outcome
 
 func drink(actor: Dictionary, item_id: int) -> Dictionary:
+	if not actor.get("humanoid",true): return result(false,"Production/Actors/actor_world.gd: non-humanoids cannot use inventory potions.")
 	if not ready(actor) or Combat.available(actor.actions,"activation") <= 0: return result(false,"No activation action available.")
 	for storage: Array in [actor.belt.get("contents",[]),actor.bag]:
 		for index: int in range(storage.size()):
@@ -208,18 +283,51 @@ func drink(actor: Dictionary, item_id: int) -> Dictionary:
 				storage.remove_at(index)
 				Combat.spend(actor.actions,"activation")
 				var healed: int = Combat.heal(actor)
-				events.append("%s drinks a potion, restoring %d HP." % [actor.name,healed])
+				report_observed(actor,"%s drinks a potion, restoring %d HP." % [actor.name,healed])
 				return result(true,"Potion used.")
 	return result(false,"Production/Actors/actor_world.gd: potion is not carried.")
 
 func learn(actor: Dictionary, skill: String) -> Dictionary:
-	var sequence: Array[String] = ["Lunge","Riposte","Show-Off"]
-	var index: int = sequence.find(skill)
-	if not actor.get("can_use_skills",true): return result(false,"This actor spends advancement points on stats.")
-	if actor.hp <= 0 or index < 0 or actor.points <= 0 or skill in actor.skills or (index > 0 and sequence[index-1] not in actor.skills): return result(false,"Skill prerequisites are not met.")
+	if not actor.get("humanoid",true) or not actor.get("can_use_skills",true): return result(false,"This actor spends advancement points on stats.")
+	if not SkillBoard.DEFINITIONS.has(skill): return result(false,"Unknown skill.")
+	var definition: Dictionary = SkillBoard.DEFINITIONS[skill]
+	if actor.hp <= 0 or actor.points < definition.cost or skill in actor.skills: return result(false,"Skill prerequisites are not met.")
+	for prerequisite: String in definition.prerequisites:
+		if prerequisite not in actor.skills: return result(false,"Learn "+prerequisite+" first.")
 	actor.skills.append(skill)
-	actor.points -= 1
-	return result(true,"Learned " + skill + ".")
+	actor.points -= definition.cost
+	SkillBoard.ensure(actor)
+	return result(true,"Learned " + skill + ". Place it on the skill board to activate it.")
+
+func can_rearrange_skills(actor: Dictionary) -> bool:
+	return actor.hp > 0 and not engaged(actor) and "records" in maps and maps.records.has(actor.map_id) and maps.records[actor.map_id].template == "Town"
+
+func place_skill(actor: Dictionary, skill: String, cell: Vector2i, rotation: int = 0, mirror: bool = false) -> Dictionary:
+	if actor.hp <= 0 or not actor.get("humanoid",true) or engaged(actor): return result(false,"Skill placement is unavailable during combat.")
+	SkillBoard.ensure(actor)
+	if actor.skill_board.placements.has(skill) and not can_rearrange_skills(actor): return result(false,"Rearrange placed skills in town, outside combat.")
+	var reason: String = SkillBoard.place(actor,skill,cell,rotation,mirror)
+	return result(reason.is_empty(),"Skill placed." if reason.is_empty() else reason)
+
+func place_skill_origin(actor: Dictionary, family: String, cell: Vector2i) -> Dictionary:
+	if actor.hp <= 0 or not actor.get("humanoid",true) or engaged(actor): return result(false,"Origin placement is unavailable during combat.")
+	var reason: String = SkillBoard.place_origin(actor,family,cell)
+	return result(reason.is_empty(),"Permanent "+family+" origin placed." if reason.is_empty() else reason)
+
+func remove_board_skill(actor: Dictionary, skill: String) -> Dictionary:
+	if not can_rearrange_skills(actor): return result(false,"Rearrange skills in town, outside combat.")
+	SkillBoard.ensure(actor)
+	if not actor.skill_board.placements.has(skill): return result(false,"That skill is not placed.")
+	actor.skill_board.placements.erase(skill)
+	actor.riposte = false
+	return result(true,"Skill returned to learned skills. Origins remain permanent.")
+
+func clear_skill_placements(actor: Dictionary) -> Dictionary:
+	if not can_rearrange_skills(actor): return result(false,"Rearrange skills in town, outside combat.")
+	SkillBoard.ensure(actor)
+	actor.skill_board.placements.clear()
+	actor.riposte = false
+	return result(true,"Board cleared; permanent origins remain. Learned skills are ready to place again.")
 
 func ensure_map(link: Dictionary):
 	var map = maps.resolve(link)
@@ -253,11 +361,12 @@ func travel(actor: Dictionary) -> Dictionary:
 	for observer: Dictionary in on_map(actor.map_id):
 		if not hostile(actor,observer) or not can_see(observer,actor.pos): continue
 		observer.last_seen = {"map_id":origin.id,"pos":actor.pos}
+		observer.pursuit_target = actor.id
 		observer.trail = [{"map_id":origin.id,"pos":actor.pos,"destination":destination.id,"arrival":arrival}]
 	Combat.spend(actor.actions,"activation")
 	actor.map_id = destination.id
 	actor.pos = arrival
-	events.append("%s enters %s." % [actor.name,destination.title])
+	report_observed(actor,"%s enters %s." % [actor.name,destination.title])
 	return result(true,"Entered " + destination.title + ".")
 
 func interact(actor: Dictionary, request: Dictionary) -> Dictionary:
@@ -269,10 +378,11 @@ func interact(actor: Dictionary, request: Dictionary) -> Dictionary:
 	return result(false,"This world object has no implemented interaction.")
 
 func begin_turn(actor: Dictionary) -> void:
+	stop_walk(actor)
 	actor.clock.end_turn()
 	var earned: int = Momentum.grants(actor,turn_threshold)
 	actor.actions = Combat.allowance(actor) if earned > 0 else {"move":0,"attack":0,"activation":0,"used_attacks":0,"free":0}
-	actor.actions.free = maxi(0,earned-1)
+	actor.actions.free += maxi(0,earned-1)
 	actor.riposte = false
 	actor.pending = {}
 
@@ -327,11 +437,13 @@ func change_grip(actor: Dictionary) -> Dictionary:
 	return result(true,"Using "+actor.grip+" hand(s).")
 
 func inspect_shop(actor: Dictionary, cell: Vector2i) -> Dictionary:
+	if not actor.get("humanoid",true): return result(false,"Production/Actors/actor_world.gd: non-humanoids cannot use shops.")
 	var map = maps.maps[actor.map_id]
 	if actor.hp <= 0 or not map.shops.has(cell) or map.distance(actor.pos,cell) > 1 or not can_see(actor,cell): return result(false,"Production/Actors/actor_world.gd: approach the shop to interact.")
 	return {"ok":true,"shop":map.shops[cell].duplicate(true)}
 
 func search_container(actor: Dictionary, cell: Vector2i) -> Dictionary:
+	if not actor.get("humanoid",true): return result(false,"Production/Actors/actor_world.gd: non-humanoids cannot search inventory containers.")
 	var map = maps.maps[actor.map_id]
 	if not ready(actor) or Combat.available(actor.actions,"activation") <= 0: return result(false,"Production/Actors/actor_world.gd: searching requires an activation.")
 	if not map.props.has(cell) or map.distance(actor.pos,cell) > 1 or not can_see(actor,cell): return result(false,"Production/Actors/actor_world.gd: approach a visible container to search.")
@@ -352,18 +464,21 @@ func buy(actor: Dictionary, cell: Vector2i, item_id: int) -> Dictionary:
 	for index: int in range(shop.get("stock",[]).size()):
 		var entry: Dictionary = shop.stock[index]
 		if entry.item.item_id != item_id: continue
-		if actor.get("gold",0) < entry.price: return result(false,"Production/Actors/actor_world.gd: not enough gold.")
+		var pricing = preload("res://Production/World/village_shops.gd")
+		if not pricing.buyable(entry.item): return result(false,"Production/Actors/actor_world.gd: this ring cannot be bought or sold.")
+		var price: int = pricing.stock_price(entry)
+		if actor.get("gold",0) < price: return result(false,"Production/Actors/actor_world.gd: not enough gold.")
 		var staged: Array = actor.bag.duplicate(true)
 		if not Grid.place_auto(staged,entry.item.duplicate(true)): return result(false,"Production/Actors/actor_world.gd: backpack is full.")
 		actor.bag = staged
-		actor.gold = actor.get("gold",0)-entry.price
+		actor.gold = actor.get("gold",0)-price
 		shop.stock.remove_at(index)
 		Combat.spend(actor.actions,"activation")
 		return result(true,"Bought "+entry.item.name+".")
 	return result(false,"Production/Actors/actor_world.gd: that item is no longer in stock.")
 
 func hostile(a: Dictionary, b: Dictionary) -> bool:
-	if a.faction == "enemy" and b.faction == "enemy": return a.get("family","goblins") != b.get("family","goblins")
+	if a.faction == "enemy" and b.faction == "enemy": return faction_key(a) != faction_key(b)
 	return a.faction != b.faction and not (a.faction in ["player","town"] and b.faction in ["player","town"])
 
 func _record_motion(actor: Dictionary, route: Array) -> void:
@@ -398,3 +513,66 @@ func sell(actor: Dictionary, cell: Vector2i, item_id: int) -> Dictionary:
 		Combat.spend(actor.actions,"activation")
 		return result(true,"Sold "+item.name+" for "+str(price)+" gold.")
 	return result(false,"Production/Actors/actor_world.gd: that gear is no longer in the backpack.")
+
+static func faction_key(actor: Dictionary) -> String:
+	return actor.get("faction_id",actor.get("family","goblins"))
+
+func report_observed(actor: Dictionary, message: String) -> void:
+	if not actors.has(player_id): return
+	var player: Dictionary = actors[player_id]
+	if actor.id == player_id or (actor.map_id == player.map_id and can_see(player,actor.pos)): events.append(message)
+
+func _hearing_context() -> void:
+	var current: String = actors[player_id].map_id if actors.has(player_id) else ""
+	if current != hearing_map:
+		hearing_map = current
+		distant_pairs.clear()
+		hearing_fighting = false
+
+func report_combat(a: Dictionary, b: Dictionary, message: String) -> void:
+	_hearing_context()
+	if not actors.has(player_id) or a.map_id != hearing_map: return
+	var player: Dictionary = actors[player_id]
+	if a.id == player_id or b.id == player_id or (can_see(player,a.pos) and can_see(player,b.pos)):
+		events.append(message)
+		return
+	var key: String = str(mini(a.id,b.id))+":"+str(maxi(a.id,b.id))
+	distant_pairs[key] = [a.id,b.id]
+	if not hearing_fighting:
+		events.append("You hear fighting in the distance.")
+		hearing_fighting = true
+
+func finish_hearing() -> void:
+	_hearing_context()
+	if not hearing_fighting: return
+	var player: Dictionary = actors[player_id]
+	var became_visible: bool = false
+	for key: String in distant_pairs.keys():
+		var pair: Array = distant_pairs[key]
+		if not actors.has(pair[0]) or not actors.has(pair[1]): distant_pairs.erase(key); continue
+		var a: Dictionary = actors[pair[0]]
+		var b: Dictionary = actors[pair[1]]
+		if a.hp <= 0 or b.hp <= 0 or a.map_id != hearing_map or b.map_id != hearing_map or not hostile(a,b):
+			distant_pairs.erase(key)
+		elif can_see(player,a.pos) and can_see(player,b.pos):
+			became_visible = true
+			distant_pairs.erase(key)
+		elif not can_see(a,b.pos) and not can_see(b,a.pos) and a.trail.is_empty() and b.trail.is_empty(): distant_pairs.erase(key)
+	if distant_pairs.is_empty():
+		if not became_visible: events.append("The distant fighting falls silent.")
+		hearing_fighting = false
+
+func set_sight_effect(actor: Dictionary, source: String, modifier: int) -> Dictionary:
+	if source.is_empty(): return result(false,"Production/Actors/actor_world.gd: sight effects require a source.")
+	if not actor.has("sight_effects"): actor.sight_effects = {}
+	if modifier == 0: actor.sight_effects.erase(source)
+	else: actor.sight_effects[source] = modifier
+	if actors.has(player_id): refresh_action_mode(actors[player_id])
+	return result(true,"Sight updated.")
+
+func record_attack_effect(actor: Dictionary, target: Dictionary, weapon: Dictionary, damage: int, lunging: bool) -> void:
+	if not actors.has(player_id): return
+	var player: Dictionary = actors[player_id]
+	if actor.map_id != player.map_id or not can_see(player,actor.pos) or not can_see(player,target.pos): return
+	attack_events.append({"map_id":actor.map_id,"from":actor.pos,"to":target.pos,"category":weapon.get("category","swords"),"two_handed":Equipment.hands(actor,weapon)==2,"channel":weapon.get("damage_type","physical"),"blocked":damage==0,"lunge":lunging})
+	if attack_events.size() > 64: attack_events.pop_front()

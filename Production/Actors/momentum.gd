@@ -1,12 +1,13 @@
 extends RefCounted
 ## Speed is independent of movement distance. Effect keys identify their owning source.
+const Rings = preload("res://Production/Actors/rings.gd")
 const DEFAULT_THRESHOLD: int = 3
 static func initialize(actor: Dictionary) -> void:
 	if not actor.has("momentum"): actor.momentum = 0.0
 	if not actor.has("speed_effects"): actor.speed_effects = {}
 	if not actor.actions.has("free"): actor.actions.free = 0
 static func speed(actor: Dictionary) -> float:
-	var value: float = float(actor.stats.DEX)
+	var value: float = float(Rings.stat(actor,"DEX")+Rings.bonus(actor,"momentum"))
 	for modifier: float in actor.get("speed_effects",{}).values(): value += modifier
 	return maxf(0.0,value)
 static func grants(actor: Dictionary, threshold: int) -> int:

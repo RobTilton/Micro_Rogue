@@ -4,8 +4,8 @@ const Combat = preload("res://Production/Actors/combat.gd")
 const Rules = preload("res://Production/Actors/equipment_rules.gd")
 const COLUMNS: int = 8
 const ROWS: int = 5
-const SHAPES: Dictionary = {"ration": Vector2i(1,1), "potion": Vector2i(1,1), "belt": Vector2i(2,1), "armor": Vector2i(2,2), "shield": Vector2i(2,2), "sword": Vector2i(1,2), "weapon": Vector2i(1,3)}
-const EQUIPMENT: Array[String] = ["main", "off", "armor", "head", "arms", "legs", "belt"]
+const SHAPES: Dictionary = {"ring": Vector2i(1,1), "ration": Vector2i(1,1), "potion": Vector2i(1,1), "belt": Vector2i(2,1), "armor": Vector2i(2,2), "shield": Vector2i(2,2), "sword": Vector2i(1,2), "weapon": Vector2i(1,3)}
+const EQUIPMENT = Rules.SLOTS
 
 static func footprint(item: Dictionary, rotated: bool = false) -> Vector2i:
 	var shape: Vector2i = SHAPES.get(item.get("kind", ""), Vector2i.ZERO)
@@ -83,6 +83,7 @@ static func _detach(actor: Dictionary, ground: Array, source: Dictionary) -> Dic
 	return item
 
 static func _put_belt(actor: Dictionary, item: Dictionary, target: Dictionary) -> bool:
+	if not actor.get("humanoid",true): return false
 	var belt: Dictionary = belt_by_id(actor,target.get("belt_id",-1))
 	if item.kind != "potion" or belt.is_empty(): return false
 	var used: Array = []
@@ -104,6 +105,7 @@ static func _compatible(actor: Dictionary, item: Dictionary, slot: String) -> bo
 static func _validate_item(item: Dictionary, seen: Dictionary) -> bool:
 	var item_id: int = item.get("item_id",-1)
 	if item_id < 1 or seen.has(item_id) or not SHAPES.has(item.get("kind","")): return false
+	if item.kind == "ring" and not Rules.Rings.valid(item): return false
 	seen[item_id] = true
 	if item.kind == "belt":
 		var slots: Array = []
@@ -123,12 +125,13 @@ static func valid(actor: Dictionary, ground: Array) -> bool:
 	for slot: String in EQUIPMENT:
 		if not actor.get(slot,{}).is_empty():
 			if not _validate_item(actor[slot],seen): return false
-			if actor[slot].has("rules_version") and not Rules.compatible(actor,actor[slot],slot): return false
+			if (actor[slot].has("rules_version") or actor[slot].kind == "ring") and not Rules.compatible(actor,actor[slot],slot): return false
 	for entry: Dictionary in ground:
 		if not _validate_item(entry.item,seen): return false
 	return true
 
 static func transfer(actor: Dictionary, ground: Array, actions: Dictionary, battle: bool, source: Dictionary, target: Dictionary, preview: bool = false, map = null) -> Dictionary:
+	if not actor.get("humanoid",true): return {"ok":false,"reason":"Production/Actors/grid_inventory.gd: non-humanoids cannot handle equipment or inventory items."}
 	if not valid(actor,ground): return {"ok":false,"reason":"Inventory state is invalid; transfer refused."}
 	if actor.hp <= 0: return {"ok":false,"reason":"This adventurer cannot act."}
 	if source == target: return {"ok":false,"reason":"Item is already there."}
@@ -142,10 +145,18 @@ static func transfer(actor: Dictionary, ground: Array, actions: Dictionary, batt
 	Rules.initialize(planned)
 	var planned_ground: Array = ground.duplicate(true)
 	var planned_actions: Dictionary = actions.duplicate(true)
-	var item: Dictionary = _detach(planned,planned_ground,source)
+	var item: Dictionary = source_item(planned,planned_ground,source) if target.get("zone") == "empty_belt" else _detach(planned,planned_ground,source)
 	if item.is_empty(): return {"ok":false,"reason":"That item is no longer at its source."}
 	var accepted: bool = false
 	match target.get("zone", ""):
+		"empty_belt":
+			if source.get("zone") not in ["bag","equipment"] or item.kind != "belt": return {"ok":false,"reason":"Production/Actors/grid_inventory.gd: select a carried belt."}
+			if item.contents.is_empty(): return {"ok":false,"reason":"Production/Actors/grid_inventory.gd: belt is already empty."}
+			for potion: Dictionary in item.contents:
+				if not place_auto(planned.bag,potion): return {"ok":false,"reason":"Production/Actors/grid_inventory.gd: not enough backpack space to empty this belt. Nothing moved."}
+				potion.erase("pouch")
+			item.contents.clear()
+			accepted = true
 		"bag":
 			accepted = place(planned.bag,item,target.cell,target.get("rotated",item.get("rotated",false))) if target.has("cell") else place_auto(planned.bag,item)
 		"pickup":
@@ -173,6 +184,11 @@ static func transfer(actor: Dictionary, ground: Array, actions: Dictionary, batt
 		elif not (source.zone == "bag" and target.zone == "bag"):
 			if Combat.available(planned_actions,"activation") <= 0: return {"ok":false,"reason":"This needs an activation action."}
 			Combat.spend(planned_actions,"activation")
+	Rules.Rings.sync_health(planned)
+	# Removing action gear removes its unspent allowance; equipping never refills this turn.
+	for kind: String in ["attack","move","free"]:
+		var lost: int = maxi(0,Combat.allowance(actor)[kind]-Combat.allowance(planned)[kind])
+		planned_actions[kind] = maxi(0,int(planned_actions.get(kind,0))-lost)
 	var allowance: int = Combat.allowance(planned).attack
 	planned_actions.attack = mini(planned_actions.attack,maxi(0,allowance - planned_actions.used_attacks))
 	if source.zone == "equipment" and source.get("slot") in ["main","off"]: planned.riposte = false
@@ -182,6 +198,9 @@ static func transfer(actor: Dictionary, ground: Array, actions: Dictionary, batt
 	actor.bag = planned.bag
 	actor.riposte = planned.riposte
 	actor.grip = planned.grip
+	actor.hp = planned.hp
+	actor.max_hp = planned.max_hp
+	actor.ring_hp_bonus = planned.ring_hp_bonus
 	ground.assign(planned_ground)
 	actions.merge(planned_actions,true)
-	return {"ok":true,"reason":"Moved " + item.name + "."}
+	return {"ok":true,"reason":("Emptied " if target.get("zone") == "empty_belt" else "Moved ") + item.name + "."}

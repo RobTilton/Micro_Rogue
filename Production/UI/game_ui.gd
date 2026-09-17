@@ -171,15 +171,15 @@ func _refresh() -> void:
 	board.highlights = []
 	if player.hp > 0:
 		if mode == "move" and (not battle or Combat.available(actions,"move") > 0): board.highlights = _movement_paths().keys()
-		elif mode == "retreat": board.highlights = Paths.paths(player.pos,ceili(player.stats.DEX*0.5),_blocked(),active_map).keys()
+		elif mode == "retreat": board.highlights = Paths.paths(player.pos,ceili(Rings.stat(player,"DEX")*0.5),_blocked(),active_map).keys()
 		elif mode == "lunge" and _skill_available("Lunge"):
-			board.highlights = Paths.paths(player.pos,ceili(player.stats.DEX*0.5+1),_blocked(),active_map).keys()
+			board.highlights = Paths.paths(player.pos,ceili(Rings.stat(player,"DEX")*0.5+1),_blocked(),active_map).keys()
 	board.preview_path = preview_path
 	board.queue_redraw()
 	preview_row.visible = not preview_path.is_empty()
 	preview_label.text = "Move to %s · %d hexes · %s" % [preview_destination,preview_path.size(),"1 movement action" if battle else "free roaming"]
 	if active_map != null and active_map.layer == "Global":
-		preview_label.text = "Move to %s · %d hexes · terrain cost %.1f / %d" % [preview_destination,preview_path.size(),Travel.path_cost(active_map,preview_path),3+player.stats.DEX]
+		preview_label.text = "Move to %s · %d hexes · terrain cost %.1f / %d" % [preview_destination,preview_path.size(),Travel.path_cost(active_map,preview_path),Rings.movement(player)]
 	notice.text = messages.back() if not messages.is_empty() else "Click a hex to preview movement. Shift-click moves immediately."
 	if player.hp <= 0: notice.text = "Your adventure ends. Open Character to roll a new adventurer."
 	var belt: Dictionary = Grid.belt_by_id(player,inspected_belt)
@@ -196,6 +196,9 @@ func _refresh() -> void:
 		"Skills": _skills_panel(host.content)
 		"Logs": _logs_panel(host.content)
 		"Options": _options_panel(host.content)
+		"Controls":
+			preload("res://Production/UI/controls_help.gd").build(host.content)
+			Parts.button(host.content,"Back to Options",_toggle_panel.bind("Options",160))
 		"Activate": _activate_panel(host.content)
 		"Look": _look_panel(host.content)
 		"Tile": _tile_panel(host.content)
@@ -211,7 +214,8 @@ func _wrap(parent: Node, text: String, width: float = 300) -> Label:
 func _character_panel(parent: Node) -> void:
 	Parts.label(parent,"Level %d · XP %d/%d" % [player.level,player.xp,player.required_xp],22)
 	Parts.label(parent,"HP %d / %d" % [player.hp,player.max_hp],20)
-	for stat: String in Actors.STATS: Parts.label(parent,"%s     %d" % [stat,player.stats[stat]])
+	for stat: String in Actors.STATS: Parts.label(parent,"%s     %d" % [stat,Rings.stat(player,stat)])
+	Parts.label(parent,"Sight: %d hexes (base + WIS / 2 + effects)" % preload("res://Production/Actors/perception.gd").radius(player))
 	_wrap(parent,"Physical Defense: %d (CON + equipment)\nMagical Defense: %d (WIL + equipment)\nMatching defense subtracts from damage; minimum 0." % [Combat.defense(player,"physical"),Combat.defense(player,"magical")])
 	if not battle and player.hp > 0 and (active_map == null or active_map.layer == "POI"): Parts.button(parent,"Next test encounter",func(): round_number += 1; _spawn_enemy())
 	if player.hp <= 0: Parts.button(parent,"Roll a new adventurer",_new_character)
@@ -232,6 +236,7 @@ func _logs_panel(parent: Node) -> void:
 	_wrap(parent,"\n\n".join(messages),520)
 
 func _options_panel(parent: Node) -> void:
+	Parts.button(parent,"Controls",_toggle_panel.bind("Controls",160))
 	var toggle: CheckButton = CheckButton.new()
 	toggle.text = "Confirm ordinary movement"
 	toggle.button_pressed = confirm_movement
@@ -253,7 +258,7 @@ func _inventory_panel(parent: Node) -> void:
 		"main":Rect2(12,72,100,122),"off":Rect2(304,72,100,122),
 		"arms":Rect2(12,213,100,68),"belt":Rect2(151,185,118,38),"legs":Rect2(161,239,98,75)}
 	var names: Dictionary = {"head":"Head","armor":"Chest","main":"Main hand","off":"Off hand","arms":"Hands / arms","belt":"Belt","legs":"Legs / feet"}
-	for slot: String in Grid.EQUIPMENT:
+	for slot: String in locations:
 		var item: Dictionary = player[slot]
 		var target: Button = _item_target(doll,item,{"zone":"equipment","slot":slot,"id":item.get("item_id",-1)},{"zone":"equipment","slot":slot},names[slot]+"\n"+item.get("name","Empty"))
 		target.position = locations[slot].position
@@ -290,10 +295,14 @@ func _inventory_panel(parent: Node) -> void:
 			if slot == "belt": inspected_belt = selected_item
 			_refresh.call_deferred())
 	for index: int in range(8):
-		var ring: Button = Parts.button(doll,"○",func(): pass,false)
+		var slot: String = Rings.SLOTS[index]
+		var item: Dictionary = player.get(slot,{})
+		var ring: Button = _item_target(doll,item,{"zone":"equipment","slot":slot,"id":item.get("item_id",-1)},{"zone":"equipment","slot":slot},"○" if item.is_empty() else "●")
 		ring.position = Vector2(299+(index%4)*27,215+(int(index/4.0))*28)
+		ring.custom_minimum_size = Vector2.ZERO
 		ring.size = Vector2(25,26)
-		ring.tooltip_text = "Ring %d · future equipment slot" % (index+1)
+		ring.tooltip_text = "Ring %d" % (index+1) if item.is_empty() else Inspection.tooltip(item)
+		ring.pressed.connect(func(): selected_item = item.get("item_id",-1); _refresh.call_deferred())
 	for index: int in range(2):
 		var necklace: Button = Parts.button(doll,"◇",func(): pass,false)
 		necklace.position = Vector2(299+index*38,278)
@@ -301,7 +310,7 @@ func _inventory_panel(parent: Node) -> void:
 		necklace.tooltip_text = "Necklace %d · future equipment slot" % (index+1)
 	Parts.label(left,"Equipped belt pouches",16)
 	var pouches := GridContainer.new()
-	pouches.columns = 7
+	pouches.columns = 5
 	left.add_child(pouches)
 	if player.belt.is_empty(): Parts.label(pouches,"No belt equipped",15)
 	else:
@@ -317,6 +326,8 @@ func _inventory_panel(parent: Node) -> void:
 	current_grid.items = player.bag
 	current_grid.selected_id = selected_item
 	current_grid.validator = _can_transfer
+	current_grid.quick_equip.connect(_quick_equip)
+	current_grid.item_context.connect(_inventory_context)
 	current_grid.transfer_requested.connect(_transfer)
 	current_grid.item_selected.connect(_select_item)
 	current_grid.selection_completed.connect(func(): _refresh.call_deferred())
@@ -328,16 +339,17 @@ func _inventory_panel(parent: Node) -> void:
 	layout.add_child(details)
 	Parts.label(details,"Adventurer · Level %d" % player.level,20)
 	Parts.label(details,"HP %d / %d" % [player.hp,player.max_hp])
-	for stat: String in Actors.STATS: Parts.label(details,"%s    %d" % [stat,player.stats[stat]])
+	for stat: String in Actors.STATS: Parts.label(details,"%s    %d" % [stat,Rings.stat(player,stat)])
+	Parts.label(details,"Sight: %d hexes" % preload("res://Production/Actors/perception.gd").radius(player))
 	_wrap(details,"Physical Defense: %d\nMagical Defense: %d" % [Combat.defense(player,"physical"),Combat.defense(player,"magical")],200)
 	if not player.main.is_empty():
 		var rules = preload("res://Production/Actors/equipment_rules.gd")
-		var flat: int = rules.damage_bonus(player.main)+rules.stat_bonus(player,player.main)+int(player.get("attack_modifier",0))
+		var flat: int = rules.damage_bonus(player.main)+rules.stat_bonus(player,player.main)+int(player.get("attack_modifier",0))+Rings.bonus(player,player.main.get("damage_type","physical")+"_damage")
 		_wrap(details,"Main-hand %s damage\n%d–%d · average %.1f\nBefore target defense" % [player.main.get("damage_type","physical"),1+flat,player.main.die+flat,(player.main.die+1)*0.5+flat],200)
 	else: Parts.label(details,"Main hand: empty",16)
 	Parts.label(details,"Gold: %d" % player.get("gold",0),20)
 	_wrap(details,_inventory_time_label(),200)
-	_wrap(details,"Ring and necklace slots: coming later.",200)
+	_wrap(details,"Eight ring slots · bonuses stack. Amulets: coming later.",200)
 	var selection: Dictionary = _selected_source()
 	if not selection.is_empty():
 		var item: Dictionary = Grid.source_item(player,loot,selection)
@@ -361,6 +373,8 @@ func _item_target(parent: Node, item: Dictionary, source: Dictionary, target: Di
 	button.text = text
 	button.clip_text = true
 	button.tooltip_text = text
+	button.quick_equip.connect(_quick_equip)
+	button.item_context.connect(_inventory_context)
 	button.transfer_requested.connect(_transfer)
 	parent.add_child(button)
 	return button
@@ -386,7 +400,7 @@ func _activate_panel(parent: Node) -> void:
 	Parts.label(parent,"Equipped belt",20)
 	if player.belt.get("contents",[]).is_empty(): Parts.label(parent,"No usable potions.",16)
 	for potion: Dictionary in player.belt.get("contents",[]):
-		Parts.button(parent,"Pouch %d · Lesser Health · heal %d" % [potion.pouch+1,player.stats.CON],_drink_potion.bind(potion.item_id),_inventory_allowed())
+		Parts.button(parent,"Pouch %d · Lesser Health · heal %d" % [potion.pouch+1,Rings.healing(player)],_drink_potion.bind(potion.item_id),_inventory_allowed())
 	Parts.button(parent,"Backpack",func(): _toggle_panel("Inventory",200))
 	Parts.label(parent,"Nearby",20)
 	var count: int = 0
@@ -421,7 +435,7 @@ func _blocked() -> Array:
 	return [enemy.pos] if enemy.hp > 0 else []
 
 func _movement_paths() -> Dictionary:
-	return Paths.paths(player.pos,3+player.stats.DEX,_blocked(),active_map)
+	return Paths.paths(player.pos,Rings.movement(player),_blocked(),active_map)
 
 func _board_intent(cell: Vector2i, bypass: bool) -> void:
 	if player.hp <= 0: return
@@ -581,8 +595,9 @@ func _map_panel(parent: Node) -> void:
 	if active_map.layer == "Global":
 		_wrap(parent,"World: 80 wide × 40 playable rows, ice caps north/south, east–west wrap.\nTravel: mountains ×3; hills, swamp, marsh, salt marsh ×2; forest ×1.5; plains, wasteland, desert ×1. Costs apply when entering each hex. Water travel remains provisional; boats are not implemented.")
 		return
-	for cell: Vector2i in active_map.links:
-		Parts.label(parent,"%s · %s" % [cell,active_map.links[cell].label],14)
+	for cell: Vector2i in (board.map_data.links if board != null and board.get("fog_enabled") == true else active_map.links):
+		var displayed = board.map_data if board != null and board.get("fog_enabled") == true else active_map
+		Parts.label(parent,"%s · %s" % [cell,displayed.links[cell].label],14)
 
 func _reachable(limit: int) -> Dictionary:
 	return Paths.paths(player.pos,limit,_blocked(),active_map)
@@ -640,3 +655,26 @@ func _shop_panel(parent: Node) -> void:
 
 func _quests_panel(parent: Node) -> void:
 	Parts.label(parent,"No quests available.")
+
+func _quick_equip(source: Dictionary) -> void:
+	var item: Dictionary = Grid.source_item(player,loot,source)
+	if item.is_empty(): return
+	if source.get("zone") == "equipment":
+		_transfer(source,{"zone":"bag"})
+	elif source.get("zone") == "bag" and item.kind == "potion":
+		_transfer(source,{"zone":"belt","belt_id":player.belt.get("item_id",-1)})
+	elif source.get("zone") == "bag" and item.kind not in ["potion","ration"]:
+		var slot: String = Rings.first_slot(player) if item.kind == "ring" else item.get("slot",{"sword":"main","weapon":"main","shield":"off","armor":"armor","belt":"belt"}.get(item.kind,""))
+		if slot in Grid.EQUIPMENT: _transfer(source,{"zone":"equipment","slot":slot})
+
+func _inventory_context(source: Dictionary) -> void:
+	var item: Dictionary = Grid.source_item(player,loot,source)
+	if item.get("kind") != "belt" or source.get("zone") not in ["bag","equipment"]: return
+	var menu := PopupMenu.new()
+	add_child(menu)
+	menu.add_item("Empty belt",0)
+	menu.set_item_disabled(0,item.contents.is_empty())
+	menu.id_pressed.connect(func(_id: int): _transfer(source,{"zone":"empty_belt"}))
+	menu.popup_hide.connect(menu.queue_free)
+	menu.position = Vector2i(get_viewport().get_mouse_position())
+	menu.popup()

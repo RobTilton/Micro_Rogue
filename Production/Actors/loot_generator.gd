@@ -42,10 +42,10 @@ static func _catalog_error(data: Dictionary) -> String:
 	var quality_ids: Array = []
 	var total: int = 0
 	for quality in data.qualities:
-		if not _named(quality) or quality.id in quality_ids or not quality.get("color") is String or not whole(quality.get("weight"),1,100): return "invalid quality"
+		if not _named(quality) or quality.id in quality_ids or not quality.get("color") is String or not whole(quality.get("weight"),1,1000): return "invalid quality"
 		quality_ids.append(quality.id)
 		total += int(quality.weight)
-	if total != 100: return "quality weights must total 100"
+	if total != 1000: return "quality weights must total 1000"
 	for category_id in data.categories:
 		var category = data.categories[category_id]
 		if not (category_id is String or category_id is StringName) or str(category_id).is_empty() or not category is Dictionary: return "invalid category"
@@ -108,7 +108,7 @@ func generate(rng: RandomNumberGenerator, request: Dictionary) -> Dictionary:
 	var base: Dictionary = selected.base
 	var material: Dictionary = selected.materials[rng.randi_range(0,selected.materials.size()-1)].duplicate(true)
 	var category: Dictionary = catalog.categories[base.category]
-	var quality: Dictionary = quality_at(rng.randi_range(1,100))
+	var quality: Dictionary = quality_at(rng.randi_range(1,1000))
 	var layers: Dictionary = {}
 	for layer: String in catalog.affix_layers: layers[layer] = []
 	var item: Dictionary = {
@@ -125,7 +125,7 @@ func generate(rng: RandomNumberGenerator, request: Dictionary) -> Dictionary:
 	return {"ok":true,"item":item}
 
 func quality_at(roll: int) -> Dictionary:
-	if not error.is_empty() or roll < 1 or roll > 100: return {}
+	if not error.is_empty() or roll < 1 or roll > 1000: return {}
 	for quality: Dictionary in catalog.qualities:
 		roll -= int(quality.weight)
 		if roll <= 0: return quality.duplicate(true)

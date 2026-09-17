@@ -1,4 +1,5 @@
 extends RefCounted
+const Rings = preload("res://Production/Actors/rings.gd")
 const Rules = preload("res://Production/Actors/equipment_rules.gd")
 const Items = preload("res://Production/Actors/items.gd")
 const DIRECTIONS = [Vector2i(1,0), Vector2i(1,-1), Vector2i(0,-1), Vector2i(-1,0), Vector2i(-1,1), Vector2i(0,1)]
@@ -6,29 +7,32 @@ static func distance(a: Vector2i, b: Vector2i) -> int:
 	var delta: Vector2i = a - b
 	return maxi(absi(delta.x), maxi(absi(delta.y), absi(delta.x + delta.y)))
 static func allowance(actor: Dictionary) -> Dictionary:
-	return {"attack": 2 if "Show-Off" in actor.skills and actor.main.get("kind") == "sword" and actor.off.get("kind") == "sword" else 1, "move": 1, "activation": 1, "used_attacks": 0, "free": 0}
+	var actions: Dictionary = {"attack": 2 if preload("res://Production/Actors/skill_board.gd").active(actor,"Show-Off") and actor.main.get("kind") == "sword" and actor.off.get("kind") == "sword" else 1, "move": 1, "activation": 1, "used_attacks": 0, "free": 0}
+	for kind: String in ["attack","move","free"]: actions[kind] += Rings.bonus(actor,kind+"_action")
+	return actions
 static func final_damage(raw: float, _player_attacking: bool = true, _difficulty: int = 0) -> int:
 	return maxi(0,floori(raw))
 static func weapon_damage(actor: Dictionary, weapon: Dictionary) -> float:
-	return Items.roll(weapon)+Rules.stat_bonus(actor,weapon)+actor.get("attack_modifier",0)
+	return Items.roll(weapon)+Rules.stat_bonus(actor,weapon)+actor.get("attack_modifier",0)+Rings.bonus(actor,weapon.get("damage_type","physical")+"_damage")
 static func attack_range(actor: Dictionary) -> int:
-	return int(actor.main.get("range",1))+int(actor.get("range_modifier",0))
+	return int((actor.main if actor.get("humanoid",true) else actor.get("natural_attack",{})).get("range",1))+int(actor.get("range_modifier",0))
 static func defense(actor: Dictionary, channel: String = "physical") -> int:
-	var value: int = actor.stats.CON if channel == "physical" else actor.stats.WIL
+	var value: int = Rings.stat(actor,"CON") if channel == "physical" else Rings.stat(actor,"WIL")
+	value += Rings.bonus(actor,channel+"_defense")
 	value += int(actor.get("effects_defense",0))+int(actor.get(channel+"_defense_modifier",0))
 	for slot: String in Rules.ARMOR_SLOTS: value += Rules.defense_item(actor.get(slot,{}),channel)
-	if actor.off.get("kind") == "shield": value += Rules.defense_item(actor.off,channel)
-	if actor.riposte and channel == "physical": value += actor.stats.DEX
+	if actor.get("humanoid",true) and actor.off.get("kind") == "shield": value += Rules.defense_item(actor.off,channel)
+	if actor.get("humanoid",true) and actor.riposte and preload("res://Production/Actors/skill_board.gd").active(actor,"Riposte") and channel == "physical": value += Rings.stat(actor,"DEX")
 	return maxi(0,value)
 static func attack(source: Dictionary, target: Dictionary, weapon: Dictionary, lunge: bool, player_attacking: bool, difficulty: int) -> int:
 	var power: float = weapon_damage(source,weapon)
-	if lunge: power += floori(source.stats.STR*1.5)
+	if lunge: power += floori(Rings.stat(source,"STR")*1.5)
 	var damage: int = final_damage(power-defense(target,weapon.get("damage_type","physical")),player_attacking,difficulty)
 	target.hp = maxi(0,target.hp-damage)
 	return damage
 static func heal(actor: Dictionary) -> int:
 	var before: int = actor.hp
-	actor.hp = mini(actor.max_hp, actor.hp + actor.stats.CON)
+	actor.hp = mini(actor.max_hp, actor.hp + Rings.healing(actor))
 	return actor.hp - before
 static func loot_cost(actions: Dictionary) -> bool:
 	if actions.get("exploration",false): return true

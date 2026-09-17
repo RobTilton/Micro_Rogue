@@ -8,8 +8,9 @@ const DIRECTIONS: Array[Vector2i] = [Vector2i(1,0),Vector2i(1,-1),Vector2i(0,-1)
 @export var display_name: String = ""
 @export_enum("Martial","Mental Mastery","Magic","Monk","Custom") var skill_bucket: String = "Martial"
 @export var custom_bucket: String = ""
-@export var tags: PackedStringArray = []
-@export var is_origin: bool = false
+## Family identity is Skill Bucket; tags are retained as legacy notes only.
+@export_storage var tags: PackedStringArray = []
+@export_storage var is_origin: bool = false
 @export_enum("Active ability","Passive","Neighbor modifier","Origin","Undecided") var skill_kind: String = "Undecided"
 @export_category("Footprint")
 @export_enum("Single hex","Two hex line","Three hex line","Three hex bend","Three hex triangle","Four hex hook","Seven hex flower","Custom") var shape: String = "Single hex"
@@ -25,13 +26,15 @@ const DIRECTIONS: Array[Vector2i] = [Vector2i(1,0),Vector2i(1,-1),Vector2i(0,-1)
 @export_range(0,100) var minimum_points_in_bucket: int = 0
 @export_multiline var prerequisite_notes: String = ""
 @export_category("Origin and Chain")
-@export var requires_origin: bool = true
+@export_storage var requires_origin: bool = true
 ## Blank means the skill's own bucket origin.
-@export var origin_skill_id: String = ""
-@export var chain_bucket: String = "Same as skill"
-@export_enum("Undecided","Minimum qualifying cells","Minimum distinct skills","Maximum path length","Exact path length") var chain_measure: String = "Undecided"
-@export_range(0,100) var chain_amount: int = 0
-@export var chain_tags: PackedStringArray = []
+@export_storage var origin_skill_id: String = ""
+@export_storage var chain_bucket: String = "Same as skill"
+@export_storage var chain_measure: String = "Undecided"
+@export_storage var chain_amount: int = 0
+@export_storage var chain_tags: PackedStringArray = []
+## Minimum distinct skills back to this family origin. Origin counts as 1; self is excluded.
+@export_range(0,60) var required_chain_length: int = 0
 @export_multiline var chain_notes: String = ""
 @export_category("Adjacency")
 ## Add an element, then choose New Resource of the adjacency-rule type and expand it.
@@ -86,7 +89,7 @@ func problems() -> PackedStringArray:
 		if rule == null: errors.append("An adjacency entry is empty. Create its rule resource or remove that entry.")
 	return errors
 func as_data() -> Dictionary:
-	var result: Dictionary = {"schema_version":1,"status":"idea_only"}
+	var result: Dictionary = {"schema_version":2,"status":"idea_only","legacy_notes":{"tags":Array(tags),"is_origin":is_origin,"requires_origin":requires_origin,"origin_skill_id":origin_skill_id,"chain_bucket":chain_bucket,"chain_measure":chain_measure,"chain_amount":chain_amount,"chain_tags":Array(chain_tags)}}
 	for property: Dictionary in get_property_list():
 		if not (property.usage & PROPERTY_USAGE_SCRIPT_VARIABLE) or not (property.usage & PROPERTY_USAGE_EDITOR): continue
 		var value = get(property.name)
@@ -96,7 +99,19 @@ func as_data() -> Dictionary:
 	result.resolved_bucket = bucket()
 	result.footprint = []
 	for cell: Vector2i in footprint(): result.footprint.append([cell.x,cell.y])
+	result.board_definition = board_definition()
+	result.board_definition.footprint = result.footprint.duplicate(true)
 	result.adjacency_rules = []
 	for rule in adjacency_rules:
 		if rule != null: result.adjacency_rules.append(rule.as_data())
 	return result
+
+## Executable spatial data only. Free-text effects still require an implementation.
+func board_definition() -> Dictionary:
+	var rules: Array = []
+	for rule in adjacency_rules:
+		if rule == null or rule.requirement != "Mandatory": continue
+		var families: Array = Array(rule.adjacent_skill_tags)
+		if families.is_empty(): families.append(bucket() if rule.skill_bucket == "Any" else rule.skill_bucket)
+		rules.append({"count":rule.minimum,"families":families})
+	return {"family":bucket(),"footprint":footprint(),"chain":required_chain_length,"adjacency":rules,"cost":skill_point_cost,"prerequisites":Array(prerequisite_skill_ids),"allow_rotation":allow_rotation,"allow_mirror":allow_mirror}

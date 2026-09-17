@@ -1,6 +1,7 @@
 extends RefCounted
+const Rings = preload("res://Production/Actors/rings.gd")
 const ARMOR_SLOTS = ["armor","head","arms","legs"]
-const SLOTS = ["main","off","armor","head","arms","legs","belt"]
+const SLOTS = ["main","off","armor","head","arms","legs","belt","ring_1","ring_2","ring_3","ring_4","ring_5","ring_6","ring_7","ring_8"]
 const QUALITY_MODIFIERS = [-1,0,1,2,3,5]
 static func is_weapon(item: Dictionary) -> bool:
 	return item.get("kind","") in ["sword","weapon"]
@@ -13,8 +14,11 @@ static func hands(actor: Dictionary, weapon: Dictionary) -> int:
 	if weapon.get("hands","one") == "versatile" and actor.get("grip","one") == "two" and actor.off.is_empty(): return 2
 	return 1
 static func compatible(actor: Dictionary, item: Dictionary, slot: String) -> bool:
+	if not actor.get("humanoid",true): return false
+	if slot in Rings.SLOTS: return item.kind == "ring" and Rings.valid(item)
 	if slot == "main": return is_weapon(item) and (item.get("hands","one") != "two" or actor.off.is_empty())
 	if slot == "off":
+		# Learned ownership permits carrying the item through a board respec; attacks require active Show-Off.
 		if not actor.main.is_empty() and hands(actor,actor.main) == 2: return false
 		return item.kind == "shield" or (item.kind == "sword" and item.get("hands","one") != "two" and actor.main.get("kind") == "sword" and "Show-Off" in actor.skills)
 	if slot in ARMOR_SLOTS: return item.kind == "armor" and item.get("slot","armor") == slot
@@ -26,13 +30,13 @@ static func defense_item(item: Dictionary, channel: String) -> int:
 	var legacy: int = maxi(0,int(item.get("die",0))+int(item.get("bonus",0))) if item.get("kind") in ["armor","shield"] else 0
 	return roundi(legacy*0.5) if item.get("kind") == "shield" else legacy
 static func stat_bonus(actor: Dictionary, weapon: Dictionary) -> int:
-	var stats: Dictionary = actor.stats
+	var stats: Dictionary = Rings.stats(actor)
 	var two: bool = hands(actor,weapon) == 2
 	match weapon.get("category","swords"):
-		"daggers","bows": return stats.DEX
+		"bows": return stats.STR
 		"staffs": return stats.INT
 		"maces": return floori(stats.STR*1.5) if two else stats.STR
-		_: return stats.STR+stats.DEX if two else floori((stats.STR+stats.DEX)*0.5)
+		_: return floori(stats.STR*1.5) if two else stats.STR
 static func resolve(item: Dictionary, base: Dictionary, weapon_scale: int = 2) -> Dictionary:
 	item = item.duplicate(true)
 	item.rules_version = 1

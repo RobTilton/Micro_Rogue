@@ -1,5 +1,8 @@
 extends Control
 signal cell_selected(cell: Vector2i)
+var fog_enabled: bool = false
+var fog_known: Dictionary = {}
+var fog_visible: Dictionary = {}
 var map_data = null
 var player_cell: Vector2i
 var actors: Array = []
@@ -19,7 +22,7 @@ func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO,size),Color("8e856e"),false,1)
 	if map_data == null: return
 	projected.clear()
-	var cells: Array = map_data.cells()
+	var cells: Array = fog_known.keys() if fog_enabled else map_data.cells()
 	var extent := Vector2(map_data.dimensions.x+map_data.dimensions.y*0.5,map_data.dimensions.y*0.866)
 	var scale_value: float = minf((size.x-16)/extent.x,(size.y-16)/extent.y)
 	var origin: Vector2 = (size-extent*scale_value)*0.5
@@ -34,6 +37,7 @@ func _draw() -> void:
 			color = Color({"Sea":"285675","Lakes":"34748b","Ice Wall":"bdced5","Mountains":"858579","Desert":"ac975e","Wasteland":"77614b"}.get(map_data.biomes.get(cell,""),"42635a"))
 		if map_data.shops.has(cell): color = Color("b49258")
 		elif map_data.links.has(cell) and map_data.layer != "Global": color = Color("d8b367")
+		if fog_enabled and not fog_visible.has(cell): color = color.darkened(0.65)
 		draw_circle(point,maxf(1,scale_value*0.42),color)
 	for index: int in range(1,trade_route.size()):
 		if projected.has(trade_route[index-1]) and projected.has(trade_route[index]): draw_line(projected[trade_route[index-1]],projected[trade_route[index]],Color("eac56d"),2)

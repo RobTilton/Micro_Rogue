@@ -7,7 +7,9 @@ func _ready() -> void:
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 func _draw() -> void:
 	var texture: Texture2D = Art.texture_for(item)
-	if texture != null:
+	if item.get("kind") == "ring":
+		Art.draw_ring(self,Rect2(Vector2.ZERO,size),item.get("greater",false))
+	elif texture != null:
 		Art.draw_icon(self,texture,Rect2(Vector2.ZERO,size),rotated)
 	else:
 		var text: String = {"ration":"RN","potion":"HP","sword":"SW","weapon":"WP","shield":"SH","armor":"AR","belt":"BL"}.get(item.get("kind"),"?")

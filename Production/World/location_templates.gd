@@ -7,7 +7,7 @@ const DEFINITIONS: Dictionary = {
 	"Dungeon": {"role":"POI","population":1,"layout":"ruin","allowed":[],"children":[{"slot":"floor_2","template":"DungeonFloor","label":"Dungeon Floor 2"}]},
 	"DungeonFloor": {"role":"Submap","population":1,"layout":"ruin","allowed":[],"children":[]},
 	"Town": {"role":"POI","population":0,"layout":"town","allowed":[],"children":[{"slot":"well","template":"Well","label":"Town Well"}]},
-	"Well": {"role":"Submap","population":0,"layout":"well","allowed":[],"children":[{"slot":"underground","template":"Underground","label":"Underground Ruin"}]},
+	"Well": {"role":"Submap","population":0,"layout":"well","allowed":[],"children":[]},
 	"Ruin": {"role":"POI","population":1,"layout":"ruin","allowed":[],"children":[]},
 	"Underground": {"role":"Submap","population":1,"layout":"ruin","allowed":[],"children":[]},
 	"Tower": {"role":"POI","population":1,"layout":"tower","allowed":[],"children":[{"slot":"upper","template":"TowerFloor","label":"Upper Tower"}]},

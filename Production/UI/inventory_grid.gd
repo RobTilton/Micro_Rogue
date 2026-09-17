@@ -1,5 +1,7 @@
 extends Control
 signal transfer_requested(source: Dictionary, target: Dictionary)
+signal quick_equip(source: Dictionary)
+signal item_context(source: Dictionary)
 signal item_selected(item_id: int)
 signal selection_completed
 const Art = preload("res://Production/UI/item_art.gd")
@@ -26,6 +28,18 @@ func item_at(point: Vector2) -> Dictionary:
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and not event.pressed and event.button_index == MOUSE_BUTTON_LEFT and not get_viewport().gui_is_dragging():
 		selection_completed.emit()
+	if event is InputEventMouseButton and event.pressed and event.button_index in [MOUSE_BUTTON_LEFT,MOUSE_BUTTON_RIGHT]:
+		var clicked: Dictionary = item_at(event.position)
+		if not clicked.is_empty():
+			var source: Dictionary = {"zone":"bag","id":clicked.item_id}
+			if event.button_index == MOUSE_BUTTON_RIGHT:
+				item_context.emit(source)
+				accept_event()
+				return
+			if event.shift_pressed:
+				quick_equip.emit(source)
+				accept_event()
+				return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var item: Dictionary = item_at(event.position)
 		if not item.is_empty(): item_selected.emit(item.item_id)
@@ -53,7 +67,9 @@ func _draw() -> void:
 		draw_rect(rect,Color("344b55") if item.item_id != selected_id else Color("596b48"))
 		draw_rect(rect,Art.quality_color(item),false,2)
 		var texture: Texture2D = Art.texture_for(item)
-		if texture != null:
+		if item.kind == "ring":
+			Art.draw_ring(self,rect.grow(-4),item.greater)
+		elif texture != null:
 			Art.draw_icon(self,texture,rect.grow(-4),item.get("rotated",false))
 		else:
 			var abbreviation: String = {"ration":"RN","potion":"HP","sword":"SW","weapon":"WP","shield":"SH","armor":"AR","belt":"BL"}[item.kind]

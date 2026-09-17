@@ -1,0 +1,13 @@
+# Attack Effects
+Updated: 2026-09-15
+Checkpoint: [Attack Effects]+[Runtime]+[Placeholders]
+
+F5 Production/main.tscn now presents visible attacks using transient effects. ActorWorld records successful attack/counter events with map, endpoints, weapon category, handedness, damage channel, Lunge and zero-damage state. Events require both endpoints visible to the player at occurrence. ActorGame rechecks current visibility before dispatch; the effect renderer also respects current map/fog. No hidden-fight visual information is emitted. Events are bounded to 64 and excluded from saves.
+
+Production/UI/attack_effects.gd maps swords to slash/heavy cleave, spears/Lunge to thrust, daggers to swish, axes to swing, maces to bonk, bows to an arrow, and staffs to a purple bolt. Positive physical/magical impacts use matching spark effects; zero damage uses a block flash. Counterattacks use the same events. Melee cues last 0.24 seconds; projectiles travel for 0.35 seconds; impacts last 0.20 seconds. Position/rotation follows hex endpoints and camera zoom. Damage, cooldowns, movement and action budgets remain authoritative in the existing combat system; animations do not delay resolution.
+
+Source: Workshop/Chad-Casso/Weapon_Animations/Placeholders_attacks_01.png. Identical runtime copy: Production/Assets/Effects/placeholder_attacks_01.png. This is a 1536×1024 presentation sheet with painted background and irregular frame spacing, not a clean animation atlas. Runtime region crops and an additive bright-core shader suppress the backdrop and preserve readable effect cores. Original files were not edited. Fine glows/dark debris are lost. The supplied brown arrow does not survive this treatment, so its projectile uses a small drawn arrow; impact art is reused. The thrust sequence has three usable crops despite its four-frame label. Shield bash, critical and elemental variants remain unused because corresponding gameplay is not introduced by this pass. Colors are cosmetic, not new damage types.
+
+54 focused checks passed: successful/invalid attacks, hidden event suppression, frame bounds, weapon mapping and cosmetic-only lifetime. Initial test fixture lacked its first combat turn; fixed to call begin_turn before attacking. Rendered effects.png inspected after adding the arrow fallback. Scope-specific whitespace check passed. Godot editor import completed; it reported the pre-existing duplicate UID on Workshop/Rooms/Regional Release/Reference/Production_main.tscn. That unrelated reference warning remains unresolved.
+
+Human playtest acceptance pending. Retain tests, rendered gallery and Reference originals. No player save reset or commit. Future clean transparent frames can replace this provisional sheet/shader without changing combat rules.

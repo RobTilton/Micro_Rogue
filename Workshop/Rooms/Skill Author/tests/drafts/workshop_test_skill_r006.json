@@ -1,0 +1,101 @@
+{
+	"adjacency_notes": "",
+	"adjacency_rules": [
+		{
+			"adjacent_skill_tags": [],
+			"bonus_or_notes": "Bonus effect idea.",
+			"count_by": "Distinct neighboring cells",
+			"minimum": 3,
+			"required_tags": [],
+			"requirement": "Optional bonus",
+			"skill_bucket": "Martial",
+			"specific_skill_ids": []
+		}
+	],
+	"allow_mirror": false,
+	"allow_rotation": true,
+	"balance_notes": "",
+	"board_definition": {
+		"adjacency": [],
+		"allow_mirror": false,
+		"allow_rotation": true,
+		"chain": 0,
+		"cost": 1,
+		"family": "Mental Mastery",
+		"footprint": [
+			[
+				0,
+				0
+			],
+			[
+				-1,
+				1
+			],
+			[
+				-2,
+				2
+			],
+			[
+				-1,
+				2
+			]
+		],
+		"prerequisites": [
+			"mental_origin"
+		]
+	},
+	"chain_notes": "",
+	"custom_bucket": "",
+	"display_name": "Workshop Test Skill",
+	"effect_description": "Adjacent Martial skills receive -1 cooldown. WIP: decide minimum cooldown later.",
+	"footprint": [
+		[
+			0,
+			0
+		],
+		[
+			-1,
+			1
+		],
+		[
+			-2,
+			2
+		],
+		[
+			-1,
+			2
+		]
+	],
+	"legacy_notes": {
+		"chain_amount": 5,
+		"chain_bucket": "Same as skill",
+		"chain_measure": "Minimum qualifying cells",
+		"chain_tags": [],
+		"is_origin": false,
+		"origin_skill_id": "",
+		"requires_origin": true,
+		"tags": [
+			"support",
+			"cooldown"
+		]
+	},
+	"minimum_points_in_bucket": 0,
+	"open_questions": "Should repeated cell contacts stack?",
+	"optional_bonus_description": "",
+	"prerequisite_mode": "All listed",
+	"prerequisite_notes": "",
+	"prerequisite_skill_ids": [
+		"mental_origin"
+	],
+	"required_chain_length": 0,
+	"resolved_bucket": "Mental Mastery",
+	"revision": 6,
+	"rotation_steps": 2,
+	"schema_version": 2,
+	"shape": "Four hex hook",
+	"skill_bucket": "Mental Mastery",
+	"skill_id": "workshop_test_skill",
+	"skill_kind": "Undecided",
+	"skill_point_cost": 1,
+	"status": "idea_only"
+}

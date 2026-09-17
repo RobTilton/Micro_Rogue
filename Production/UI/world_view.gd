@@ -1,5 +1,12 @@
 extends "res://Production/UI/hex_board.gd"
 const ShopRoofs = preload("res://Production/UI/shop_roofs.gd")
+var fog_enabled: bool = false
+var fog_known: Dictionary = {}
+var fog_visible: Dictionary = {}
+var source_map = null
+var fog_layer: Node2D
+func known(cell: Vector2i) -> bool:
+	return not fog_enabled or fog_known.has(cell)
 var shop_nodes: Dictionary = {}
 var shop_map_id: String = ""
 signal hex_intent(cell: Vector2i, bypass: bool)
@@ -29,6 +36,8 @@ var poi_texture: Texture2D
 var biome_texture: Texture2D
 const RiverArt = preload("res://Production/UI/river_art.gd")
 var river_texture: Texture2D
+const InteriorFloor = preload("res://Production/UI/interior_floor_art.gd")
+var interior_template: String = ""
 var floor_texture: Texture2D
 const FLOOR_SHEET: String = "res://Production/Assets/Terrain/ground_prototype_02.png"
 func _ready() -> void:
@@ -116,7 +125,7 @@ func _cell_at(position_value: Vector2):
 func board_cells() -> Array:
 	var visible_cells: Array = []
 	var visible_area: Rect2 = Rect2(Vector2.ZERO,size).grow(cell_radius())
-	for cell: Vector2i in super.board_cells():
+	for cell: Vector2i in (fog_known.keys() if fog_enabled else super.board_cells()):
 		if visible_area.has_point(center(cell)): visible_cells.append(cell)
 	return visible_cells
 
@@ -133,6 +142,10 @@ func focus_player() -> void:
 	queue_redraw()
 
 func _store_view() -> void:
+	if source_map != null:
+		source_map.view_zoom = zoom
+		source_map.view_offset = pan_offset
+		source_map.view_initialized = true
 	if map_data != null:
 		map_data.view_zoom = zoom
 		map_data.view_offset = pan_offset
@@ -150,8 +163,10 @@ func _notification(what: int) -> void:
 func _draw() -> void:
 	super._draw()
 	_sync_shop_roofs()
-	for index: int in range(1,trade_route.size()): draw_line(center(trade_route[index-1]),center(trade_route[index]),Color("eac56d"),4)
+	for index: int in range(1,trade_route.size()):
+		if known(trade_route[index-1]) and known(trade_route[index]): draw_line(center(trade_route[index-1]),center(trade_route[index]),Color("eac56d"),4)
 	for cell: Vector2i in route_labels:
+		if not known(cell): continue
 		draw_circle(center(cell),5,Color("eac56d"))
 		draw_string(ThemeDB.fallback_font,center(cell)+Vector2(-30,30),route_labels[cell],HORIZONTAL_ALIGNMENT_LEFT,-1,13,Color("fff0c2"))
 	if map_data != null:
@@ -162,8 +177,16 @@ func _draw() -> void:
 			draw_arc(center(cell), 20, 0, TAU, 6, Color("d99245"), 2)
 			var label: String = "IS" if map_data.links[cell].kind == "Island" else map_data.links[cell].kind.left(1)
 			draw_string(ThemeDB.fallback_font,center(cell)+Vector2(-5,6),label,HORIZONTAL_ALIGNMENT_LEFT,-1,16,Color("f5d879"))
+	if fog_enabled:
+		if not is_instance_valid(fog_layer):
+			fog_layer = preload("res://Production/UI/fog_memory_layer.gd").new()
+			fog_layer.board = self
+			add_child(fog_layer)
+		move_child(fog_layer,get_child_count()-1)
+		fog_layer.queue_redraw()
 	var last: Vector2 = center(player_cell)
 	for cell: Vector2i in preview_path:
+		if not known(cell): break
 		var next: Vector2 = center(cell)
 		draw_line(last,next,Color("f1d291"),3)
 		draw_circle(next,5,Color("f1d291"))
@@ -185,6 +208,9 @@ func _draw_floor(cell: Vector2i, _points: PackedVector2Array) -> void:
 		return
 	if map_data != null and map_data.biomes.has(cell):
 		_draw_biome(cell)
+		return
+	if InteriorFloor.draw_floor(self,map_data,interior_template,cell,center(cell),cell_radius()):
+		if cell in highlights: draw_colored_polygon(_points,Color(0.3,0.7,0.6,0.25))
 		return
 	if floor_texture == null:
 		super._draw_floor(cell, _points)
@@ -278,6 +304,7 @@ func _sync_shop_roofs() -> void:
 		for node: Node in shop_nodes.values(): node.queue_free()
 		shop_nodes.clear()
 		shop_map_id = map_data.id
+	for node: Node2D in shop_nodes.values(): node.visible = false
 	for cell: Vector2i in map_data.shops:
 		var shop: Dictionary = map_data.shops[cell]
 		if not shop_nodes.has(cell):
@@ -285,6 +312,7 @@ func _sync_shop_roofs() -> void:
 			add_child(sprite)
 			shop_nodes[cell] = sprite
 		var sprite: Sprite2D = shop_nodes[cell]
+		sprite.visible = true
 		sprite.position = center(cell)
 		var scale_value: float = minf((cell_radius()*sqrt(3.0)-2)/256.0,(cell_radius()*2-2)/222.0)
 		sprite.scale = Vector2.ONE*scale_value

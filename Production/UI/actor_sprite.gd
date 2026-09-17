@@ -2,6 +2,10 @@ extends Node2D
 const SHEET: Texture2D = preload("res://Production/Assets/Actors/actor_sprites_keyed.png")
 const PEOPLE: Texture2D = preload("res://Production/Assets/Scenery/people_keyed.png")
 const ENEMIES: Texture2D = preload("res://Production/Assets/Scenery/enemies_keyed.png")
+const Roster = preload("res://Production/Actors/enemy_roster.gd")
+static var enemy_textures: Dictionary = {}
+var legacy_surface: ShaderMaterial
+var enemy_surface: ShaderMaterial
 var actor: Dictionary = {}
 var selected: bool = false
 func _init() -> void:
@@ -10,7 +14,12 @@ func _init() -> void:
 	key.code = "shader_type canvas_item; void fragment(){ vec4 c=COLOR; if(c.r>0.55 && c.b>0.55 && min(c.r,c.b)-c.g>0.3){c.a=0.0;} COLOR=c; }"
 	var surface := ShaderMaterial.new()
 	surface.shader = key
+	legacy_surface = surface
 	material = surface
+	var alpha_shader := Shader.new()
+	alpha_shader.code = "shader_type canvas_item; void fragment(){ COLOR.a=smoothstep(0.5,0.95,COLOR.a); }"
+	enemy_surface = ShaderMaterial.new()
+	enemy_surface.shader = alpha_shader
 func _draw() -> void:
 	if actor.is_empty(): return
 	var hero: bool = actor.faction == "player"
@@ -25,7 +34,16 @@ func _draw() -> void:
 	elif actor.faction == "enemy" and actor.get("family","") == "raiders":
 		sheet = PEOPLE
 		source = Rect2(509,312,104,142)
+	var entry: Dictionary = Roster.variant(actor.get("enemy_variant","")) if actor.faction == "enemy" else {}
+	if not entry.is_empty():
+		if not enemy_textures.has(entry.sprite): enemy_textures[entry.sprite] = load(entry.sprite)
+		sheet = enemy_textures[entry.sprite]
+		var region: Array = entry.region
+		source = Rect2(region[0],region[1],region[2],region[3])
+		material = enemy_surface
+	else: material = legacy_surface
 	var extent: Vector2 = source.size*(48.0/source.size.y) if sheet != SHEET else source.size*0.088
+	if not entry.is_empty(): extent = source.size*minf(48.0/source.size.y,56.0/source.size.x)
 	var color := Color("82c6bd") if actor.faction in ["player","town"] else Color("d07570")
 	draw_arc(Vector2(0,12),17,0,TAU,24,color,2.0)
 	if selected: draw_arc(Vector2(0,12),20,0,TAU,24,Color("e6c877"),2.0)

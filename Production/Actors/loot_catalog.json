@@ -217,35 +217,35 @@
       "id": "trash",
       "name": "Trash",
       "color": "Grey",
-      "weight": 20,
+      "weight": 150,
       "modifier": -1
     },
     {
       "id": "common",
       "name": "Common",
       "color": "White",
-      "weight": 40,
+      "weight": 510,
       "modifier": 0
     },
     {
       "id": "exceptional",
       "name": "Exceptional",
       "color": "Green",
-      "weight": 20,
+      "weight": 250,
       "modifier": 1
     },
     {
       "id": "masterwork",
       "name": "Masterwork",
       "color": "Blue",
-      "weight": 15,
+      "weight": 80,
       "modifier": 2
     },
     {
       "id": "mythic",
       "name": "Mythic",
       "color": "Purple",
-      "weight": 4,
+      "weight": 9,
       "modifier": 3
     },
     {

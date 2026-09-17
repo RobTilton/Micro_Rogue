@@ -64,13 +64,24 @@ static func stock(map, seed_value: int, prosperity_override: int = -1) -> void:
 		map.props[cell] = {"kind":kind,"name":kind.capitalize(),"opened":false,"contents":contents,"room_id":-1}
 
 static func retail_price(item: Dictionary) -> int:
+	if item.get("kind") == "potion": return 2
+	if item.get("kind") == "ration": return 1
+	if item.get("kind") == "ring": return (250 if item.greater else 50) if buyable(item) else 0
 	return maxi(1,5*int(item.get("base_rank",1))+int(item.get("material_tier",1))-1+int(item.get("quality",{}).get("modifier",0)))
 
 static func sale_price(item: Dictionary) -> int:
-	return int(retail_price(item)/2.0)
+	if not buyable(item): return 0
+	return int(retail_price(item)/(10.0 if item.get("kind") == "ring" else 2.0))
+
+static func buyable(item: Dictionary) -> bool:
+	return not (item.get("kind") == "ring" and item.get("family","") in Items.Rings.ACTIONS)
+
+static func stock_price(entry: Dictionary) -> int:
+	# Existing saved offers use the current ring policy without rerolling stock.
+	return retail_price(entry.item) if entry.item.get("kind") == "ring" else int(entry.price)
 
 static func sellable(item: Dictionary) -> bool:
-	return item.get("kind","") in ["weapon","sword","shield","armor","belt"] and (item.get("kind") != "belt" or item.get("contents",[]).is_empty())
+	return buyable(item) and item.get("kind","") in ["weapon","sword","shield","armor","belt","ring"] and (item.get("kind") != "belt" or item.get("contents",[]).is_empty())
 
 static func ensure_supplies(map) -> bool:
 	var changed: bool = false
