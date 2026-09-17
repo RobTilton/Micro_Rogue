@@ -63,5 +63,3 @@ Movement Flow (2026-09-17): incremental player travel, replaceable paths, combat
 Chest Rarity (2026-09-17): reviewed rings/amulets design; persistent 75% normal / 25% rare chest categories, named in game, without rerolling contents. See `Workshop/Rooms/Chest Rarity/CURRENT_STATE.md`.
 
 - [Rings](Rings/CURRENT_STATE.md): Production ring equipment, all variants, derived effects, loot and persistence; eight paperdoll slots. Agent-verified, human playtest pending.
-
-- [Living Adventurers](Living%20Adventurers/CURRENT_STATE.md): Workshop-only F6 NPC adventuring, six-step simulation and permanent retirement; isolated saves, 67 checks passed. Production unchanged; human playtest pending.
