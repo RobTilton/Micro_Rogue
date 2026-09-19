@@ -1,7 +1,7 @@
 # Living Adventurers — current state
-Updated: 2026-09-17
+Updated: 2026-09-18
 
-Implemented as an isolated F6 prototype; human playtest and Production promotion are pending. Authorization covers Workshop design and implementation while keeping F5 clean. Design source: [NPC Adventurers / Meta Progression](../../Micro_Rogue_NPC_Adventurers_Meta_Progression.md), refined by the user's simulation and retirement decisions.
+Promoted to Production by explicit user instruction after their checkpoint. F5 now runs Living Adventurers. Human playtest of this promotion is pending. The isolated F6 prototype remains available. Authorization covers Workshop design and implementation while keeping F5 clean. Design source: [NPC Adventurers / Meta Progression](../../Micro_Rogue_NPC_Adventurers_Meta_Progression.md), refined by the user's simulation and retirement decisions.
 
 ## Playtest
 
@@ -36,3 +36,15 @@ Godot 4.4.1: `simulation_test.gd` passed 35 checks; `expedition_test.gd` passed 
 Inspected `retirement.png` and `roster.png`: town actors align with tiles, labels and Workshop controls are visible. Automated outputs remain in the Room. Human gameplay acceptance is pending.
 
 The captured hashes of 105 Production/project files are unchanged. No Production promotion, project startup change, player-world reset or commit was performed.
+
+## Production promotion — 2026-09-17
+
+User created a checkpoint and requested promotion. `Production/UI/world_game.gd` now uses `Production/Persistence/adventurer_world.gd`, with resolver and presentation scripts owned by Production. No runtime dependency on this Room was added. Normal production save directories, preferences and existing one-world pruning behavior are preserved. Workshop labels and the manual simulation test button are absent from F5; retirement remains in Character. Existing saves accept the new ledger and seed loaded towns once, preserving world and character identity. No actual user save was touched during validation.
+
+Production-targeted tests passed: 35 scheduling/retirement checks, 21 expedition checks, 11 actual-scene UI checks, and 6 old-save migration checks (73 total). Tests use isolated Room storage. Production baseline hashes refreshed. Earlier statements about F5 being unchanged describe the pre-promotion prototype only. Offscreen balance and the other provisional behavior above remain unchanged.
+
+## Per-step movement pause fix — 2026-09-18
+
+Peaceful steps no longer increment geography revision just to persist the six-step scheduler counter. The adventurer snapshot copies only the ledger's containing dictionary branch, retaining immutable prior journal snapshots and reusing unchanged map states. Per-step automatic saving remains enabled; combat interruptions and six-step NPC simulation remain intact.
+
+An isolated starting-town profile measured repeated checkpoint work at about 179–185 ms before the fix, versus 16–18 ms in the final run. Initial full saves still cost more; these measurements do not claim all movement/frame costs or large-world simulation spikes are eliminated. Snapshot assertions confirmed previous step counters remain unchanged and geography states are reused. The 35-check Production scheduler/retirement regression passed. Original script preserved under `Reference/BeforeMovementFix/`. Human F5 movement playtest pending.

@@ -3,7 +3,9 @@ extends RefCounted
 const RADIUS: int = 4
 const MAX_ORIGINS: int = 3
 const DIRECTIONS: Array[Vector2i] = [Vector2i(1,0),Vector2i(1,-1),Vector2i(0,-1),Vector2i(-1,0),Vector2i(-1,1),Vector2i(0,1)]
-const DEFINITIONS: Dictionary = {
+const DEFINITIONS: Dictionary = {}
+# Retained only to validate and migrate pre-reset saves.
+const LEGACY_DEFINITIONS: Dictionary = {
  "Lunge":{"family":"Martial","footprint":[Vector2i.ZERO],"chain":1,"adjacency":[],"cost":1,"prerequisites":[]},
  "Riposte":{"family":"Martial","footprint":[Vector2i.ZERO],"chain":2,"adjacency":[],"cost":1,"prerequisites":["Lunge"]},
  "Show-Off":{"family":"Martial","footprint":[Vector2i.ZERO],"chain":3,"adjacency":[],"cost":1,"prerequisites":["Riposte"]}}
@@ -168,3 +170,14 @@ static func auto_place(actor: Dictionary) -> void:
 			if place(actor,skill,cell).is_empty():
 				if active(actor,skill): break
 				actor.skill_board = before
+
+static func remove_legacy_skills(actor: Dictionary) -> void:
+	for skill: String in LEGACY_DEFINITIONS:
+		if skill in actor.skills:
+			actor.points += LEGACY_DEFINITIONS[skill].cost
+			actor.skills.erase(skill)
+		actor.clock_state.remaining.erase(skill)
+		actor.clock_state.elapsed.erase(skill)
+	actor.skill_board = blank()
+	actor.riposte = false
+	actor.pending = {}

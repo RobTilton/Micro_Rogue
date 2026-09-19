@@ -174,6 +174,9 @@ static func validate_snapshot(data: Dictionary) -> String:
 	if data.has("creation"):
 		if not data.creation is Dictionary: return "invalid character creation"
 		if not data.creation.is_empty():
+			if not data.creation.get("name","") is String or data.creation.get("name","").length() > 40: return "invalid creation name"
+			var rerolls = data.creation.get("rerolls_remaining",2)
+			if not rerolls is int or rerolls < 0 or rerolls > 2: return "invalid creation rerolls"
 			if not data.creation.get("dice_slots") is Array or data.creation.dice_slots.size() != 12: return "invalid creation dice"
 			var assigned: int = 0
 			for value in data.creation.dice_slots:
@@ -361,7 +364,7 @@ static func _actor_structure(actor: Dictionary) -> String:
 		if not actor.actions.get(action) is int or actor.actions[action] < 0: return "invalid actions"
 	for skill in actor.skills:
 		if not skill is String: return "invalid skill"
-	if not preload("res://Production/Actors/skill_board.gd").valid(actor): return "invalid skill board"
+	if not preload("res://Production/Actors/skill_board.gd").valid(actor,preload("res://Production/Actors/skill_board.gd").LEGACY_DEFINITIONS): return "invalid skill board"
 	for field: String in ["remaining","elapsed"]:
 		if not actor.clock_state.get(field) is Dictionary: return "invalid clock"
 		for ability in actor.clock_state[field]:
@@ -393,6 +396,8 @@ func load_game(path: String) -> Dictionary:
 	if not decoded is Dictionary: return result(false,"Invalid save data.")
 	var reason: String = validate_snapshot(decoded)
 	if not reason.is_empty(): return result(false,"Load refused: "+reason)
+	for saved_actor: Dictionary in decoded.actors.values():
+		preload("res://Production/Actors/skill_board.gd").remove_legacy_skills(saved_actor)
 	Items.upgrade_belts(decoded)
 	# Stage all restored objects before changing this simulation.
 	var restored = Locations.new(decoded.world_seed,false)
@@ -583,7 +588,7 @@ func _populate_town(map) -> void:
 	maps.Regional.publish_poi(maps.records.global.regional,local_record.constraints.global_cell,map.id,"Town",name)
 	maps.regional_revision += 1
 	maps.sync_loaded_regions()
-	var parent = maps.maps[record.parent]
+	var parent = maps.ensure_location(record.parent)
 	for link: Dictionary in parent.links.values():
 		if link.id == map.id: link.label = name
 	var quests: Dictionary = {}
@@ -674,7 +679,7 @@ func _monster(values: Array, rng: RandomNumberGenerator, map, boss: bool, family
 	actor.age_days = 0
 	actor.age_fifths = 0
 	Roster.apply(actor,family,entry)
-	actor.points = level-1
+	actor.points = (level-1)*Actors.level_point_reward(actor)
 	actor.required_xp = 5*level
 	actor.gold = 1
 	for die: int in range(_hostility(map)): actor.gold += rng.randi_range(1,3)
@@ -787,7 +792,7 @@ func _age_monsters() -> void:
 		actor.age_days = days
 		var fifths: int = actor.get("age_fifths",0)+gained
 		actor.level += int(fifths/5.0)
-		actor.points += int(fifths/5.0)
+		actor.points += int(fifths/5.0)*Actors.level_point_reward(actor)
 		actor.age_fifths = fifths%5
 	_scale_monsters()
 	for actor: Dictionary in actors.values(): _spend_creature_points(actor)

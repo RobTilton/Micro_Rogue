@@ -1,0 +1,587 @@
+extends "res://Production/Persistence/persistent_actor_world.gd"
+## Persistent adventurer simulation and retirement.
+const AdventurerBrain = preload("res://Production/Actors/enemy_brain.gd")
+const Shops = preload("res://Production/World/village_shops.gd")
+const Encounters = preload("res://Production/Actors/expedition_resolver.gd")
+const MAX_RESIDENTS: int = 3
+const MAX_FAR_PER_TURN: int = 3
+var seeding: bool = false
+var scheduling: bool = false
+var npc_travel_commit: bool = false
+var ai: RefCounted = AdventurerBrain.new()
+
+func ledger() -> Dictionary:
+	if not maps.records.global.constraints.has("adventurers"):
+		maps.records.global.constraints.adventurers = {"version":1,"steps":0,"turn":0,"far_cursor":0,"retirement_order":0,"seeded":[],"history":[]}
+		maps.revision += 1
+	return maps.records.global.constraints.adventurers
+
+func snapshot(previous: Dictionary = {}) -> Dictionary:
+	var saved: Dictionary = super.snapshot(previous)
+	# Scheduler counters are actor-time state, not a geography mutation.
+	# Copy the narrow branch so the preceding journal snapshot stays immutable.
+	if maps.records.global.constraints.has("adventurers"):
+		saved.records = saved.records.duplicate()
+		saved.records.global = saved.records.global.duplicate()
+		saved.records.global.constraints = saved.records.global.constraints.duplicate()
+		saved.records.global.constraints.adventurers = maps.records.global.constraints.adventurers.duplicate(true)
+	return saved
+
+func record_event(actor: Dictionary, kind: String, details: Dictionary = {}) -> void:
+	var data: Dictionary = ledger()
+	data.history.append({"turn":data.turn,"actor":actor.id,"name":actor.name,"kind":kind,"details":details.duplicate(true)})
+	if data.history.size() > 100: data.history.pop_front()
+	maps.revision += 1
+
+func region_of(actor: Dictionary) -> String:
+	if actor.map_id == "global": return maps.maps.global.links.get(actor.pos,{}).get("id","")
+	return maps.regional_local(actor.map_id)
+
+func residents(region: String, except_id: int = -1) -> Array:
+	var found: Array = []
+	for actor: Dictionary in actors.values():
+		if actor.hp > 0 and actor.id != except_id and actor.has("adventure") and maps.regional_local(actor.adventure.home) == region: found.append(actor)
+	return found
+
+func physically_present(region: String, except_id: int = -1) -> int:
+	var count: int = 0
+	for actor: Dictionary in actors.values():
+		if actor.hp > 0 and actor.id != except_id and actor.has("adventure") and region_of(actor) == region: count += 1
+	return count
+
+func ensure_map(link: Dictionary):
+	var map = super.ensure_map(link)
+	if map != null and maps.records[map.id].template == "Town" and not seeding: seed_town(map.id)
+	return map
+
+func seed_town(town_id: String) -> void:
+	var data: Dictionary = ledger()
+	if town_id in data.seeded: return
+	data.seeded.append(town_id)
+	seeding = true
+	var map = maps.maps[town_id]
+	var region: String = maps.regional_local(town_id)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = Contracts.seed_for(maps.world_seed,town_id+":adventurers")
+	for index: int in range(MAX_RESIDENTS-residents(region).size()):
+		if physically_present(region) >= MAX_RESIDENTS: break
+		var cell: Vector2i = resident_cell(map)
+		if cell == Vector2i(-1,-1): break
+		var values: Array = []
+		for stat_index: int in range(6): values.append(rng.randi_range(1,6))
+		var actor: Dictionary = Actors.create(values,true,rng)
+		actor.name = ["Elara","Garrick","Nessa","Bram","Iona","Tobin"][rng.randi_range(0,5)]+" "+["Stonehand","Reed","Ashfall","Vale","Moss","Thorne"][rng.randi_range(0,5)]
+		actor.gold = 50
+		add_actor(actor,town_id,cell,"adventurer","player")
+		actor.adventure = {"home":town_id,"goal":"","phase":"resupply","born":actor.id,"retired_at":0,"visits":0,"rest_until":-1}
+		for supply: int in range(2): Grid.place_auto(actor.bag,Items.potion())
+	seeding = false
+	maps.revision += 1
+
+func walk_step(actor: Dictionary, destination: Vector2i) -> Dictionary:
+	var peaceful: bool = actor.id == player_id and not engaged(actor)
+	var outcome: Dictionary = super.walk_step(actor,destination)
+	if outcome.ok and peaceful and not engaged(actor):
+		var data: Dictionary = ledger()
+		data.steps += 1
+		if data.steps >= 6:
+			data.steps = 0
+			advance(ai)
+		if engaged(actor):
+			refresh_action_mode(actor)
+			outcome.combat_started = true
+	return outcome
+
+func advance(brain: RefCounted) -> void:
+	if scheduling or not actors.has(player_id): return
+	scheduling = true
+	var data: Dictionary = ledger()
+	data.turn += 1
+	tick += 1
+	var player: Dictionary = actors[player_id]
+	var current: String = player.map_id
+	var was_walking: bool = walks.has(player.id)
+	_scale_monsters()
+	var already_in_combat: bool = engaged(player)
+	# Snapshot IDs: travel/deaths during this tick cannot cause a second action.
+	var ids: Array = []
+	var distant: Array = []
+	for candidate: Dictionary in actors.values():
+		if candidate.hp <= 0 or candidate.id == player_id: continue
+		if candidate.has("adventure") and distance_from_player(candidate) >= 2: distant.append(candidate.id)
+		else: ids.append(candidate.id)
+	distant.sort()
+	var cursor: int = int(data.get("far_cursor",0))
+	for index: int in range(mini(MAX_FAR_PER_TURN,distant.size())): ids.append(distant[(cursor+index)%distant.size()])
+	data.far_cursor = (cursor+MAX_FAR_PER_TURN)%maxi(1,distant.size())
+	for id: int in ids:
+		var actor: Dictionary = actors[id]
+		if actor.id == player_id or actor.hp <= 0: continue
+		if not actor.has("adventure") and actor.map_id != current: continue
+		if actor.faction == "town" and not actor.has("adventure"): continue
+		maps.ensure_location(actor.map_id)
+		begin_turn(actor)
+		if Combat.remaining(actor.actions) <= 0: continue
+		if actor.has("adventure"):
+			adventure_turn(actor,brain)
+		else:
+			for attempt: int in range(mini(12,Combat.remaining(actor.actions)+1)):
+				if player.hp <= 0 or actor.hp <= 0: break
+				var before: int = Combat.remaining(actor.actions)
+				brain.take_turn(self,actor)
+				if Combat.remaining(actor.actions) >= before or (not already_in_combat and engaged(player)): break
+		if not already_in_combat and engaged(player): break
+	if player.hp > 0: begin_turn(player)
+	if not was_walking: _maybe_encounter()
+	maps.revision += 1
+	scheduling = false
+
+func _offscreen_day(day: int) -> void:
+	# Adventurers belong exclusively to this scheduler, not the legacy daily coin flip.
+	var groups: Dictionary = {}
+	for actor: Dictionary in actors.values():
+		if actor.hp <= 0 or actor.has("adventure") or actor.faction != "enemy" or (actors.has(player_id) and actor.map_id == actors[player_id].map_id): continue
+		if not groups.has(actor.map_id): groups[actor.map_id] = []
+		groups[actor.map_id].append(actor)
+	for map_id: String in groups:
+		var pairs: Array = []
+		var group: Array = groups[map_id]
+		for a: int in range(group.size()):
+			for b: int in range(a+1,group.size()):
+				if hostile(group[a],group[b]): pairs.append([group[a],group[b]])
+		if pairs.is_empty(): continue
+		var rng := RandomNumberGenerator.new()
+		rng.seed = Contracts.seed_for(maps.world_seed,map_id+":conflict:"+str(day))
+		var pair: Array = pairs[rng.randi_range(0,pairs.size()-1)]
+		var winner: Dictionary = pair[0] if rng.randf() < _strength(pair[0])/(_strength(pair[0])+_strength(pair[1])) else pair[1]
+		var loser: Dictionary = pair[1] if winner.id == pair[0].id else pair[0]
+		maps.ensure_location(map_id)
+		loser.hp = 0
+		resolve_death(loser,winner)
+
+func distance_from_player(actor: Dictionary) -> int:
+	if not actors.has(player_id): return 99
+	var a: String = region_of(actor)
+	var b: String = region_of(actors[player_id])
+	if a.is_empty() or b.is_empty(): return 99
+	return maps.maps.global.distance(maps.records[a].constraints.global_cell,maps.records[b].constraints.global_cell)
+
+func adventure_turn(actor: Dictionary, brain: RefCounted) -> void:
+	var job: Dictionary = actor.adventure
+	for skill: String in preload("res://Production/Actors/skill_board.gd").DEFINITIONS:
+		if actor.points > 0 and skill not in actor.skills: learn(actor,skill)
+	if not engaged(actor): SkillBoard.auto_place(actor)
+	if actor.map_id == actors[player_id].map_id and not hostiles(actor).is_empty():
+		if actor.hp <= actor.max_hp/3.0:
+			job.phase = "return"
+			cancel(actor)
+			Encounters.use_healing(self,actor)
+			travel_toward(actor,job.home)
+		else: brain.take_turn(self,actor)
+		return
+	if actor.map_id != actors[player_id].map_id and not hostiles(actor).is_empty():
+		Encounters.resolve(self,actor,distance_from_player(actor) >= 2)
+		return
+	if job.phase in ["outbound","explore"] and actor.map_id == job.goal:
+		job.phase = "explore"
+		if actor.map_id == actors[player_id].map_id:
+			if not foes_in(actor.map_id).is_empty(): brain.take_turn(self,actor); return
+			collect_spoils(actor)
+			job.phase = "return"
+		else:
+			Encounters.resolve(self,actor,distance_from_player(actor) >= 2)
+		return
+	match job.phase:
+		"resupply": service_town(actor)
+		"quest": choose_quest(actor)
+		"outbound":
+			if not travel_toward(actor,job.goal) and job.get("blocked",0) >= 3: job.phase = "return"
+		"return":
+			if actor.map_id != job.home: travel_toward(actor,job.home)
+			else: job.phase = "claim"
+		"claim": claim_quest(actor)
+		"inn": visit_inn(actor)
+		"rest":
+			if world_hours >= job.rest_until:
+				actor.hp = mini(actor.max_hp,actor.hp+Rings.healing(actor,2))
+				job.phase = "quest"
+				job.rest_until = -1
+
+func foes_in(map_id: String) -> Array:
+	var foes: Array = []
+	for actor: Dictionary in on_map(map_id):
+		if actor.faction == "enemy": foes.append(actor)
+	foes.sort_custom(func(a: Dictionary,b: Dictionary): return a.id < b.id)
+	return foes
+
+func approach(actor: Dictionary, cell: Vector2i, reach: int = 1) -> bool:
+	var map = maps.maps[actor.map_id]
+	if map.distance(actor.pos,cell) <= reach and can_see(actor,cell): return true
+	var goals: Array = []
+	for candidate: Vector2i in ([cell] if reach == 0 else map.neighbors(cell)):
+		if map.walkable(candidate) and actor_at(map.id,candidate,actor.id).is_empty(): goals.append(candidate)
+	var route: Array = Paths.route_to(actor.pos,goals,blocked(actor),map)
+	if route.is_empty(): return false
+	var reachable: Dictionary = paths(actor)
+	var destination: Vector2i = actor.pos
+	for step: Vector2i in route:
+		if not reachable.has(step): break
+		destination = step
+	if destination != actor.pos: move(actor,destination)
+	return map.distance(actor.pos,cell) <= reach and can_see(actor,cell)
+
+func service_town(actor: Dictionary) -> void:
+	var job: Dictionary = actor.adventure
+	if actor.map_id != job.home: travel_toward(actor,job.home); return
+	var map = maps.maps[actor.map_id]
+	var cells: Array = []
+	for cell: Vector2i in map.shops:
+		if not map.shops[cell].closed and map.shops[cell].id != "inn": cells.append(cell)
+	if cells.is_empty(): job.phase = "quest"; return
+	var cell: Vector2i = cells[job.visits%cells.size()]
+	if not approach(actor,cell): return
+	var shop: Dictionary = map.shops[cell]
+	# Transfer actual stock and coins, using the same atomic operations as the player.
+	for item: Dictionary in actor.bag.duplicate():
+		var slot: String = AdventurerBrain.upgrade_slot(actor,item)
+		if not slot.is_empty(): transfer(actor,{"zone":"bag","id":item.item_id},{"zone":"equipment","slot":slot})
+		elif Shops.sellable(item): sell(actor,cell,item.item_id); break
+	var bottles: int = 0
+	for item: Dictionary in Inventory.possessions(actor):
+		if item.kind == "potion": bottles += 1
+		if item.kind == "belt": bottles += item.contents.size()
+	for entry: Dictionary in shop.stock.duplicate():
+		if Shops.stock_price(entry) > actor.gold or not Shops.buyable(entry.item): continue
+		if (entry.item.kind == "potion" and bottles < 2) or not AdventurerBrain.upgrade_slot(actor,entry.item).is_empty():
+			if buy(actor,cell,entry.item.item_id).ok:
+				var slot: String = AdventurerBrain.upgrade_slot(actor,entry.item)
+				if not slot.is_empty(): transfer(actor,{"zone":"bag","id":entry.item.item_id},{"zone":"equipment","slot":slot})
+			break
+	job.visits += 1
+	if job.visits >= cells.size():
+		job.visits = 0
+		job.phase = "quest"
+		Encounters.use_healing(self,actor)
+		if actor.hp < actor.max_hp/2.0 and actor.gold >= 1:
+			# NPC rest waits for real world time instead of advancing the player's clock.
+			job.phase = "inn"
+
+func crier_near(actor: Dictionary) -> bool:
+	for npc: Dictionary in on_map(actor.map_id):
+		if npc.get("role","") == "crier": return approach(actor,npc.pos)
+	return false
+
+func choose_quest(actor: Dictionary) -> void:
+	var job: Dictionary = actor.adventure
+	if actor.map_id != job.home: travel_toward(actor,job.home); return
+	if not crier_near(actor): return
+	var quests: Dictionary = maps.records[job.home].constraints.get("quests",{})
+	var choices: Array = []
+	for quest: Dictionary in quests.values():
+		if quest.status == "rewarded": continue
+		var boss: int = maps.records[quest.target].constraints.get("boss_id",-1)
+		if actors.has(boss) and actors[boss].hp <= 0: continue
+		choices.append(quest)
+	if choices.is_empty(): job.phase = "resupply"; return
+	# Prefer local threats, distribute the first choices deterministically among residents.
+	choices.sort_custom(func(a: Dictionary,b: Dictionary): return a.target < b.target)
+	var local_choices: Array = choices.filter(func(q: Dictionary): return maps.regional_local(q.target) == maps.regional_local(job.home))
+	if not local_choices.is_empty(): choices = local_choices
+	var quest: Dictionary = choices[posmod(actor.id,choices.size())]
+	if not quest.has("accepted_by"): quest.accepted_by = []
+	if actor.id not in quest.accepted_by: quest.accepted_by.append(actor.id)
+	job.goal = quest.target
+	job.phase = "outbound"
+	record_event(actor,"accepted",{"poi":job.goal})
+
+func claim_quest(actor: Dictionary) -> void:
+	if not crier_near(actor): return
+	var job: Dictionary = actor.adventure
+	var quest: Dictionary = maps.records[job.home].constraints.get("quests",{}).get(job.goal,{})
+	if not quest.is_empty() and quest.status != "rewarded":
+		var boss: int = maps.records[job.goal].constraints.get("boss_id",-1)
+		if actors.has(boss) and actors[boss].hp <= 0:
+			quest.status = "rewarded"
+			quest.claimed_by = actor.id
+			actor.gold += quest.reward
+			actor.points += quest.get("skill_reward",0)
+			if quest.get("tutorial",false): quest.effects = _complete_route_tutorial(job.goal)
+			record_event(actor,"claimed",{"poi":job.goal})
+	job.goal = ""
+	job.phase = "resupply"
+
+func town_quests(actor: Dictionary) -> Dictionary:
+	var quests: Dictionary = super.town_quests(actor)
+	for quest: Dictionary in quests.values():
+		var names: PackedStringArray = []
+		for id: int in quest.get("accepted_by",[]):
+			if actors.has(id): names.append(actors[id].name+(" (fallen)" if actors[id].hp <= 0 else ""))
+		if not names.is_empty(): quest.title += "\nAccepted by: "+", ".join(names)
+	return quests
+
+func quest_action(actor: Dictionary, target_id: String) -> Dictionary:
+	var outcome: Dictionary = super.quest_action(actor,target_id)
+	if outcome.ok:
+		var quest: Dictionary = maps.records[actor.map_id].constraints.quests[target_id]
+		if not quest.has("accepted_by"): quest.accepted_by = []
+		if actor.id not in quest.accepted_by: quest.accepted_by.append(actor.id)
+		maps.revision += 1
+	return outcome
+
+func travel_toward(actor: Dictionary, destination: String) -> bool:
+	if actor.map_id == destination: actor.adventure.blocked = 0; return true
+	if not maps.records.has(destination): return false
+	var map = maps.maps[actor.map_id]
+	var target_region: String = maps.regional_local(destination)
+	if actor.map_id == "global":
+		var cell: Vector2i = maps.records[target_region].constraints.global_cell
+		if actor.pos != cell:
+			# Follow the existing trade-route edges, never teleport across unexplored geography.
+			var queue: Array = [[actor.pos]]
+			var seen: Dictionary = {actor.pos:true}
+			while not queue.is_empty():
+				var route: Array = queue.pop_front()
+				if route.back() == cell:
+					if route.size() > 1: return move(actor,route[1]).ok
+				for next: Vector2i in map.neighbors(route.back()):
+					if seen.has(next) or not maps.records.global.constraints.get("trade_routes",{}).has(str(route.back())+">"+str(next)): continue
+					seen[next] = true
+					queue.append(route+[next])
+			return false
+		if physically_present(target_region,actor.id) >= MAX_RESIDENTS: actor.adventure.blocked = actor.adventure.get("blocked",0)+1; return false
+		return travel(actor).ok
+	var next_map: String = destination
+	while maps.records[next_map].parent != actor.map_id and next_map != "global": next_map = maps.records[next_map].parent
+	if next_map == "global": next_map = maps.records[actor.map_id].parent
+	for cell: Vector2i in map.links:
+		if map.links[cell].id != next_map: continue
+		if not approach(actor,cell,0): return false
+		var region: String = maps.regional_local(next_map)
+		if not region.is_empty() and region != region_of(actor) and physically_present(region,actor.id) >= MAX_RESIDENTS:
+			actor.adventure.blocked = actor.adventure.get("blocked",0)+1
+			return false
+		var outcome: Dictionary = travel(actor)
+		if outcome.ok: actor.adventure.blocked = 0
+		return outcome.ok
+	actor.adventure.blocked = actor.adventure.get("blocked",0)+1
+	return false
+
+func collect_spoils(actor: Dictionary) -> void:
+	var map = maps.maps[actor.map_id]
+	# Offscreen looting changes the existing containers and item identities, never generates replacements.
+	var attempts: int = 0
+	for cell: Vector2i in map.props:
+		var prop: Dictionary = map.props[cell]
+		if prop.opened or prop.kind in ["rug","rubble"]: continue
+		if actor.map_id == actors[player_id].map_id and not approach(actor,cell): return
+		if actor.map_id != actors[player_id].map_id:
+			var spot: Vector2i = arrival_cell(map,cell)
+			if spot == Vector2i(-1,-1): continue
+			actor.pos = spot
+		for item: Dictionary in prop.contents.duplicate():
+			if Grid.place_auto(actor.bag,item): prop.contents.erase(item)
+		actor.gold += prop.get("gold",0)
+		prop.gold = 0
+		prop.opened = prop.contents.is_empty()
+		attempts += 1
+		if attempts >= 2: break
+	for entry: Dictionary in ground[map.id].duplicate():
+		if actor.map_id == actors[player_id].map_id and map.distance(actor.pos,entry.pos) > 1: continue
+		if Grid.place_auto(actor.bag,entry.item): ground[map.id].erase(entry)
+	maps.revision += 1
+
+func connected_towns(home: String) -> Array:
+	var region: String = maps.regional_local(home)
+	var start: Vector2i = maps.records[region].constraints.global_cell
+	var queue: Array = [start]
+	var seen: Dictionary = {start:true}
+	var global_map = maps.maps.global
+	while not queue.is_empty():
+		var cell: Vector2i = queue.pop_front()
+		for next: Vector2i in global_map.neighbors(cell):
+			if seen.has(next) or not maps.records.global.constraints.get("trade_routes",{}).has(str(cell)+">"+str(next)): continue
+			seen[next] = true
+			queue.append(next)
+	var towns: Array = []
+	for id: String in maps.records:
+		if id == home or maps.records[id].template != "Town": continue
+		var local: String = maps.regional_local(id)
+		if local != region and seen.has(maps.records[local].constraints.global_cell): towns.append(id)
+	towns.sort()
+	return towns
+
+func displace(actor: Dictionary) -> void:
+	for town_id: String in connected_towns(actor.adventure.home):
+		var region: String = maps.regional_local(town_id)
+		if residents(region,actor.id).size() >= MAX_RESIDENTS or physically_present(region,actor.id) >= MAX_RESIDENTS: continue
+		# Do not seed a destination behind the migration reservation.
+		seeding = true
+		var town = ensure_map({"id":town_id})
+		seeding = false
+		var cell: Vector2i = resident_cell(town)
+		if cell == Vector2i(-1,-1): continue
+		actor.map_id = town_id
+		actor.pos = cell
+		actor.adventure.home = town_id
+		actor.adventure.goal = ""
+		actor.adventure.phase = "resupply"
+		record_event(actor,"migrated",{"town":town_id})
+		return
+	# Explicit hard-cap policy: no expedition, survival roll, corpse or recoverable gear.
+	actor.hp = 0
+	actor.dropped = true
+	actor.pending = {}
+	actor.trail = []
+	actor.last_seen = {}
+	actor.bag = []
+	for slot: String in Grid.EQUIPMENT: actor[slot] = {}
+	Rings.sync_health(actor)
+	actor.adventure.phase = "obscurity"
+	record_event(actor,"obscurity",{"level":actor.level,"retired_at":actor.adventure.retired_at})
+	walks.erase(actor.id)
+	actors.erase(actor.id) # Retain only the bounded history entry, not an inactive full actor.
+
+func retire_player() -> Dictionary:
+	if not actors.has(player_id): return result(false,"Production/Persistence/adventurer_world.gd: no player to retire.")
+	var actor: Dictionary = actors[player_id]
+	if actor.hp <= 0 or actor.get("retired",false) or maps.records[actor.map_id].template != "Town" or engaged(actor) or not actor.pending.is_empty() or actor.retreat:
+		return result(false,"Production/Persistence/adventurer_world.gd: retire alive, safely in town, after finishing pending actions.")
+	var home: String = actor.map_id
+	var region: String = region_of(actor)
+	var occupants: Array = residents(region,actor.id)
+	if occupants.size() < MAX_RESIDENTS and physically_present(region,actor.id) >= MAX_RESIDENTS:
+		occupants = actors.values().filter(func(a: Dictionary): return a.id != actor.id and a.hp > 0 and a.has("adventure") and region_of(a) == region)
+	if occupants.size() >= MAX_RESIDENTS:
+		occupants.sort_custom(func(a: Dictionary,b: Dictionary):
+			if a.get("retired",false) != b.get("retired",false): return not a.get("retired",false)
+			return a.adventure.retired_at < b.adventure.retired_at if a.get("retired",false) else a.id < b.id)
+		displace(occupants[0])
+	var data: Dictionary = ledger()
+	data.retirement_order += 1
+	actor.retired = true
+	actor.faction = "adventurer"
+	actor.adventure = {"home":home,"goal":"","phase":"resupply","born":actor.id,"retired_at":data.retirement_order,"visits":0,"rest_until":-1}
+	stop_walk(actor)
+	record_event(actor,"retired",{"town":home})
+	return result(true,actor.name+" retired in "+maps.records[home].label+". Their story continues here.")
+
+func hostile(a: Dictionary, b: Dictionary) -> bool:
+	if a.faction in ["player","town","adventurer"] and b.faction in ["player","town","adventurer"]: return false
+	return super.hostile(a,b)
+
+func load_game(path: String) -> Dictionary:
+	var file := FileAccess.open(path,FileAccess.READ)
+	if file == null: return result(false,"Production/Persistence/adventurer_world.gd: save not found.")
+	var decoded: Variant
+	if path.get_extension() == "journal":
+		var outcome: Dictionary = Journal.read_snapshot(path)
+		if not outcome.ok: return outcome
+		decoded = outcome.snapshot
+	else: decoded = bytes_to_var(file.get_buffer(file.get_length()))
+	if not decoded is Dictionary: return result(false,"Production/Persistence/adventurer_world.gd: invalid save.")
+	var reason: String = validate_adventurers(decoded)
+	if not reason.is_empty(): return result(false,reason)
+	var outcome: Dictionary = super.load_game(path)
+	if outcome.ok:
+		ledger()
+		for map_id: String in maps.maps.keys():
+			if maps.records[map_id].template == "Town": seed_town(map_id)
+	return outcome
+
+func save_game(directory: String = SAVE_DIR) -> Dictionary:
+	var reason: String = validate_adventurers(snapshot())
+	if not reason.is_empty(): return result(false,reason)
+	return super.save_game(directory)
+
+static func validate_adventurers(data: Dictionary) -> String:
+	var base: String = validate_snapshot(data)
+	if not base.is_empty(): return base
+	var state: Variant = data.records.global.constraints.get("adventurers",{})
+	if not state is Dictionary: return "Production/Persistence/adventurer_world.gd: invalid ledger."
+	if state.is_empty(): return ""
+	if state.get("version") != 1 or not state.get("steps") is int or state.steps < 0 or state.steps >= 6 or not state.get("turn") is int or state.turn < 0 or not state.get("retirement_order") is int or state.retirement_order < 0 or not state.get("seeded") is Array or not state.get("history") is Array:
+		return "Production/Persistence/adventurer_world.gd: invalid scheduler state."
+	if not state.get("far_cursor",0) is int or state.get("far_cursor",0) < 0: return "Production/Persistence/adventurer_world.gd: invalid far cursor."
+	if state.history.size() > 100: return "Production/Persistence/adventurer_world.gd: oversized history."
+	for town_id: Variant in state.seeded:
+		if not town_id is String or not data.records.has(town_id) or data.records[town_id].template != "Town": return "Production/Persistence/adventurer_world.gd: invalid seeded town."
+	for event: Variant in state.history:
+		if not event is Dictionary or not event.get("turn") is int or not event.get("actor") is int or not event.get("name") is String or not event.get("kind") is String or not event.get("details") is Dictionary: return "Production/Persistence/adventurer_world.gd: invalid history."
+	var counts: Dictionary = {}
+	var presence: Dictionary = {}
+	for actor: Dictionary in data.actors.values():
+		if not actor.has("adventure"): continue
+		var job: Variant = actor.adventure
+		if not job is Dictionary or not job.get("home") is String or not data.records.has(job.home) or data.records[job.home].template != "Town" or job.get("phase") not in ["resupply","quest","outbound","explore","return","claim","inn","rest","obscurity"] or not job.get("goal") is String or (not job.goal.is_empty() and not data.records.has(job.goal)):
+			return "Production/Persistence/adventurer_world.gd: invalid adventurer goal."
+		for field: String in ["born","retired_at","visits","rest_until"]:
+			if not job.get(field) is int: return "Production/Persistence/adventurer_world.gd: invalid adventurer counters."
+		if not actor.get("retired",false) is bool: return "Production/Persistence/adventurer_world.gd: invalid retirement flag."
+		if job.has("journey") and (not job.journey is Dictionary or not job.journey.get("destination") is String or not job.journey.get("ready") is int): return "Production/Persistence/adventurer_world.gd: invalid journey."
+		if actor.hp <= 0: continue
+		var location: String = actor.map_id
+		if location == "global": location = data.states.global.links.get(actor.pos,{}).get("id","")
+		while not location.is_empty() and location != "global" and data.records[location].template != "Local": location = data.records[location].parent
+		if not location.is_empty() and location != "global":
+			presence[location] = presence.get(location,0)+1
+			if presence[location] > MAX_RESIDENTS: return "Production/Persistence/adventurer_world.gd: physical population exceeds cap."
+		var region: String = data.records[job.home].parent
+		counts[region] = counts.get(region,0)+1
+		if counts[region] > MAX_RESIDENTS: return "Production/Persistence/adventurer_world.gd: population exceeds cap."
+	return ""
+
+func resident_cell(map) -> Vector2i:
+	# Keep the entrance and its immediate landing cells open for new characters.
+	for cell: Vector2i in map.cells():
+		if map.distance(cell,map.spawn_cell) < 2 or map.links.has(cell): continue
+		if map.walkable(cell) and actor_at(map.id,cell).is_empty(): return cell
+	return Vector2i(-1,-1)
+
+func move(actor: Dictionary, destination: Vector2i, expected: Array = []) -> Dictionary:
+	if actor.has("adventure") and actor.map_id == "global":
+		var target_region: String = maps.maps.global.links.get(destination,{}).get("id","")
+		if not target_region.is_empty() and physically_present(target_region,actor.id) >= MAX_RESIDENTS:
+			actor.adventure.blocked = actor.adventure.get("blocked",0)+1
+			return result(false,"Production/Persistence/adventurer_world.gd: destination adventurer population is full.")
+		if not journey_ready(actor,"global:"+str(destination)): return result(false,"Production/Persistence/adventurer_world.gd: journey takes six world hours.")
+	var outcome: Dictionary = super.move(actor,destination,expected)
+	if outcome.ok and actor.has("adventure") and actor.map_id == "global": actor.adventure.erase("journey")
+	return outcome
+
+func cross_border(actor: Dictionary, side: int) -> Dictionary:
+	if actor.has("adventure"):
+		for option: Dictionary in border_options(actor):
+			if option.side != side: continue
+			var region: String = maps.maps.global.links.get(option.global_cell,{}).get("id","")
+			if physically_present(region,actor.id) >= MAX_RESIDENTS: return result(false,"Production/Persistence/adventurer_world.gd: destination adventurer population is full.")
+		if not journey_ready(actor,actor.map_id+":"+str(side)): return result(false,"Production/Persistence/adventurer_world.gd: journey takes six world hours.")
+		npc_travel_commit = true
+	var outcome: Dictionary = super.cross_border(actor,side)
+	npc_travel_commit = false
+	if outcome.ok and actor.has("adventure"): actor.adventure.erase("journey")
+	return outcome
+
+func journey_ready(actor: Dictionary, destination: String) -> bool:
+	var journey: Dictionary = actor.adventure.get("journey",{})
+	if journey.get("destination","") != destination:
+		actor.adventure.journey = {"destination":destination,"ready":world_hours+6}
+		maps.revision += 1
+		return false
+	return world_hours >= journey.ready
+
+func advance_hours(hours: int) -> void:
+	# NPC travel has already waited these hours; it must not move the player's calendar twice.
+	if not npc_travel_commit: super.advance_hours(hours)
+
+func visit_inn(actor: Dictionary) -> void:
+	var map = maps.maps[actor.map_id]
+	for cell: Vector2i in map.shops:
+		if map.shops[cell].id != "inn" or map.shops[cell].closed: continue
+		if not approach(actor,cell): return
+		if actor.gold >= 1:
+			actor.gold -= 1
+			actor.adventure.phase = "rest"
+			actor.adventure.rest_until = world_hours+6
+		else: actor.adventure.phase = "quest"
+		return
+	actor.adventure.phase = "quest"

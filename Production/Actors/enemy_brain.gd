@@ -80,7 +80,7 @@ func take_turn(world, actor: Dictionary) -> void:
 			for stat: String in world.Actors.STATS:
 				if actor.stats[stat] < actor.stats[weakest]: weakest = stat
 			world.spend_stat(actor,weakest)
-	for skill: String in ["Lunge","Riposte","Show-Off"]:
+	for skill: String in preload("res://Production/Actors/skill_board.gd").DEFINITIONS:
 		if skill not in actor.skills and actor.points > 0: world.learn(actor,skill)
 	if actor.get("humanoid",true) and not world.engaged(actor): world.SkillBoard.auto_place(actor)
 	if actor.retreat:

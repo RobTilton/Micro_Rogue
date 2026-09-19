@@ -1,5 +1,5 @@
 extends "res://Production/UI/actor_game.gd"
-const Persistent = preload("res://Production/Persistence/persistent_actor_world.gd")
+const Persistent = preload("res://Production/Persistence/adventurer_world.gd")
 const Journal = preload("res://Production/Persistence/autosave_journal.gd")
 var autosave_directory: String = Journal.DIRECTORY
 var snapshot_directory: String = Persistent.SAVE_DIR
@@ -28,7 +28,7 @@ func _notification(what: int) -> void:
 
 func _new_character(force_new_world: bool = false) -> void:
 	if starting_world: return
-	if not force_new_world and pending_regeneration.is_empty() and simulation != null and simulation.actors.has(simulation.player_id) and simulation.actors[simulation.player_id].hp <= 0:
+	if not force_new_world and pending_regeneration.is_empty() and simulation != null and simulation.actors.has(simulation.player_id) and (simulation.actors[simulation.player_id].hp <= 0 or simulation.actors[simulation.player_id].get("retired",false)):
 		var fallen: Dictionary = simulation.actors[simulation.player_id]
 		simulation.resolve_death(fallen,fallen)
 		prepared_world = simulation
@@ -57,6 +57,7 @@ func _new_character(force_new_world: bool = false) -> void:
 
 func _start_run() -> void:
 	super._start_run()
+	player.name = character_name.strip_edges() if not character_name.strip_edges().is_empty() else "Adventurer"
 	simulation.start_in_town()
 	_note("Welcome to "+simulation.maps.maps[player.map_id].title+". Speak to the Town Crier about reopening the trade road; its bounty awards a skill point.")
 	_sync()
@@ -69,8 +70,8 @@ func _swap_dice(source: int, target: int) -> void:
 	_save_creation()
 
 func _save_creation() -> void:
-	if simulation == null or (simulation.player_id != 0 and simulation.actors[simulation.player_id].hp > 0): return
-	simulation.creation = {"dice_slots":dice_slots.duplicate()}
+	if simulation == null or (simulation.player_id != 0 and simulation.actors[simulation.player_id].hp > 0 and not simulation.actors[simulation.player_id].get("retired",false)): return
+	simulation.creation = {"dice_slots":dice_slots.duplicate(),"name":character_name,"rerolls_remaining":rerolls_remaining}
 	simulation.difficulty = difficulty
 	_automatic_checkpoint()
 
@@ -78,7 +79,7 @@ func _automatic_checkpoint() -> bool:
 	if simulation == null: return true
 	if simulation.player_id == 0: simulation.difficulty = difficulty
 	var snapshot: Dictionary = simulation.snapshot(journal.previous)
-	var reason: String = Persistent.validate_snapshot(snapshot) if journal.previous.is_empty() else ""
+	var reason: String = Persistent.validate_adventurers(snapshot) if journal.previous.is_empty() else ""
 	var outcome: Dictionary = journal.checkpoint(snapshot,autosave_directory) if reason.is_empty() else {"ok":false,"reason":"Automatic save refused: "+reason}
 	if not outcome.ok:
 		if frame_ready: _note(outcome.reason); _refresh()
@@ -128,6 +129,7 @@ func _show_splash() -> void:
 	start_menu.has_world = not current.is_empty()
 	start_menu.can_continue = not current.is_empty() and current.generator == Persistent.Locations.GENERATOR_VERSION
 	start_menu.world_description = ("Your world awaits.\nSeed %d · %d explored locations" % [current.world_seed,current.locations]) if not current.is_empty() else "A world waiting to be discovered."
+	start_menu.world_description = "Living Adventurers\n"+start_menu.world_description
 	start_menu.chosen.connect(_start_action)
 	root.add_child(start_menu)
 
@@ -223,11 +225,13 @@ func _load_path(path: String) -> bool:
 	simulation = candidate
 	journal = Journal.new()
 	map_world = simulation.maps
-	if simulation.player_id == 0 or simulation.actors[simulation.player_id].hp <= 0:
+	if simulation.player_id == 0 or (simulation.actors[simulation.player_id].hp <= 0 or simulation.actors[simulation.player_id].get("retired",false)):
 		prepared_world = simulation
 		difficulty = simulation.difficulty
 		if simulation.creation.has("dice_slots"):
 			dice_slots = simulation.creation.dice_slots.duplicate()
+			character_name = simulation.creation.get("name","")
+			rerolls_remaining = simulation.creation.get("rerolls_remaining",2)
 			picked_slot = -1
 			_creation_ui()
 		else:
@@ -312,7 +316,7 @@ func _enter_map() -> void:
 		layer.add_child(travel_cover)
 	travel_cover.show()
 	var fade_out: Tween = create_tween()
-	fade_out.tween_property(travel_cover,"color:a",1.0,0.12)
+	fade_out.tween_property(travel_cover,"color:a",1.0,0.25)
 	await fade_out.finished
 	# Present an opaque frame before synchronous generation can stall rendering.
 	await get_tree().process_frame
@@ -321,7 +325,7 @@ func _enter_map() -> void:
 	_automatic_checkpoint()
 	await get_tree().process_frame
 	var fade_in: Tween = create_tween()
-	fade_in.tween_property(travel_cover,"color:a",0.0,0.12)
+	fade_in.tween_property(travel_cover,"color:a",0.0,0.25)
 	await fade_in.finished
 	travel_cover.hide()
 	travel_transition_active = false
@@ -355,3 +359,59 @@ func _start_controls() -> void:
 	scroll.add_child(content)
 	preload("res://Production/UI/controls_help.gd").build(content)
 	Parts.button(root,"Back to Options",_start_options)
+
+func _character_panel(parent: Node) -> void:
+	Parts.button(parent,"Retire in this town…",_request_retirement,player.hp > 0 and active_map.layer == "POI" and simulation.maps.records[player.map_id].template == "Town" and not simulation.engaged(player))
+
+	super._character_panel(parent)
+
+var retirement_dialog: ConfirmationDialog
+func _request_retirement() -> void:
+	if _movement_busy(): return
+	if not is_instance_valid(retirement_dialog):
+		retirement_dialog = ConfirmationDialog.new()
+		retirement_dialog.title = "Retire this character"
+		retirement_dialog.dialog_text = "End control of this character permanently? They remain an NPC in this world. A full region moves an existing adventurer to a connected town or quietly ends their story."
+		retirement_dialog.confirmed.connect(_retire)
+		add_child(retirement_dialog)
+	retirement_dialog.popup_centered()
+
+func _retire() -> void:
+	_stop_travel()
+	var outcome: Dictionary = simulation.retire_player()
+	if not outcome.ok: _finish(outcome,false); return
+	_automatic_checkpoint()
+	_new_character()
+
+func _make_board() -> Control:
+	return preload("res://Production/UI/adventurer_view.gd").new()
+
+func _cross_border(side: int) -> void:
+	if travel_transition_active or simulation == null or _movement_busy(): return
+	_stop_travel()
+	travel_transition_active = true
+	if not is_instance_valid(travel_cover):
+		var layer := CanvasLayer.new()
+		layer.layer = 100
+		add_child(layer)
+		travel_cover = ColorRect.new()
+		travel_cover.color = Color(0,0,0,0)
+		travel_cover.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		travel_cover.mouse_filter = Control.MOUSE_FILTER_STOP
+		layer.add_child(travel_cover)
+	travel_cover.show()
+	var fade_out: Tween = create_tween()
+	fade_out.tween_property(travel_cover,"color:a",1.0,0.25)
+	await fade_out.finished
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_finish(simulation.cross_border(player,side),false)
+	await get_tree().process_frame
+	var fade_in: Tween = create_tween()
+	fade_in.tween_property(travel_cover,"color:a",0.0,0.25)
+	await fade_in.finished
+	travel_cover.hide()
+	travel_transition_active = false
+
+func _creation_changed() -> void:
+	_save_creation()

@@ -411,7 +411,7 @@ func advance_to_player(brain: RefCounted) -> void:
 	advance(brain)
 	var player: Dictionary = actors[player_id]
 	for catch_up: int in range(255):
-		if player.hp <= 0 or Combat.remaining(player.actions) > 0 or Momentum.speed(player) <= 0: break
+		if player.hp <= 0 or Combat.remaining(player.actions) > 0 or Momentum.speed(player,turn_threshold) <= 0: break
 		advance(brain)
 
 func set_speed_effect(actor_id: int, source: String, modifier: float) -> Dictionary:

@@ -26,6 +26,8 @@ var test_status: Label
 @export_category("Load Existing Draft")
 @export_file("*.tres") var load_path: String = ""
 @export_tool_button("Load Copy for Editing", "Load") var load_button: Callable = load_draft
+@export_category("Shape Painter")
+@export_enum("Skill board footprint","Attack pattern") var paint_layer: String = "Skill board footprint"
 @export_category("Custom Shape Helpers")
 ## Axial q,r. The preview labels every cell. First edit converts the selected preset to Custom.
 @export var cell_to_edit: Vector2i = Vector2i.ZERO
@@ -45,13 +47,13 @@ func _ready() -> void:
 		var buttons := HBoxContainer.new()
 		buttons.position = Vector2(24,690)
 		add_child(buttons)
-		for entry: Array in [["Save New Revision",save_draft],["New Blank Skill",new_draft]]:
+		for entry: Array in [["Save New Revision",save_draft],["New Blank Skill",new_draft],["Board footprint",func(): paint_layer = "Skill board footprint"],["Attack pattern",func(): paint_layer = "Attack pattern"]]:
 			var button := Button.new()
 			button.text = entry[0]
 			button.pressed.connect(entry[1])
 			buttons.add_child(button)
 func _process(_delta: float) -> void:
-	var signature: String = str(draft.as_data())+status if draft != null else status
+	var signature: String = str(draft.as_data())+status+paint_layer if draft != null else status
 	if signature != last_signature:
 		last_signature = signature
 		queue_redraw()
@@ -83,10 +85,18 @@ func _customize() -> void:
 		draft.shape = "Custom"
 		draft.rotation_steps = 0
 func add_cell() -> void:
+	if paint_layer == "Attack pattern":
+		if draft == null: draft = Draft.new()
+		if cell_to_edit not in draft.attack_cells: draft.attack_cells.append(cell_to_edit)
+		draft.emit_changed()
+		return
 	_customize()
 	if not draft.custom_cells.has(cell_to_edit): draft.custom_cells.append(cell_to_edit)
 	draft.emit_changed()
 func remove_cell() -> void:
+	if paint_layer == "Attack pattern":
+		if draft != null: draft.attack_cells.erase(cell_to_edit); draft.emit_changed()
+		return
 	_customize()
 	draft.custom_cells.erase(cell_to_edit)
 	draft.emit_changed()
@@ -130,7 +140,8 @@ func _draw() -> void:
 	if draft == null: return
 	draw_string(font,Vector2(24,103),draft.display_name if not draft.display_name.is_empty() else "Unnamed skill",HORIZONTAL_ALIGNMENT_LEFT,-1,24)
 	draw_string(font,Vector2(24,130),draft.bucket()+" · "+draft.skill_kind+" · "+str(draft.footprint().size())+" hexes",HORIZONTAL_ALIGNMENT_LEFT,-1,17)
-	var cells: Array[Vector2i] = draft.footprint()
+	var cells: Array[Vector2i] = draft.attack_cells if paint_layer == "Attack pattern" else draft.footprint()
+	draw_string(font,Vector2(24,160),paint_layer+" · actor/anchor (0,0) · facing RIGHT →",HORIZONTAL_ALIGNMENT_LEFT,-1,17,Color("eac56d"))
 	var visible: Dictionary = {}
 	for cell: Vector2i in Board.cells(): visible[cell] = true
 	for cell: Vector2i in cells: visible[cell] = true
@@ -156,7 +167,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if candidate < distance: distance = candidate; best = cell
 	if distance > RADIUS: return
 	cell_to_edit = best
-	if draft != null and draft.footprint().has(best): remove_cell()
+	if draft != null and (draft.attack_cells if paint_layer == "Attack pattern" else draft.footprint()).has(best): remove_cell()
 	else: add_cell()
 
 func _test_button(parent: Node, text: String, action: Callable) -> void:

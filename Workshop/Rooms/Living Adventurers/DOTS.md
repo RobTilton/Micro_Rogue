@@ -10,3 +10,9 @@ Acceptance: six successful peaceful steps trigger one simulation turn; live/near
 - [LivingAdventurers]+[Validation]+[Delivery] — complete. 67 automated checks passed, screenshots inspected, 105 protected file hashes unchanged, current-state and Room index synchronized.
 
 Last completed: [LivingAdventurers]+[Validation]+[Delivery]. No active implementation Box. Next: human F6 playtest; Production promotion requires a separate decision. See [CURRENT_STATE.md](CURRENT_STATE.md) for evidence and limits. Retain Room files and test outputs. No deletes or commits.
+
+- [LivingAdventurers]+[Production]+[Promotion] — complete. User checkpoint created and explicitly authorized Production promotion. Preserve existing save paths, remove testing controls from F5, validate actual Production scene and synchronize baseline.
+
+Current last completed: [LivingAdventurers]+[Production]+[Promotion]. 73 Production-targeted checks passed. Next: human F5 playtest. Production promotion is authorized and delivered; prior no-promotion boundary is superseded.
+
+- [LivingAdventurers]+[Movement]+[CheckpointCost] — complete (2026-09-18). Removed per-step geography invalidation, preserved per-step saves and immutable journal history. Snapshot assertions and 35 Production regression checks passed. Next: human F5 movement feel check.

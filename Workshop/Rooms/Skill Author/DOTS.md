@@ -5,3 +5,5 @@ Checkpoint: [Skill Board]+[Interface]+[Authoring]
 Original Inspector Authoring delivery retained, validated by its 54-check suite. The user authorized extending authoring and implementing the runtime skill board. Extension execution is tracked by `../Skill Board/DOTS.md`; originals preserved there under Reference/.
 
 Current tool: schema 2 family/hex adjacency and chain requirements, radius-four preview, shared-evaluator F6 multi-draft sandbox, revision-safe Library export. Documentation synchronized. Human authoring acceptance pending. No authored prose execution or Production import from Workshop. See README and CURRENT_STATE.
+
+[SkillAuthor]+[Shapes]+[SeparatePatterns] — complete 2026-09-18. User requested independent board/attack shapes and damage calculation text; implemented in Workshop, validated export and corrected axe_cleave revision 2. No gameplay implementation.

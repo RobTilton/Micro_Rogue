@@ -1,0 +1,20 @@
+extends SceneTree
+const Base = preload("res://Production/Persistence/persistent_actor_world.gd")
+const World = preload("res://Production/Persistence/adventurer_world.gd")
+func _initialize() -> void: call_deferred("run")
+func run() -> void:
+ var old = Base.new(152)
+ var actor: Dictionary = old.Actors.create([3,3,3,3,3,3])
+ old.add_actor(actor,"global",old.maps.maps.global.spawn_cell,"player","player")
+ old.start_in_town()
+ var id: String = old.maps.world_id
+ var saved: Dictionary = old.save_game("res://Workshop/Rooms/Living Adventurers/Tests/legacy/")
+ assert(saved.ok)
+ var world = World.new(153)
+ assert(world.load_game(old.last_save).ok)
+ assert(world.maps.world_id == id)
+ assert(world.actors[actor.id].stats == actor.stats)
+ assert(world.residents(world.region_of(world.actors[actor.id])).size() == 3)
+ assert(World.validate_adventurers(world.snapshot()).is_empty())
+ print("Production migration: 6 checks passed")
+ quit()

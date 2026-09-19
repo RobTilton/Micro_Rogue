@@ -32,3 +32,9 @@ Momentum, speed effects, free budget and world threshold persist in snapshots an
 `tests/integration_test.gd`: 13 checks passed headlessly covering Production startup, extra movement budget, free travel through fades, exact journal roundtrip, legacy migration and atomic malformed-save rejection. Test saves are isolated under this Room and retained. The same 13 checks also passed in the rendered OpenGL Production scene. Human playtest acceptance remains pending.
 
 Changed-file originals are in Reference; the prior Production manifest is Reference/BASELINE.json. Production/BASELINE.json records the adopted runtime. Prior Regional Release evidence describes its historical baseline. No Git commit was made.
+
+## Superseding momentum rule — 2026-09-18
+
+User changed shared gain to `world turn threshold + floor(effective DEX / 2) + momentum effects`, clamped at zero after effects. Default threshold is 3. All actors have the threshold as innate gain, so unmodified DEX 0–1 earns a full normal turn each tick; DEX 2–3 gains 4, DEX 4–5 gains 5, and DEX 6–7 gains 6. Extra grants remain flexible actions and remainders persist. Rings and source-keyed effects still modify gain, including slowing effects. Movement distance is unchanged.
+
+Grant calculation, player catch-up guard, HUD and Production offscreen expedition estimates use the world's actual threshold. Previous DEX-only examples/tests are historical and superseded by `tests/innate_momentum_test.gd` (12 checks passed). Production UI compilation passed. Existing momentum meters and saves are preserved. Changed source snapshots retained in Reference/InnateMomentum.

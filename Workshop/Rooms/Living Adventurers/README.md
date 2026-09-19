@@ -1,7 +1,7 @@
 # Living Adventurers
 Updated: 2026-09-17
 
-Workshop-only prototype. F5 still runs the unchanged Production game.
+Promoted to Production: **F5 now runs Living Adventurers** with normal production saves. The F6 prototype below remains isolated for testing.
 
 1. Open `AdventurerPlaytest.tscn` in Godot and press **F6**.
 2. Create a Workshop world and character. Six successful peaceful steps advance the NPC simulation.

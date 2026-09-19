@@ -1,0 +1,75 @@
+{
+	"adjacency_notes": "",
+	"adjacency_rules": [],
+	"allow_mirror": false,
+	"allow_rotation": true,
+	"attack_facing": "right (+1,0); actor (0,0)",
+	"attack_pattern": [
+		[
+			1,
+			-1
+		],
+		[
+			1,
+			0
+		],
+		[
+			0,
+			1
+		]
+	],
+	"balance_notes": "This skill is a basic attack. with cleaving +2. hex(1,0) is the origin of the attack, hex(0,1) is cleaving 1, hex(1,-1) is cleaving 2. IF the player gaines cleaving 3, hex(-1,1) would be the next to be targeted, followed by (0,-1), (-1,0).",
+	"board_definition": {
+		"adjacency": [],
+		"allow_mirror": false,
+		"allow_rotation": true,
+		"chain": 1,
+		"cost": 1,
+		"family": "Axe_Manship",
+		"footprint": [
+			[
+				0,
+				0
+			]
+		],
+		"prerequisites": []
+	},
+	"chain_notes": "",
+	"custom_bucket": "Axe_Manship",
+	"damage_calculation": "",
+	"display_name": "Cleaving_Strike",
+	"effect_description": "A sweeping strike aimed to fell anything in front of you.",
+	"footprint": [
+		[
+			0,
+			0
+		]
+	],
+	"legacy_notes": {
+		"chain_amount": 0,
+		"chain_bucket": "Same as skill",
+		"chain_measure": "Undecided",
+		"chain_tags": [],
+		"is_origin": false,
+		"origin_skill_id": "",
+		"requires_origin": true,
+		"tags": []
+	},
+	"minimum_points_in_bucket": 0,
+	"open_questions": "",
+	"optional_bonus_description": "",
+	"prerequisite_mode": "All listed",
+	"prerequisite_notes": "\n",
+	"prerequisite_skill_ids": [],
+	"required_chain_length": 1,
+	"resolved_bucket": "Axe_Manship",
+	"revision": 2,
+	"rotation_steps": 0,
+	"schema_version": 3,
+	"shape": "Single hex",
+	"skill_bucket": "Custom",
+	"skill_id": "axe_cleave",
+	"skill_kind": "Active ability",
+	"skill_point_cost": 1,
+	"status": "idea_only"
+}

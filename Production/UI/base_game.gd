@@ -19,6 +19,8 @@ var actions: Dictionary = {}
 var loot: Array = []
 var difficulty: int = 0
 var dice_slots: Array = []
+var character_name: String = ""
+var rerolls_remaining: int = 2
 var picked_slot: int = -1
 var die_buttons: Dictionary = {}
 var mode: String = "move"
@@ -80,6 +82,8 @@ func _show_splash() -> void:
 	_label(root, "STARTING SLICE  /  Character creation · Hex combat · Equipment · Skills", 16)
 
 func _new_character() -> void:
+	character_name = ""
+	rerolls_remaining = 2
 	dice_slots = Actors.dice()
 	for index: int in range(6): dice_slots.append(0)
 	picked_slot = -1
@@ -88,9 +92,17 @@ func _new_character() -> void:
 func _creation_ui() -> void:
 	_clear()
 	die_buttons.clear()
-	_label(root, "ONE ROLL. YOUR ADVENTURER.", 32)
+	_label(root, "YOUR ADVENTURER.", 32)
 	_label(root, "Drag dice into stats, or click a die then a stat. Swap freely before confirming.")
-	_label(root, "Six d6 · No rerolls · WIL × 3 maximum HP · CON powers healing events", 16)
+	_label(root, "Six d6 · Two extra rerolls · WIL × 3 maximum HP · CON powers healing events", 16)
+	_label(root, "Player name", 18)
+	var name_input := LineEdit.new()
+	name_input.placeholder_text = "Adventurer"
+	name_input.max_length = 40
+	name_input.text = character_name
+	name_input.text_changed.connect(func(value: String): character_name = value; _creation_changed())
+	root.add_child(name_input)
+	_button(root, "Reroll all dice (%d remaining)" % rerolls_remaining, _reroll_creation, rerolls_remaining > 0)
 	for group: int in range(2):
 		var row: HBoxContainer = HBoxContainer.new()
 		root.add_child(row)
@@ -115,11 +127,12 @@ func _creation_ui() -> void:
 			if value > 0: values.append(value)
 		values.shuffle()
 		dice_slots = [0,0,0,0,0,0] + values
-		_creation_ui())
+		_creation_ui()
+		_creation_changed())
 	var options: OptionButton = OptionButton.new()
 	for title: String in ["Normal — round in your favor", "Hard — round all damage up", "True Rogue — round against you"]: options.add_item(title)
 	options.selected = difficulty
-	options.item_selected.connect(func(index: int): difficulty = index)
+	options.item_selected.connect(func(index: int): difficulty = index; _creation_changed())
 	root.add_child(options)
 	var assigned: bool = true
 	for index: int in range(6,12):
@@ -458,3 +471,15 @@ func _enemy_route() -> Array:
 		current = best
 		route.append(current)
 	return route
+
+func _creation_changed() -> void:
+	pass
+
+func _reroll_creation() -> void:
+	if rerolls_remaining <= 0: return
+	rerolls_remaining -= 1
+	dice_slots = Actors.dice()
+	for index: int in range(6): dice_slots.append(0)
+	picked_slot = -1
+	_creation_ui()
+	_creation_changed()

@@ -65,3 +65,11 @@ Chest Rarity (2026-09-17): reviewed rings/amulets design; persistent 75% normal 
 - [Rings](Rings/CURRENT_STATE.md): Production ring equipment, all variants, derived effects, loot and persistence; eight paperdoll slots. Agent-verified, human playtest pending.
 
 - [Living Adventurers](Living%20Adventurers/CURRENT_STATE.md): Workshop-only F6 NPC adventuring, six-step simulation and permanent retirement; isolated saves, 67 checks passed. Production unchanged; human playtest pending.
+
+Living Adventurers promoted (2026-09-17): F5 includes six-step NPC simulation, persistent expeditions and town retirement. Normal production save locations retained; existing worlds migrate without resetting. 73 Production-targeted checks passed. See `Workshop/Rooms/Living Adventurers/CURRENT_STATE.md`.
+
+Character Identity (2026-09-18): player name and two extra full rerolls per new character, persisted through unfinished-creation saves. 17 scene checks passed. See `Workshop/Rooms/Character Identity/CURRENT_STATE.md`.
+
+Creature Advancement (2026-09-18): non-humanoids receive two points per level, humanoids one; XP, aging and spawn-level rewards share the rule. Existing creature stat spending retained. See `Workshop/Rooms/Creature Advancement/CURRENT_STATE.md`.
+
+Skill Catalog Reset (2026-09-18): live skills emptied for authoring; placeholder skills refunded/removed on save load. Draft Library and authoring tool preserved. See `Workshop/Rooms/Skill Catalog Reset/CURRENT_STATE.md`.

@@ -135,6 +135,7 @@ func _refresh() -> void:
 		board.item_tooltips[cell] = text+("\n\n"+board.item_tooltips[cell] if board.item_tooltips.has(cell) else "")
 	if mode == "lunge": board.highlights = simulation.paths(player,Rings.stat(player,"DEX")).keys() if _skill_available("Lunge") else []
 	board.queue_redraw()
+	for removed_skill: String in ["Lunge","Riposte"]: hud.buttons[removed_skill].hide()
 	hud.gold.text = "Gold\n"+str(player.get("gold",0))
 	hud.state.text += "\n"+preload("res://Production/World/world_clock.gd").label(simulation.world_hours)
 	hud.buttons["End Turn"].disabled = player.hp <= 0
@@ -142,9 +143,9 @@ func _refresh() -> void:
 	if player.hp <= 0:
 		hud.buttons["End Turn"].disabled = false
 		hud.buttons["End Turn"].text = "New adventurer"
-	hud.state.tooltip_text = "World threshold %d. DEX + effects = %.2f speed. Momentum carries over; each extra grant adds one free action." % [simulation.turn_threshold,simulation.Momentum.speed(player)]
+	hud.state.tooltip_text = "World threshold %d. Innate threshold + floor(DEX / 2) + effects = %.2f speed. Momentum carries over; each extra grant adds one free action." % [simulation.turn_threshold,simulation.Momentum.speed(player,simulation.turn_threshold)]
 	if battle:
-		hud.state.text += "\nMomentum %.2f / %d · Speed %.2f" % [player.get("momentum",0.0),simulation.turn_threshold,simulation.Momentum.speed(player)]
+		hud.state.text += "\nMomentum %.2f / %d · Speed %.2f" % [player.get("momentum",0.0),simulation.turn_threshold,simulation.Momentum.speed(player,simulation.turn_threshold)]
 	else:
 		hud.state.text = "Exploration · actions are free\n"+preload("res://Production/World/world_clock.gd").label(simulation.world_hours)
 		hud.state.tooltip_text = "Turn budgets apply during combat. Gold costs and travel/rest time still apply."
@@ -474,6 +475,7 @@ func _skills_panel(parent: Node) -> void:
 	for family: String in SkillBoard.families(player):
 		if not player.skill_board.origins.has(family):
 			Parts.button(tools,"Place permanent "+family+" origin",func(): board_origin = family; board_selection = ""; _refresh())
+	if SkillBoard.DEFINITIONS.is_empty(): Parts.label(tools,"No skills available yet. Authoring in progress.",16)
 	var states: Dictionary = SkillBoard.evaluate(player)
 	for skill: String in SkillBoard.DEFINITIONS:
 		if skill in player.skills:

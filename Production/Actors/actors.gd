@@ -15,4 +15,7 @@ static func award_xp(actor: Dictionary, amount: int) -> void:
 		actor.xp -= actor.required_xp
 		actor.required_xp *= 2
 		actor.level += 1
-		actor.points += 1
+		actor.points += level_point_reward(actor)
+
+static func level_point_reward(actor: Dictionary) -> int:
+	return 1 if actor.get("humanoid",true) else 2

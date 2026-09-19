@@ -13,3 +13,5 @@ Rob accepted persistent per-actor momentum, base action set for the first grant 
 Starting baseline: Production/BASELINE.json; no user Git checkpoint. Runtime edits are limited to actor rules, scheduling, dependent UI/persistence and their current-state references. Source baselines preserved under Reference/. Items remain Rob's active design work.
 
 Implementation and headless validation complete: 28 scheduler/action checks and 13 Production/save integration checks pass. See CURRENT_STATE.md for behavior, hooks and limits. Rendered Production integration also passed all 13 checks (OpenGL); human acceptance pending. Baseline audited: changed runtime files stay within Actors/UI/Persistence; item generation, world generation and artwork hashes unchanged; no runtime Workshop dependency.
+
+[Momentum]+[Innate]+[DexBonus] — complete 2026-09-18. Shared threshold-based innate gain plus floor(DEX/2), effects retained. 12 focused checks and Production UI compile passed.

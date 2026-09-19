@@ -39,7 +39,7 @@ Earlier executable code is retained under `Production/Previous/WorldFoundation` 
 
 [Release evidence and limits](<../Workshop/Rooms/Regional Release/CURRENT_STATE.md>). Contextual menus, boats, roads, direct edge crossing, economy and new item/class systems remain separate work. No Git commit was made.
 
-Momentum scheduling is adopted with threshold **3**, effective speed **DEX + effects**, persistent remainders and one flexible action per extra grant. See [Momentum rules and item/effect hooks](<../Workshop/Rooms/Momentum Foundation/CURRENT_STATE.md>).
+Momentum scheduling is adopted with threshold **3**, effective speed **threshold + floor(DEX / 2) + effects**, persistent remainders and one flexible action per extra grant. See [Momentum rules and item/effect hooks](<../Workshop/Rooms/Momentum Foundation/CURRENT_STATE.md>).
 
 Equipment Integration is now adopted: generated material/quality gear, Physical/Magical damage with zero minimum, fixed armor contributions, seven equipment slots, handedness and initial ranged attacks. See [current rules and test evidence](<../Workshop/Rooms/Equipment Integration/CURRENT_STATE.md>). Existing compatible saves gain empty accessory slots; no world reset is required.
 
@@ -112,3 +112,13 @@ F5 includes eight usable ring slots and all 31 variants from the jewelry design.
 Ring economy correction: Lesser buy/sell 50/5 gold; paired Greater 250/25; Greater-only action rings untradeable with no displayed gold value. Current ring quotes also apply to saved shop offers. Prosperity/hostility price modifiers are not implemented. Validated with 18 focused checks.
 
 Equipment quality weights: Trash 15%, Common 51%, Exceptional 25%, Masterwork 8%, Mythic 0.9%, Touched by the Gods 0.1%. Applied to new generation; ring grades use their separate policy.
+
+Living Adventurers promoted (2026-09-17): F5 includes six-step NPC simulation, persistent expeditions and town retirement. Normal production save locations retained; existing worlds migrate without resetting. 73 Production-targeted checks passed. See `Workshop/Rooms/Living Adventurers/CURRENT_STATE.md`.
+
+Movement checkpoint fix (2026-09-18): peaceful steps persist scheduler state without rebuilding unchanged geography. Per-step autosave retained; measured repeated checkpoint cost reduced from roughly 180 ms to 16–18 ms in the starting-town fixture. See Living Adventurers current state.
+
+Character Identity (2026-09-18): player name and two extra full rerolls per new character, persisted through unfinished-creation saves. 17 scene checks passed. See `Workshop/Rooms/Character Identity/CURRENT_STATE.md`.
+
+Creature Advancement (2026-09-18): non-humanoids receive two points per level, humanoids one; XP, aging and spawn-level rewards share the rule. Existing creature stat spending retained. See `Workshop/Rooms/Creature Advancement/CURRENT_STATE.md`.
+
+Skill Catalog Reset (2026-09-18): live skills emptied for authoring; placeholder skills refunded/removed on save load. Draft Library and authoring tool preserved. See `Workshop/Rooms/Skill Catalog Reset/CURRENT_STATE.md`.

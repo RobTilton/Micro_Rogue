@@ -12,13 +12,19 @@ const DIRECTIONS: Array[Vector2i] = [Vector2i(1,0),Vector2i(1,-1),Vector2i(0,-1)
 @export_storage var tags: PackedStringArray = []
 @export_storage var is_origin: bool = false
 @export_enum("Active ability","Passive","Neighbor modifier","Origin","Undecided") var skill_kind: String = "Undecided"
-@export_category("Footprint")
+@export_category("Skill Board Footprint")
 @export_enum("Single hex","Two hex line","Three hex line","Three hex bend","Three hex triangle","Four hex hook","Seven hex flower","Custom") var shape: String = "Single hex"
 @export_range(0,5) var rotation_steps: int = 0
 @export var allow_rotation: bool = true
 @export var allow_mirror: bool = false
 ## Axial coordinates. Use the author's Add/Remove Cell buttons if easier than editing this array.
 @export var custom_cells: Array[Vector2i] = [Vector2i.ZERO]
+@export_category("Attack Pattern")
+## Separate from board occupancy. Actor is (0,0), facing right toward (1,0).
+## Empty is valid for passive or unfinished skills. Disconnected targets are allowed.
+@export var attack_cells: Array[Vector2i] = []
+## Design text only, e.g. Normal weapon damage per target. Never executed as code.
+@export_multiline var damage_calculation: String = ""
 @export_category("Unlock Prerequisites")
 @export_range(0,100) var skill_point_cost: int = 1
 @export var prerequisite_skill_ids: PackedStringArray = []
@@ -89,16 +95,19 @@ func problems() -> PackedStringArray:
 		if rule == null: errors.append("An adjacency entry is empty. Create its rule resource or remove that entry.")
 	return errors
 func as_data() -> Dictionary:
-	var result: Dictionary = {"schema_version":2,"status":"idea_only","legacy_notes":{"tags":Array(tags),"is_origin":is_origin,"requires_origin":requires_origin,"origin_skill_id":origin_skill_id,"chain_bucket":chain_bucket,"chain_measure":chain_measure,"chain_amount":chain_amount,"chain_tags":Array(chain_tags)}}
+	var result: Dictionary = {"schema_version":3,"status":"idea_only","legacy_notes":{"tags":Array(tags),"is_origin":is_origin,"requires_origin":requires_origin,"origin_skill_id":origin_skill_id,"chain_bucket":chain_bucket,"chain_measure":chain_measure,"chain_amount":chain_amount,"chain_tags":Array(chain_tags)}}
 	for property: Dictionary in get_property_list():
 		if not (property.usage & PROPERTY_USAGE_SCRIPT_VARIABLE) or not (property.usage & PROPERTY_USAGE_EDITOR): continue
 		var value = get(property.name)
-		if property.name in ["custom_cells","adjacency_rules"]: continue
+		if property.name in ["custom_cells","attack_cells","adjacency_rules"]: continue
 		result[property.name] = Array(value) if value is PackedStringArray else value
 	result.skill_id = identifier()
 	result.resolved_bucket = bucket()
 	result.footprint = []
 	for cell: Vector2i in footprint(): result.footprint.append([cell.x,cell.y])
+	result.attack_pattern = []
+	for cell: Vector2i in attack_cells: result.attack_pattern.append([cell.x,cell.y])
+	result.attack_facing = "right (+1,0); actor (0,0)"
 	result.board_definition = board_definition()
 	result.board_definition.footprint = result.footprint.duplicate(true)
 	result.adjacency_rules = []

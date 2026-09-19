@@ -24,3 +24,11 @@ Disable Test On Skill Board for the original F6 click-to-paint footprint preview
 
 ## What this does not do
 Effects are still prose for implementation, not executable skills. Attack coverage/animations/projectile settings are separate future fields. The author exports deterministic spatial data for promotion; Production does not automatically import Workshop drafts. Old experimental tag/chain/count selectors are retained in resource legacy notes, not used instead of the settled family/hex/chain rules.
+
+## Separate shapes and damage text — 2026-09-18
+
+Draft → Skill Board Footprint controls board occupancy only. Draft → Attack Pattern → Attack Cells stores independent axial targets, with the actor at (0,0) facing right toward (1,0). Damage Calculation is multiline design text, not executable code. Empty patterns are allowed for passive/WIP ideas; targets may be disconnected.
+
+Select Shape Painter → Paint Layer in the Inspector to choose which shape Add/Remove edits. In F6 painter mode, use the Board footprint / Attack pattern buttons before clicking hexes. Board Test continues to use only the board footprint. Board rotation does not rotate attack data. JSON schema 3 exports `attack_pattern`, `attack_facing` and `damage_calculation` separately from `board_definition.footprint`.
+
+Cleaving Strike `Library/axe_cleave_r002.tres` corrects the board footprint to one hex and retains its three attack targets and original notes. Damage remains unspecified. Load that revision via Load Existing Draft → Load Copy for Editing. Revision 1 is preserved. Pattern edit/export/round-trip checks passed (`tests/pattern_test.gd`). No gameplay effect or Production change was made.
